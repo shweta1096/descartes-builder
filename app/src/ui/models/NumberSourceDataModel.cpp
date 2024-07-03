@@ -1,15 +1,15 @@
-#include "NumberSourceDataModel.hpp"
+#include "ui/models/NumberSourceDataModel.hpp"
 
-#include "DecimalData.hpp"
+#include "ui/models/DecimalData.hpp"
 
 #include <QtCore/QJsonValue>
 #include <QtGui/QDoubleValidator>
 #include <QtWidgets/QLineEdit>
 
 NumberSourceDataModel::NumberSourceDataModel()
-    : _lineEdit{nullptr}
-    , _number(std::make_shared<DecimalData>(0.0))
-{}
+    : _lineEdit{nullptr}, _number(std::make_shared<DecimalData>(0.0))
+{
+}
 
 QJsonObject NumberSourceDataModel::save() const
 {
@@ -24,12 +24,14 @@ void NumberSourceDataModel::load(QJsonObject const &p)
 {
     QJsonValue v = p["number"];
 
-    if (!v.isUndefined()) {
+    if (!v.isUndefined())
+    {
         QString strNum = v.toString();
 
         bool ok;
         double d = strNum.toDouble(&ok);
-        if (ok) {
+        if (ok)
+        {
             _number = std::make_shared<DecimalData>(d);
 
             if (_lineEdit)
@@ -42,7 +44,8 @@ unsigned int NumberSourceDataModel::nPorts(PortType portType) const
 {
     unsigned int result = 1;
 
-    switch (portType) {
+    switch (portType)
+    {
     case PortType::In:
         result = 0;
         break;
@@ -63,12 +66,14 @@ void NumberSourceDataModel::onTextEdited(QString const &str)
 
     double number = str.toDouble(&ok);
 
-    if (ok) {
+    if (ok)
+    {
         _number = std::make_shared<DecimalData>(number);
 
         Q_EMIT dataUpdated(0);
-
-    } else {
+    }
+    else
+    {
         Q_EMIT dataInvalidated(0);
     }
 }
@@ -85,7 +90,8 @@ std::shared_ptr<NodeData> NumberSourceDataModel::outData(PortIndex)
 
 QWidget *NumberSourceDataModel::embeddedWidget()
 {
-    if (!_lineEdit) {
+    if (!_lineEdit)
+    {
         _lineEdit = new QLineEdit();
 
         _lineEdit->setValidator(new QDoubleValidator());

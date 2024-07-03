@@ -1,4 +1,4 @@
-#include "main_window.hpp"
+#include "ui/main_window.hpp"
 
 #include <QScreen>
 #include <QMenuBar>
@@ -19,55 +19,8 @@ using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
 using QtNodes::NodeDelegateModelRegistry;
 
-#include "ui/models/AdditionModel.hpp"
-#include "ui/models/DivisionModel.hpp"
-#include "ui/models/MultiplicationModel.hpp"
-#include "ui/models/NumberDisplayDataModel.hpp"
-#include "ui/models/NumberSourceDataModel.hpp"
-#include "ui/models/SubtractionModel.hpp"
-
-namespace
-{
-    static std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
-    {
-        auto ret = std::make_shared<NodeDelegateModelRegistry>();
-        ret->registerModel<NumberSourceDataModel>("Sources");
-
-        ret->registerModel<NumberDisplayDataModel>("Displays");
-
-        ret->registerModel<AdditionModel>("Operators");
-
-        ret->registerModel<SubtractionModel>("Operators");
-
-        ret->registerModel<MultiplicationModel>("Operators");
-
-        ret->registerModel<DivisionModel>("Operators");
-
-        return ret;
-    }
-
-    static void initConnectionStyle()
-    {
-        ConnectionStyle::setConnectionStyle(
-            R"(
-  {
-    "ConnectionStyle": {
-      "ConstructionColor": "gray",
-      "NormalColor": "black",
-      "SelectedColor": "gray",
-      "SelectedHaloColor": "deepskyblue",
-      "HoveredColor": "deepskyblue",
-
-      "LineWidth": 3.0,
-      "ConstructionLineWidth": 2.0,
-      "PointDiameter": 10.0,
-
-      "UseDataDefinedColors": true
-    }
-  }
-  )");
-    }
-}
+#include "data/constants.hpp"
+#include "ui/model_registry.hpp"
 
 MainWindow::MainWindow()
 {
@@ -84,8 +37,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::initScene()
 {
-    initConnectionStyle();
-    std::shared_ptr<NodeDelegateModelRegistry> registry = registerDataModels();
+    ConnectionStyle::setConnectionStyle(constants::CONNECTION_STYLE);
+    std::shared_ptr<NodeDelegateModelRegistry> registry = model_registry::registerDataModels();
 
     m_centralWidget = new QWidget();
     setCentralWidget(m_centralWidget);

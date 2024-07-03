@@ -1,4 +1,4 @@
-#include "NumberDisplayDataModel.hpp"
+#include "ui/models/NumberDisplayDataModel.hpp"
 
 #include <QtWidgets/QLabel>
 

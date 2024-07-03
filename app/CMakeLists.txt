@@ -17,10 +17,10 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test)
 
 add_subdirectory(external/qtnodes)
 
-include_directories(src)
+include_directories(include)
 
 file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
-file(GLOB_RECURSE PROJECT_HEADERS "src/*.hpp")
+file(GLOB_RECURSE PROJECT_HEADERS "include/*.hpp")
 file(GLOB_RECURSE PROJECT_RESOURCES "resources/*.qrc")
 
 qt_add_executable(DescartesBuilder MANUAL_FINALIZATION main.cpp
