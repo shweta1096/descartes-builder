@@ -4,13 +4,15 @@
 
 NumberDisplayDataModel::NumberDisplayDataModel()
     : _label{nullptr}
-{}
+{
+}
 
 unsigned int NumberDisplayDataModel::nPorts(PortType portType) const
 {
     unsigned int result = 1;
 
-    switch (portType) {
+    switch (portType)
+    {
     case PortType::In:
         result = 1;
         break;
@@ -43,9 +45,12 @@ void NumberDisplayDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex
     if (!_label)
         return;
 
-    if (_numberData) {
+    if (_numberData)
+    {
         _label->setText(_numberData->numberAsText());
-    } else {
+    }
+    else
+    {
         _label->clear();
     }
 
@@ -54,7 +59,8 @@ void NumberDisplayDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex
 
 QWidget *NumberDisplayDataModel::embeddedWidget()
 {
-    if (!_label) {
+    if (!_label)
+    {
         _label = new QLabel();
         _label->setMargin(3);
     }

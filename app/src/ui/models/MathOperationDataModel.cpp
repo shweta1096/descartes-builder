@@ -28,13 +28,17 @@ void MathOperationDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex
 {
     auto numberData = std::dynamic_pointer_cast<DecimalData>(data);
 
-    if (!data) {
+    if (!data)
+    {
         Q_EMIT dataInvalidated(0);
     }
 
-    if (portIndex == 0) {
+    if (portIndex == 0)
+    {
         _number1 = numberData;
-    } else {
+    }
+    else
+    {
         _number2 = numberData;
     }
 

@@ -27,7 +27,8 @@ public:
 
     QString portCaption(PortType portType, PortIndex portIndex) const override
     {
-        switch (portType) {
+        switch (portType)
+        {
         case PortType::In:
             if (portIndex == 0)
                 return QStringLiteral("Dividend");
@@ -55,17 +56,22 @@ private:
         auto n1 = _number1.lock();
         auto n2 = _number2.lock();
 
-        if (n2 && (n2->number() == 0.0)) {
-            //modelValidationState = NodeValidationState::Error;
-            //modelValidationError = QStringLiteral("Division by zero error");
+        if (n2 && (n2->number() == 0.0))
+        {
+            // modelValidationState = NodeValidationState::Error;
+            // modelValidationError = QStringLiteral("Division by zero error");
             _result.reset();
-        } else if (n1 && n2) {
-            //modelValidationState = NodeValidationState::Valid;
-            //modelValidationError = QString();
+        }
+        else if (n1 && n2)
+        {
+            // modelValidationState = NodeValidationState::Valid;
+            // modelValidationError = QString();
             _result = std::make_shared<DecimalData>(n1->number() / n2->number());
-        } else {
-            //modelValidationState = NodeValidationState::Warning;
-            //modelValidationError = QStringLiteral("Missing or incorrect inputs");
+        }
+        else
+        {
+            // modelValidationState = NodeValidationState::Warning;
+            // modelValidationError = QStringLiteral("Missing or incorrect inputs");
             _result.reset();
         }
 

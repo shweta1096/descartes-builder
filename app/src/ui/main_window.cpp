@@ -71,13 +71,47 @@ namespace
 
 MainWindow::MainWindow()
 {
+    initScene();
+    initMenu();
+
+    setWindowTitle("DesCartes Builder");
+    setGeometry(QApplication::primaryScreen()->availableGeometry());
+}
+
+MainWindow::~MainWindow()
+{
+}
+
+void MainWindow::initScene()
+{
     initConnectionStyle();
     std::shared_ptr<NodeDelegateModelRegistry> registry = registerDataModels();
 
-    auto mainWidget = new QWidget();
-    setCentralWidget(mainWidget);
+    m_centralWidget = new QWidget();
+    setCentralWidget(m_centralWidget);
 
+    // this model is referenced by DataFlowGraphicsScene and needs to be kept
+    // for the lifetime of mainWidget
+    auto dataFlowGraphModel = new DataFlowGraphModel(registry);
+    dataFlowGraphModel->setParent(m_centralWidget);
+
+    QVBoxLayout *layout = new QVBoxLayout(m_centralWidget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    m_scene = new DataFlowGraphicsScene(*dataFlowGraphModel, m_centralWidget);
+    auto view = new GraphicsView(m_scene);
+    layout->addWidget(view);
+
+    QObject::connect(m_scene, &DataFlowGraphicsScene::sceneLoaded, view, &GraphicsView::centerScene);
+    QObject::connect(m_scene, &DataFlowGraphicsScene::modified, m_centralWidget, [this]()
+                     { m_centralWidget->setWindowModified(true); });
+}
+
+void MainWindow::initMenu()
+{
     auto menuBar = new QMenuBar();
+    setMenuBar(menuBar);
     QMenu *menu = menuBar->addMenu("File");
 
     auto saveAction = menu->addAction("Save Scene");
@@ -86,38 +120,9 @@ MainWindow::MainWindow()
     auto loadAction = menu->addAction("Load Scene");
     loadAction->setShortcut(QKeySequence::Open);
 
-    QVBoxLayout *l = new QVBoxLayout(mainWidget);
-
-    // this model is referenced by DataFlowGraphicsScene and needs to be kept
-    // for the lifetime of mainWidget
-    auto dataFlowGraphModel = new DataFlowGraphModel(registry);
-    dataFlowGraphModel->setParent(mainWidget);
-
-    l->addWidget(menuBar);
-    auto scene = new DataFlowGraphicsScene(*dataFlowGraphModel, mainWidget);
-
-    auto view = new GraphicsView(scene);
-    l->addWidget(view);
-    l->setContentsMargins(0, 0, 0, 0);
-    l->setSpacing(0);
-
-    QObject::connect(saveAction, &QAction::triggered, scene, [scene, mainWidget]()
+    QObject::connect(saveAction, &QAction::triggered, m_scene, [this]()
                      {
-        if (scene->save())
-            mainWidget->setWindowModified(false); });
-
-    QObject::connect(loadAction, &QAction::triggered, scene, &DataFlowGraphicsScene::load);
-
-    QObject::connect(scene, &DataFlowGraphicsScene::sceneLoaded, view, &GraphicsView::centerScene);
-
-    QObject::connect(scene, &DataFlowGraphicsScene::modified, mainWidget, [mainWidget]()
-                     { mainWidget->setWindowModified(true); });
-
-    setWindowTitle("[*]Data Flow: simplest calculator");
-    resize(800, 600);
-    move(QApplication::primaryScreen()->availableGeometry().center() - rect().center());
-}
-
-MainWindow::~MainWindow()
-{
+        if (m_scene->save())
+            m_centralWidget->setWindowModified(false); });
+    QObject::connect(loadAction, &QAction::triggered, m_scene, &DataFlowGraphicsScene::load);
 }

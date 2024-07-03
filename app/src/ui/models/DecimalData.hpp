@@ -12,11 +12,13 @@ class DecimalData : public NodeData
 public:
     DecimalData()
         : _number(0.0)
-    {}
+    {
+    }
 
     DecimalData(double const number)
         : _number(number)
-    {}
+    {
+    }
 
     NodeDataType type() const override { return NodeDataType{"decimal", "Decimal"}; }
 
