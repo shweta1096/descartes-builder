@@ -20,7 +20,7 @@ add_subdirectory(external/qtnodes)
 include_directories(src)
 
 file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
-file(GLOB_RECURSE PROJECT_HEADERS "src/*.h")
+file(GLOB_RECURSE PROJECT_HEADERS "src/*.hpp")
 file(GLOB_RECURSE PROJECT_RESOURCES "resources/*.qrc")
 
 qt_add_executable(DescartesBuilder MANUAL_FINALIZATION main.cpp

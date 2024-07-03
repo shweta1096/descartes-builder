@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "AdditionModel.hpp"
+#include "ui/models/AdditionModel.hpp"
 
 class AddTest : public ::testing::Test
 {
