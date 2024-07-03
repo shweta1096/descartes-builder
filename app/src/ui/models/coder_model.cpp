@@ -1,10 +1,10 @@
-#include "ui/models/test_model.hpp"
+#include "ui/models/coder_model.hpp"
 
-TestModel::TestModel()
+CoderModel::CoderModel()
 {
 }
 
-unsigned int TestModel::nPorts(PortType const portType) const
+unsigned int CoderModel::nPorts(PortType const portType) const
 {
     unsigned int result = 1;
 
@@ -24,7 +24,7 @@ unsigned int TestModel::nPorts(PortType const portType) const
     return result;
 }
 
-NodeDataType TestModel::dataType(PortType const portType, PortIndex const portIndex) const
+NodeDataType CoderModel::dataType(PortType const portType, PortIndex const portIndex) const
 {
     switch (portType)
     {
@@ -53,11 +53,11 @@ NodeDataType TestModel::dataType(PortType const portType, PortIndex const portIn
     return NodeDataType();
 }
 
-std::shared_ptr<NodeData> TestModel::outData(PortIndex const port)
+std::shared_ptr<NodeData> CoderModel::outData(PortIndex const port)
 {
     return std::make_shared<DataNode>();
 }
 
-void TestModel::setInData(std::shared_ptr<NodeData>, PortIndex const)
+void CoderModel::setInData(std::shared_ptr<NodeData>, PortIndex const)
 {
 }
