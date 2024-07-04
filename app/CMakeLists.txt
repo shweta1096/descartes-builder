@@ -16,6 +16,7 @@ find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test)
 
 add_subdirectory(external/qtnodes)
+add_subdirectory(external/qtutility)
 
 include_directories(include)
 
@@ -31,7 +32,7 @@ qt_add_executable(DescartesBuilder MANUAL_FINALIZATION main.cpp
 # https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 
 target_link_libraries(DescartesBuilder PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-                                               QtNodes)
+                                               QtNodes QtUtility)
 
 set_target_properties(
   DescartesBuilder
@@ -57,7 +58,7 @@ add_library(DescartesBuilder_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                         ${PROJECT_RESOURCES})
 
 target_link_libraries(DescartesBuilder_lib
-                      PRIVATE Qt${QT_VERSION_MAJOR}::Widgets QtNodes)
+                      PRIVATE Qt${QT_VERSION_MAJOR}::Widgets QtNodes QtUtility)
 # unit tests
 
 add_subdirectory(external/googletest)
@@ -72,6 +73,6 @@ add_executable(unitTests ${TEST_SOURCES})
 
 target_link_libraries(
   unitTests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Test
-                    gtest DescartesBuilder_lib QtNodes)
+                    gtest DescartesBuilder_lib QtNodes QtUtility)
 
 gtest_discover_tests(unitTests)
