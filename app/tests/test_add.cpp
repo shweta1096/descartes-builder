@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "ui/models/examples/AdditionModel.hpp"
-
 class AddTest : public ::testing::Test
 {
 protected:

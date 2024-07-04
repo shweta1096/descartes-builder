@@ -1,10 +1,10 @@
 #include "ui/main_window.hpp"
 
-#include <QScreen>
-#include <QMenuBar>
-#include <QVBoxLayout>
-#include <QScreen>
 #include <QApplication>
+#include <QScreen>
+#include <QVBoxLayout>
+#include <QMenuBar>
+#include <QToolBar>
 
 #include <QtNodes/ConnectionStyle>
 #include <QtNodes/NodeDelegateModelRegistry>
@@ -25,7 +25,8 @@ using QtNodes::NodeDelegateModelRegistry;
 MainWindow::MainWindow()
 {
     initScene();
-    initMenu();
+    initMenuBar();
+    initToolBar();
 
     setWindowTitle("DesCartes Builder");
     setGeometry(QApplication::primaryScreen()->availableGeometry());
@@ -61,16 +62,16 @@ void MainWindow::initScene()
                      { m_centralWidget->setWindowModified(true); });
 }
 
-void MainWindow::initMenu()
+void MainWindow::initMenuBar()
 {
     auto menuBar = new QMenuBar();
     setMenuBar(menuBar);
+
     QMenu *menu = menuBar->addMenu("File");
-
     auto saveAction = menu->addAction("Save Scene");
-    saveAction->setShortcut(QKeySequence::Save);
-
     auto loadAction = menu->addAction("Load Scene");
+
+    saveAction->setShortcut(QKeySequence::Save);
     loadAction->setShortcut(QKeySequence::Open);
 
     QObject::connect(saveAction, &QAction::triggered, m_scene, [this]()
@@ -78,4 +79,16 @@ void MainWindow::initMenu()
         if (m_scene->save())
             m_centralWidget->setWindowModified(false); });
     QObject::connect(loadAction, &QAction::triggered, m_scene, &DataFlowGraphicsScene::load);
+}
+
+void MainWindow::initToolBar()
+{
+    auto toolBar = new QToolBar("Primary Side Bar");
+    toolBar->setMovable(false);
+    addToolBar(Qt::LeftToolBarArea, toolBar);
+
+    auto blocksAction = toolBar->addAction("Blocks");
+    auto menuAction = toolBar->addAction("Menu");
+    auto optionsAction = toolBar->addAction("Options");
+    auto informationAction = toolBar->addAction("Information");
 }
