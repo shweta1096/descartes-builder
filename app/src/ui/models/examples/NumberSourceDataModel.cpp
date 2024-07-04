@@ -1,6 +1,6 @@
-#include "ui/models/NumberSourceDataModel.hpp"
+#include "ui/models/examples/NumberSourceDataModel.hpp"
 
-#include "ui/models/DecimalData.hpp"
+#include "ui/models/examples/DecimalData.hpp"
 
 #include <QtCore/QJsonValue>
 #include <QtGui/QDoubleValidator>

@@ -1,6 +1,6 @@
-#include "ui/models/MathOperationDataModel.hpp"
+#include "ui/models/examples/MathOperationDataModel.hpp"
 
-#include "ui/models/DecimalData.hpp"
+#include "ui/models/examples/DecimalData.hpp"
 
 unsigned int MathOperationDataModel::nPorts(PortType portType) const
 {
