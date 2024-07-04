@@ -4,6 +4,3 @@
 [submodule "app/external/qtnodes"]
 	path = app/external/qtnodes
 	url = https://github.com/nicholasng99/nodeeditor.git
-[submodule "app/external/qtutility"]
-	path = app/external/qtutility
-	url = https://github.com/nicholasng99/qtutility.git
