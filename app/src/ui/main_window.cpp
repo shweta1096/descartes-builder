@@ -22,6 +22,8 @@ using QtNodes::NodeDelegateModelRegistry;
 #include "data/constants.hpp"
 #include "ui/model_registry.hpp"
 
+#include <QtUtility/media/media.hpp>
+
 MainWindow::MainWindow()
 {
     initScene();
@@ -87,7 +89,7 @@ void MainWindow::initToolBar()
     toolBar->setMovable(false);
     addToolBar(Qt::LeftToolBarArea, toolBar);
 
-    auto blocksAction = toolBar->addAction("Blocks");
+    auto blocksAction = toolBar->addAction(Media::recolor(QIcon(":/blocks.png"), Qt::white), "Blocks");
     auto menuAction = toolBar->addAction("Menu");
     auto optionsAction = toolBar->addAction("Options");
     auto informationAction = toolBar->addAction("Information");

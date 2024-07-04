@@ -5,8 +5,6 @@ project(
   VERSION 0.1
   LANGUAGES CXX)
 
-option(BUILD_TESTS "BUILD TESTS" ON)
-
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -62,21 +60,18 @@ add_library(DescartesBuilder_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
 target_link_libraries(DescartesBuilder_lib
                       PRIVATE Qt${QT_VERSION_MAJOR}::Widgets QtNodes QtUtility)
 
-if(BUILD_TESTS)
-  add_subdirectory(external/googletest)
-  include(GoogleTest)
-  include(CTest)
+add_subdirectory(external/googletest)
+include(GoogleTest)
+include(CTest)
 
-  enable_testing()
+enable_testing()
 
-  file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
+file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
 
-  add_executable(unitTests ${TEST_SOURCES})
+add_executable(unitTests ${TEST_SOURCES})
 
-  target_link_libraries(
-    unitTests
-    PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Test gtest
-            DescartesBuilder_lib QtNodes QtUtility)
+target_link_libraries(
+  unitTests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Test
+                    gtest DescartesBuilder_lib QtNodes QtUtility)
 
-  gtest_discover_tests(unitTests)
-endif()
+gtest_discover_tests(unitTests)
