@@ -18,7 +18,7 @@ private:
     // Ui inits
     void initScene();
     void initMenuBar();
-    void initToolBar();
+    void initPrimarySideBar();
 
     QtNodes::DataFlowGraphicsScene *m_scene;
     QWidget *m_centralWidget;

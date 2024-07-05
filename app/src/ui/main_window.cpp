@@ -5,6 +5,9 @@
 #include <QVBoxLayout>
 #include <QMenuBar>
 #include <QToolBar>
+#include <QDockWidget>
+#include <QLabel>
+#include <QActionGroup>
 
 #include <QtNodes/ConnectionStyle>
 #include <QtNodes/NodeDelegateModelRegistry>
@@ -28,7 +31,7 @@ MainWindow::MainWindow()
 {
     initScene();
     initMenuBar();
-    initToolBar();
+    initPrimarySideBar();
 
     setWindowTitle("DesCartes Builder");
     setGeometry(QApplication::primaryScreen()->availableGeometry());
@@ -83,14 +86,48 @@ void MainWindow::initMenuBar()
     QObject::connect(loadAction, &QAction::triggered, m_scene, &DataFlowGraphicsScene::load);
 }
 
-void MainWindow::initToolBar()
+void MainWindow::initPrimarySideBar()
 {
+    struct SideBarWidgetData
+    {
+        QIcon icon;
+        QString title;
+        QWidget *widget;
+    };
+    std::vector<SideBarWidgetData> widgets = {
+        {media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
+         "Blocks",
+         new QLabel("Block Dock Widget")},
+        {media::recolor(QIcon(":/menu.png"), constants::COLOR_SECONDARY),
+         "Menu",
+         new QLabel("Menu Dock Widget")},
+        {media::recolor(QIcon(":/settings.png"), constants::COLOR_SECONDARY),
+         "Settings",
+         new QLabel("Settings Dock Widget")},
+        {media::recolor(QIcon(":/information.png"), constants::COLOR_SECONDARY),
+         "Information",
+         new QLabel("Information Dock Widget")},
+    };
+
     auto toolBar = new QToolBar("Primary Side Bar");
     toolBar->setMovable(false);
     addToolBar(Qt::LeftToolBarArea, toolBar);
 
-    auto blocksAction = toolBar->addAction(Media::recolor(QIcon(":/blocks.png"), Qt::white), "Blocks");
-    auto menuAction = toolBar->addAction("Menu");
-    auto optionsAction = toolBar->addAction("Options");
-    auto informationAction = toolBar->addAction("Information");
+    auto primarySideBarGroup = new QActionGroup(this);
+    primarySideBarGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
+
+    for (auto widgetData : widgets)
+    {
+        auto action = toolBar->addAction(widgetData.icon, widgetData.title);
+        action->setCheckable(true);
+        primarySideBarGroup->addAction(action);
+        auto dockWidget = new QDockWidget(widgetData.title);
+        dockWidget->setTitleBarWidget(new QLabel(widgetData.title));
+        dockWidget->setWidget(widgetData.widget);
+        dockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
+        addDockWidget(Qt::LeftDockWidgetArea, dockWidget);
+        dockWidget->hide();
+
+        connect(action, &QAction::toggled, dockWidget, &QDockWidget::setVisible);
+    }
 }
