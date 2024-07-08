@@ -44,8 +44,11 @@ mkdir -p "$PROJECT_ROOT/include/$DIR"
 
 # Function to generate the .cpp file content
 generate_cpp_content() {
-  local content="#include \"$DIR/$FILENAME.hpp\"\n\n$CLASSNAME::$CLASSNAME()\n{\n}"
-  echo "$content"
+  if [ "$DIR" == "." ]; then
+    echo "#include \"$FILENAME.hpp\"\n\n$CLASSNAME::$CLASSNAME()\n{\n}"
+  else
+    echo "#include \"$DIR/$FILENAME.hpp\"\n\n$CLASSNAME::$CLASSNAME()\n{\n}"
+  fi
 }
 
 # Function to generate the .hpp file content
@@ -68,10 +71,10 @@ generate_hpp_content() {
 
 # Generate the .cpp file
 cpp_content=$(generate_cpp_content)
-echo -e "$cpp_content" >"$PROJECT_ROOT/src/$DIR/$FILENAME.cpp"
+echo "$cpp_content" >"$PROJECT_ROOT/src/$DIR/$FILENAME.cpp"
 
 # Generate the .hpp file
 hpp_content=$(generate_hpp_content)
-echo -e "$hpp_content" >"$PROJECT_ROOT/include/$DIR/$FILENAME.hpp"
+echo "$hpp_content" >"$PROJECT_ROOT/include/$DIR/$FILENAME.hpp"
 
 echo "$FILENAME.cpp and $FILENAME.hpp created in $PROJECT_ROOT/src/$DIR and $PROJECT_ROOT/include/$DIR"

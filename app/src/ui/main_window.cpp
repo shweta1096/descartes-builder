@@ -24,10 +24,12 @@ using QtNodes::NodeDelegateModelRegistry;
 
 #include "data/constants.hpp"
 #include "ui/model_registry.hpp"
+#include "temp.hpp"
 
 #include <QtUtility/media/media.hpp>
 
 MainWindow::MainWindow()
+    : m_temp(new Temp(this))
 {
     initScene();
     initMenuBar();
@@ -68,18 +70,22 @@ void MainWindow::initMenuBar()
     auto menuBar = new QMenuBar();
     setMenuBar(menuBar);
 
-    QMenu *menu = menuBar->addMenu("File");
-    auto saveAction = menu->addAction("Save Scene");
-    auto loadAction = menu->addAction("Load Scene");
+    QMenu *fileMenu = menuBar->addMenu("File");
+    auto saveAction = fileMenu->addAction("Save Scene");
+    auto loadAction = fileMenu->addAction("Load Scene");
+
+    QMenu *tempMenu = menuBar->addMenu("Temp");
+    auto pythonAction = tempMenu->addAction("Run Python");
 
     saveAction->setShortcut(QKeySequence::Save);
     loadAction->setShortcut(QKeySequence::Open);
 
-    QObject::connect(saveAction, &QAction::triggered, m_scene, [this]()
-                     {
+    connect(saveAction, &QAction::triggered, m_scene, [this]()
+            {
         if (m_scene->save())
             m_centralWidget->setWindowModified(false); });
-    QObject::connect(loadAction, &QAction::triggered, m_scene, &DataFlowGraphicsScene::load);
+    connect(loadAction, &QAction::triggered, m_scene, &DataFlowGraphicsScene::load);
+    connect(pythonAction, &QAction::triggered, m_temp, &Temp::runPython);
 }
 
 void MainWindow::initPrimarySideBar()

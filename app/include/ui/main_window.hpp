@@ -7,6 +7,8 @@ namespace QtNodes
     class DataFlowGraphicsScene;
 }
 
+class Temp;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -21,4 +23,5 @@ private:
 
     QtNodes::DataFlowGraphicsScene *m_scene;
     QWidget *m_centralWidget;
+    Temp *m_temp; // class used for testing temporary code
 };
