@@ -20,6 +20,7 @@ private:
     void initScene();
     void initMenuBar();
     void initPrimarySideBar();
+    void initLogPanel();
 
     QtNodes::DataFlowGraphicsScene *m_scene;
     QWidget *m_centralWidget;

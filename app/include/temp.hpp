@@ -1,4 +1,6 @@
-#pragma once
+// this class is meant to hold temporary code for testing purpose
+// will be removed in the future or excluded from compilation
+#pragma onc
 
 #include <QObject>
 
@@ -10,4 +12,7 @@ public:
 
 public slots:
     bool runPython();
+    void printInfo();
+    void printDebug();
+    void printError();
 };

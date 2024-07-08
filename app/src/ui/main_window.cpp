@@ -24,6 +24,7 @@ using QtNodes::NodeDelegateModelRegistry;
 
 #include "data/constants.hpp"
 #include "ui/model_registry.hpp"
+#include "ui/log_panel.hpp"
 #include "temp.hpp"
 
 #include <QtUtility/media/media.hpp>
@@ -34,6 +35,7 @@ MainWindow::MainWindow()
     initScene();
     initMenuBar();
     initPrimarySideBar();
+    initLogPanel();
 
     setWindowTitle("DesCartes Builder");
     setGeometry(QApplication::primaryScreen()->availableGeometry());
@@ -74,9 +76,6 @@ void MainWindow::initMenuBar()
     auto saveAction = fileMenu->addAction("Save Scene");
     auto loadAction = fileMenu->addAction("Load Scene");
 
-    QMenu *tempMenu = menuBar->addMenu("Temp");
-    auto pythonAction = tempMenu->addAction("Run Python");
-
     saveAction->setShortcut(QKeySequence::Save);
     loadAction->setShortcut(QKeySequence::Open);
 
@@ -85,11 +84,24 @@ void MainWindow::initMenuBar()
         if (m_scene->save())
             m_centralWidget->setWindowModified(false); });
     connect(loadAction, &QAction::triggered, m_scene, &DataFlowGraphicsScene::load);
-    connect(pythonAction, &QAction::triggered, m_temp, &Temp::runPython);
+
+    { // temp menu for testing code
+        QMenu *tempMenu = menuBar->addMenu("Temp");
+        auto pythonAction = tempMenu->addAction("Run Python");
+        auto infoAction = tempMenu->addAction("print info");
+        auto debugAction = tempMenu->addAction("print debug");
+        auto errorAction = tempMenu->addAction("print error");
+        connect(pythonAction, &QAction::triggered, m_temp, &Temp::runPython);
+        connect(infoAction, &QAction::triggered, m_temp, &Temp::printInfo);
+        connect(debugAction, &QAction::triggered, m_temp, &Temp::printDebug);
+        connect(errorAction, &QAction::triggered, m_temp, &Temp::printError);
+    }
 }
 
 void MainWindow::initPrimarySideBar()
 {
+    // prevent log panel from taking the corner
+    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
     struct SideBarWidgetData
     {
         QIcon icon;
@@ -132,4 +144,13 @@ void MainWindow::initPrimarySideBar()
 
         connect(action, &QAction::toggled, dockWidget, &QDockWidget::setVisible);
     }
+}
+
+void MainWindow::initLogPanel()
+{
+    auto dockWidget = new QDockWidget("Log Panel");
+    dockWidget->setTitleBarWidget(new QLabel("Log Panel"));
+    dockWidget->setWidget(new LogPanel());
+    dockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    addDockWidget(Qt::BottomDockWidgetArea, dockWidget);
 }

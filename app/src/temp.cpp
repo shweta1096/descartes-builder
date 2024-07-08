@@ -19,3 +19,18 @@ bool Temp::runPython()
     else
         qInfo() << output.output;
 }
+
+void Temp::printInfo()
+{
+    qInfo() << "This is an info print";
+}
+
+void Temp::printDebug()
+{
+    qDebug() << "This is a debug print";
+}
+
+void Temp::printError()
+{
+    qCritical() << "This is an error print";
+}

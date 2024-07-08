@@ -11,8 +11,18 @@
 
 #include "file/file.hpp"
 
-namespace log
+#include "ui/log_panel.hpp"
+
+namespace
 {
+    std::map<QtMsgType, QString> TYPE_STRING = {
+        {QtDebugMsg, "debug"},
+        {QtInfoMsg, "info"},
+        {QtWarningMsg, "warning"},
+        {QtCriticalMsg, "error"},
+        {QtFatalMsg, "fatal"},
+    };
+
     QString getApplicationPath()
     {
         auto dirPath = QApplication::applicationDirPath();
@@ -37,7 +47,10 @@ namespace log
         }
         return fileInfo;
     }
+}
 
+namespace log
+{
     void logHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
     {
         static QFile logFile(getLogFile().absoluteFilePath());
@@ -48,31 +61,19 @@ namespace log
         QTextStream out(&logFile);
 
         QByteArray localMsg = msg.toLocal8Bit();
+        const QString time = QTime::currentTime().toString("HH:mm:ss.zzz");
         const char *file = context.file ? context.file : "";
         const char *function = context.function ? context.function : "";
-        switch (type)
-        {
-        case QtDebugMsg:
-            out << "Debug: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            std::cerr << "Debug: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            break;
-        case QtInfoMsg:
-            out << "Info: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            std::cerr << "Info: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            break;
-        case QtWarningMsg:
-            out << "Warning: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            std::cerr << "Warning: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            break;
-        case QtCriticalMsg:
-            out << "Critical: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            std::cerr << "Critical: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            break;
-        case QtFatalMsg:
-            out << "Fatal: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            std::cerr << "Fatal: " << localMsg.constData() << " (" << file << ":" << context.line << ", " << function << ")\n";
-            abort();
-        }
+
+        const QString message = QString("[%1] [%2] %3:%4<%5>: %6").arg(time).arg(TYPE_STRING.at(type)).arg(file).arg(context.line).arg(function).arg(localMsg.constData());
+        out << message << "\n";
+        std::cerr << message.toStdString() << std::endl;
+
+        LogManager::instance().appendMessage(message);
+
         out.flush();
+
+        if (type == QtFatalMsg)
+            abort();
     }
 }
