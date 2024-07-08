@@ -37,10 +37,6 @@ MainWindow::MainWindow()
     setGeometry(QApplication::primaryScreen()->availableGeometry());
 }
 
-MainWindow::~MainWindow()
-{
-}
-
 void MainWindow::initScene()
 {
     ConnectionStyle::setConnectionStyle(constants::CONNECTION_STYLE);

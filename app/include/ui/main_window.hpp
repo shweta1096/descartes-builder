@@ -12,7 +12,6 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
     MainWindow();
-    ~MainWindow();
 
 private:
     // Ui inits
