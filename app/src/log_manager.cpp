@@ -1,17 +1,4 @@
-#pragma once
-
-#include <QDebug>
-#include <QFile>
-#include <QTextStream>
-#include <QDateTime>
-#include <QApplication>
-#include <QDir>
-
-#include <iostream>
-
-#include "file/file.hpp"
-
-#include "ui/log_panel.hpp"
+#include "log_manager.hpp"
 
 namespace
 {
@@ -47,10 +34,7 @@ namespace
         }
         return fileInfo;
     }
-}
 
-namespace log
-{
     void logHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
     {
         static QFile logFile(getLogFile().absoluteFilePath());
@@ -60,12 +44,9 @@ namespace log
         }
         QTextStream out(&logFile);
 
-        QByteArray localMsg = msg.toLocal8Bit();
-        const QString time = QTime::currentTime().toString("HH:mm:ss.zzz");
-        const char *file = context.file ? context.file : "";
-        const char *function = context.function ? context.function : "";
+        // use qSetMessagePattern to format
+        auto message = qFormatLogMessage(type, context, msg);
 
-        const QString message = QString("[%1] [%2] %3:%4<%5>: %6").arg(time).arg(TYPE_STRING.at(type)).arg(file).arg(context.line).arg(function).arg(localMsg.constData());
         out << message << "\n";
         std::cerr << message.toStdString() << std::endl;
 
@@ -76,4 +57,31 @@ namespace log
         if (type == QtFatalMsg)
             abort();
     }
+}
+
+LogManager &LogManager::instance()
+{
+    static LogManager instance;
+    return instance;
+}
+
+void LogManager::init()
+{
+    qSetMessagePattern("[%{time yyyy-MM-dd HH:mm:ss.zzz}] [%{if-debug}debug%{endif}%{if-info}info%{endif}%{if-warning}warning%{endif}%{if-critical}error%{endif}%{if-fatal}fatal%{endif}] %{file}:%{line}<%{function}>: %{message}");
+    qInstallMessageHandler(logHandler);
+}
+
+void LogManager::registerLogPanel(LogPanel *panel)
+{
+    QMutexLocker locker(&m_mutex);
+    if (!m_logPanels.contains(panel))
+        m_logPanels.push_back(panel);
+}
+
+void LogManager::appendMessage(const QString &message)
+{
+    QMutexLocker locker(&m_mutex);
+    for (LogPanel *panel : m_logPanels)
+        if (panel)
+            panel->append(message);
 }

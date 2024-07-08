@@ -18,6 +18,7 @@ bool Temp::runPython()
         qCritical() << output.error;
     else
         qInfo() << output.output;
+    return true;
 }
 
 void Temp::printInfo()
