@@ -2,12 +2,18 @@
 
 namespace
 {
-    std::map<QtMsgType, QString> TYPE_STRING = {
-        {QtDebugMsg, "debug"},
-        {QtInfoMsg, "info"},
-        {QtWarningMsg, "warning"},
-        {QtCriticalMsg, "error"},
-        {QtFatalMsg, "fatal"},
+    std::map<QtMsgType, QColor> TYPE_COLOR = {
+        {QtWarningMsg, Qt::yellow},
+        {QtCriticalMsg, Qt::red},
+        {QtFatalMsg, Qt::red},
+    };
+    std::map<QtMsgType, QString>
+        TYPE_STRING = {
+            {QtDebugMsg, "debug"},
+            {QtInfoMsg, "info"},
+            {QtWarningMsg, "warning"},
+            {QtCriticalMsg, "error"},
+            {QtFatalMsg, "fatal"},
     };
 
     QString getApplicationPath()
@@ -50,7 +56,7 @@ namespace
         out << message << "\n";
         std::cerr << message.toStdString() << std::endl;
 
-        LogManager::instance().appendMessage(message);
+        LogManager::instance().appendMessage(message, type);
 
         out.flush();
 
@@ -78,10 +84,13 @@ void LogManager::registerLogPanel(LogPanel *panel)
         m_logPanels.push_back(panel);
 }
 
-void LogManager::appendMessage(const QString &message)
+void LogManager::appendMessage(const QString &message, const QtMsgType &type)
 {
+    QColor color;
+    if (TYPE_COLOR.count(type) > 0)
+        color = TYPE_COLOR[type];
     QMutexLocker locker(&m_mutex);
     for (LogPanel *panel : m_logPanels)
         if (panel)
-            panel->append(message);
+            panel->appendMessage(message, color);
 }

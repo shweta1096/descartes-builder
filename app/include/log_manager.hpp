@@ -20,7 +20,7 @@ public:
     static LogManager &instance();
     void init();
     void registerLogPanel(LogPanel *panel);
-    void appendMessage(const QString &message);
+    void appendMessage(const QString &message, const QtMsgType &type = QtInfoMsg);
 
 private:
     LogManager() = default;
