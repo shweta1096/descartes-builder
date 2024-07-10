@@ -10,6 +10,8 @@
 #include <QActionGroup>
 
 #include <QtNodes/ConnectionStyle>
+#include <QtNodes/GraphicsViewStyle>
+#include <QtNodes/NodeStyle>
 #include <QtNodes/NodeDelegateModelRegistry>
 #include <QtNodes/DataFlowGraphModel>
 #include <QtNodes/DataFlowGraphicsScene>
@@ -20,7 +22,9 @@ using QtNodes::ConnectionStyle;
 using QtNodes::DataFlowGraphicsScene;
 using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
+using QtNodes::GraphicsViewStyle;
 using QtNodes::NodeDelegateModelRegistry;
+using QtNodes::NodeStyle;
 
 #include "data/constants.hpp"
 #include "ui/model_registry.hpp"
@@ -44,6 +48,8 @@ MainWindow::MainWindow()
 void MainWindow::initScene()
 {
     ConnectionStyle::setConnectionStyle(constants::CONNECTION_STYLE);
+    GraphicsViewStyle::setStyle(constants::GRAPHICS_VIEW_STYLE);
+    NodeStyle::setNodeStyle(constants::NODE_STYLE);
     std::shared_ptr<NodeDelegateModelRegistry> registry = model_registry::registerDataModels();
 
     m_centralWidget = new QWidget();

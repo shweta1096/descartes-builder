@@ -61,8 +61,8 @@ add_library(DescartesBuilder_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                         ${PROJECT_RESOURCES})
 
 target_link_libraries(
-  DescartesBuilder_lib PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-                               Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
+  DescartesBuilder_lib PUBLIC Qt${QT_VERSION_MAJOR}::Widgets
+                              Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
 
 add_subdirectory(external/googletest)
 include(GoogleTest)
@@ -74,14 +74,6 @@ file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
 
 add_executable(unitTests ${TEST_SOURCES})
 
-target_link_libraries(
-  unitTests
-  PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-          Qt${QT_VERSION_MAJOR}::OpenGL
-          Qt${QT_VERSION_MAJOR}::Test
-          gtest
-          DescartesBuilder_lib
-          QtNodes
-          QtUtility)
+target_link_libraries(unitTests PRIVATE gtest DescartesBuilder_lib)
 
 gtest_discover_tests(unitTests)
