@@ -66,6 +66,9 @@ void MainWindow::initScene()
 
     m_scene = new DataFlowGraphicsScene(*dataFlowGraphModel, m_centralWidget);
     auto view = new GraphicsView(m_scene);
+    // Qt bug for MacOS throws warnings when using touch pad with graphics view
+    // touch pad seems to trigger touch events, so touch events are disabled to supress the bug
+    view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
     layout->addWidget(view);
 
     QObject::connect(m_scene, &DataFlowGraphicsScene::sceneLoaded, view, &GraphicsView::centerScene);
