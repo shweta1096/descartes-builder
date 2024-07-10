@@ -28,14 +28,22 @@ file(GLOB_RECURSE PROJECT_RESOURCES "resources/*.qrc")
 
 qt_add_executable(DescartesBuilder MANUAL_FINALIZATION main.cpp
                   ${PROJECT_SOURCES} ${PROJECT_HEADERS} ${PROJECT_RESOURCES})
-# Define target properties for Android with Qt 6 as: set_property(TARGET
-# DescartesBuilder APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-# ${CMAKE_CURRENT_SOURCE_DIR}/android) For more information, see
-# https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 
 target_link_libraries(
   DescartesBuilder PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
                            Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
+
+target_compile_options(
+  DescartesBuilder
+  PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/W4
+          /wd4127
+          /EHsc
+          /utf-8>
+          $<$<CXX_COMPILER_ID:GNU>:-Wall
+          -Wextra>
+          $<$<CXX_COMPILER_ID:AppleClang>:-Wall
+          -Wextra
+          -Werror>)
 
 set_target_properties(
   DescartesBuilder
