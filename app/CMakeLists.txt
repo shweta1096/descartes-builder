@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions("-DQT_MESSAGELOGCONTEXT")
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL)
 
 add_subdirectory(external/qtnodes)
 add_subdirectory(external/qtutility)
@@ -33,8 +33,9 @@ qt_add_executable(DescartesBuilder MANUAL_FINALIZATION main.cpp
 # ${CMAKE_CURRENT_SOURCE_DIR}/android) For more information, see
 # https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 
-target_link_libraries(DescartesBuilder PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-                                               QtNodes QtUtility)
+target_link_libraries(
+  DescartesBuilder PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+                           Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
 
 set_target_properties(
   DescartesBuilder
@@ -59,8 +60,9 @@ endif()
 add_library(DescartesBuilder_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                         ${PROJECT_RESOURCES})
 
-target_link_libraries(DescartesBuilder_lib
-                      PRIVATE Qt${QT_VERSION_MAJOR}::Widgets QtNodes QtUtility)
+target_link_libraries(
+  DescartesBuilder_lib PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+                               Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
 
 add_subdirectory(external/googletest)
 include(GoogleTest)
@@ -73,7 +75,13 @@ file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
 add_executable(unitTests ${TEST_SOURCES})
 
 target_link_libraries(
-  unitTests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Test
-                    gtest DescartesBuilder_lib QtNodes QtUtility)
+  unitTests
+  PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+          Qt${QT_VERSION_MAJOR}::OpenGL
+          Qt${QT_VERSION_MAJOR}::Test
+          gtest
+          DescartesBuilder_lib
+          QtNodes
+          QtUtility)
 
 gtest_discover_tests(unitTests)
