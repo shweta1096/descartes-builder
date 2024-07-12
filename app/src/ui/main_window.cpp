@@ -63,17 +63,27 @@ void MainWindow::initMenuBar()
     setMenuBar(menuBar);
 
     QMenu *fileMenu = menuBar->addMenu("File");
+    auto newAction = fileMenu->addAction("New");
     auto saveAction = fileMenu->addAction("Save");
     auto saveAsAction = fileMenu->addAction("Save As...");
     auto openAction = fileMenu->addAction("Open");
+    auto closeAction = fileMenu->addAction("Close current tab");
+    closeAction->setDisabled(true);
 
+    newAction->setShortcut(QKeySequence::New);
     saveAction->setShortcut(QKeySequence::Save);
     saveAsAction->setShortcut(QKeySequence::SaveAs);
     openAction->setShortcut(QKeySequence::Open);
+    closeAction->setShortcut(QKeySequence::Close);
 
+    connect(newAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::newTab);
     connect(saveAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::save);
     connect(saveAsAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::saveAs);
     connect(openAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::open);
+    connect(closeAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::closeCurrentTab);
+    if (m_graphicsSceneTabWidget)
+        connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::countChanged, closeAction, [closeAction](int count)
+                { closeAction->setEnabled(count > 1); });
 
     { // temp menu for testing code
         QMenu *tempMenu = menuBar->addMenu("Temp");

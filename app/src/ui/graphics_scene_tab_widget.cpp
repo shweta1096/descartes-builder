@@ -48,15 +48,15 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
 
     auto newTabButton = new QPushButton("+");
     setCornerWidget(newTabButton);
-    connect(newTabButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::addBlankTab);
+    connect(newTabButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::newTab);
 
     connect(this, &GraphicsSceneTabWidget::countChanged, this, &GraphicsSceneTabWidget::onTabCountChanged);
 
     // init with 1 blank tab
-    addBlankTab();
+    newTab();
 }
 
-void GraphicsSceneTabWidget::addBlankTab()
+void GraphicsSceneTabWidget::newTab()
 {
     TabComponents tab(qobject_cast<QWidget *>(parent()));
     int index = addTab(tab.getView(), "blank");
@@ -97,6 +97,11 @@ bool GraphicsSceneTabWidget::open()
     return true;
 }
 
+void GraphicsSceneTabWidget::closeCurrentTab()
+{
+    closeTab(currentIndex());
+}
+
 void GraphicsSceneTabWidget::closeTab(int index)
 {
     if (index < 0 || index >= count())
@@ -108,9 +113,9 @@ void GraphicsSceneTabWidget::closeTab(int index)
     m_tabs.erase(targetWidget);
 }
 
-void GraphicsSceneTabWidget::onTabCountChanged()
+void GraphicsSceneTabWidget::onTabCountChanged(int count)
 {
-    setTabsClosable(count() > 1);
+    setTabsClosable(count > 1);
 }
 
 void GraphicsSceneTabWidget::setCurrentTabText(const QString &label)
@@ -121,13 +126,13 @@ void GraphicsSceneTabWidget::setCurrentTabText(const QString &label)
 void GraphicsSceneTabWidget::tabInserted(int index)
 {
     QTabWidget::tabInserted(index);
-    emit countChanged();
+    emit countChanged(count());
 }
 
 void GraphicsSceneTabWidget::tabRemoved(int index)
 {
     QTabWidget::tabRemoved(index);
-    emit countChanged();
+    emit countChanged(count());
 }
 
 QtNodes::DataFlowGraphicsScene *GraphicsSceneTabWidget::getCurrentScene() const

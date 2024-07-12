@@ -33,19 +33,20 @@ class GraphicsSceneTabWidget : public QTabWidget
     Q_OBJECT
 public:
     GraphicsSceneTabWidget(QWidget *parent = nullptr);
-    void addBlankTab();
 
 signals:
-    void countChanged();
+    void countChanged(int count);
 
 public slots:
+    void newTab();
     bool save();
     bool saveAs();
     bool open();
+    void closeCurrentTab();
 
 private slots:
     void closeTab(int index);
-    void onTabCountChanged();
+    void onTabCountChanged(int count);
     void setCurrentTabText(const QString &label);
 
 protected:
