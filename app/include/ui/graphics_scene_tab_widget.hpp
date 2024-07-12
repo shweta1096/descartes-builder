@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QTabWidget>
+#include <QFileInfo>
 
 class QWidget;
 
@@ -19,6 +20,7 @@ public:
     QtNodes::DataFlowGraphModel *getModel() const { return m_model; }
     QtNodes::DataFlowGraphicsScene *getScene() const { return m_scene; }
     QtNodes::GraphicsView *getView() const { return m_view; }
+    QFileInfo getFile() const;
 
 private:
     QtNodes::DataFlowGraphModel *m_model;
@@ -52,6 +54,7 @@ protected:
 
 private:
     QtNodes::DataFlowGraphicsScene *getCurrentScene() const;
+    bool openIfExists(QtNodes::DataFlowGraphicsScene *scene);
 
     std::map<QWidget *, TabComponents> m_tabs;
 };

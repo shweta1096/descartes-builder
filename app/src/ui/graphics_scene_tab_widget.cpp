@@ -36,6 +36,11 @@ TabComponents::TabComponents(QWidget *parent)
                          { parent->setWindowModified(true); });
 }
 
+QFileInfo TabComponents::getFile() const
+{
+    return m_scene->getFile();
+}
+
 GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
     : QTabWidget(parent)
 {
@@ -81,18 +86,10 @@ bool GraphicsSceneTabWidget::saveAs()
 
 bool GraphicsSceneTabWidget::open()
 {
-    auto scene = getCurrentScene();
-    if (scene->isEmpty())
-    { // open in current tab
-        if (!scene || !scene->load())
-            return false;
-        setCurrentTabText(scene->getFile().baseName());
-        return true;
-    }
     // open in a new tab
     TabComponents tab(qobject_cast<QWidget *>(parent()));
-    scene = tab.getScene();
-    if (!scene || !scene->load())
+    auto scene = tab.getScene();
+    if (!scene || !scene->load() || openIfExists(scene))
         return false;
     int index = addTab(tab.getView(), scene->getFile().baseName());
     m_tabs[widget(index)] = std::move(tab);
@@ -138,4 +135,18 @@ QtNodes::DataFlowGraphicsScene *GraphicsSceneTabWidget::getCurrentScene() const
     if (!count())
         return nullptr;
     return m_tabs.at(currentWidget()).getScene();
+}
+
+bool GraphicsSceneTabWidget::openIfExists(QtNodes::DataFlowGraphicsScene *scene)
+{
+    QFileInfo a;
+    if (!scene)
+        return false;
+    for (auto tab : m_tabs)
+        if (tab.second.getFile() == scene->getFile())
+        { // file exists, open that tab
+            setCurrentWidget(tab.first);
+            return true;
+        }
+    return false;
 }
