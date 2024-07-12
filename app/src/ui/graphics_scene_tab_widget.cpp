@@ -56,6 +56,12 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
     newTab();
 }
 
+QtNodes::DataFlowGraphModel *GraphicsSceneTabWidget::getCurrentModel() const
+{
+    if (!count())
+        return nullptr;
+    return m_tabs.at(currentWidget()).getModel();
+}
 void GraphicsSceneTabWidget::newTab()
 {
     TabComponents tab(qobject_cast<QWidget *>(parent()));
