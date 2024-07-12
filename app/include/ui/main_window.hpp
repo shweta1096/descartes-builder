@@ -2,11 +2,7 @@
 
 #include <QMainWindow>
 
-namespace QtNodes
-{
-    class DataFlowGraphicsScene;
-}
-
+class GraphicsSceneTabWidget;
 class Temp;
 
 class MainWindow : public QMainWindow
@@ -22,7 +18,7 @@ private:
     void initPrimarySideBar();
     void initLogPanel();
 
-    QtNodes::DataFlowGraphicsScene *m_scene;
+    GraphicsSceneTabWidget *m_graphicsSceneTabWidget;
     QWidget *m_centralWidget;
     Temp *m_temp; // class used for testing temporary code
 };

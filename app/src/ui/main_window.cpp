@@ -12,26 +12,20 @@
 #include <QtNodes/ConnectionStyle>
 #include <QtNodes/GraphicsViewStyle>
 #include <QtNodes/NodeStyle>
-#include <QtNodes/NodeDelegateModelRegistry>
-#include <QtNodes/DataFlowGraphModel>
-#include <QtNodes/DataFlowGraphicsScene>
-#include <QtNodes/GraphicsView>
 #include <QtNodes/NodeData>
+#include <QtNodes/GraphicsView>
+#include <QtNodes/DataFlowGraphicsScene>
 
 using QtNodes::ConnectionStyle;
-using QtNodes::DataFlowGraphicsScene;
-using QtNodes::DataFlowGraphModel;
-using QtNodes::GraphicsView;
 using QtNodes::GraphicsViewStyle;
-using QtNodes::NodeDelegateModelRegistry;
 using QtNodes::NodeStyle;
 
-#include "data/constants.hpp"
-#include "ui/model_registry.hpp"
-#include "ui/log_panel.hpp"
-#include "temp.hpp"
-
 #include <QtUtility/media/media.hpp>
+
+#include "data/constants.hpp"
+#include "ui/log_panel.hpp"
+#include "ui/graphics_scene_tab_widget.hpp"
+#include "temp.hpp"
 
 MainWindow::MainWindow()
     : m_temp(new Temp(this))
@@ -50,30 +44,17 @@ void MainWindow::initScene()
     ConnectionStyle::setConnectionStyle(constants::CONNECTION_STYLE);
     GraphicsViewStyle::setStyle(constants::GRAPHICS_VIEW_STYLE);
     NodeStyle::setNodeStyle(constants::NODE_STYLE);
-    std::shared_ptr<NodeDelegateModelRegistry> registry = model_registry::registerDataModels();
 
     m_centralWidget = new QWidget();
     setCentralWidget(m_centralWidget);
-
-    // this model is referenced by DataFlowGraphicsScene and needs to be kept
-    // for the lifetime of mainWidget
-    auto dataFlowGraphModel = new DataFlowGraphModel(registry);
-    dataFlowGraphModel->setParent(m_centralWidget);
 
     QVBoxLayout *layout = new QVBoxLayout(m_centralWidget);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    m_scene = new DataFlowGraphicsScene(*dataFlowGraphModel, m_centralWidget);
-    auto view = new GraphicsView(m_scene);
-    // Qt bug for MacOS throws warnings when using touch pad with graphics view
-    // touch pad seems to trigger touch events, so touch events are disabled to supress the bug
-    view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
-    layout->addWidget(view);
+    m_graphicsSceneTabWidget = new GraphicsSceneTabWidget(m_centralWidget);
 
-    QObject::connect(m_scene, &DataFlowGraphicsScene::sceneLoaded, view, &GraphicsView::centerScene);
-    QObject::connect(m_scene, &DataFlowGraphicsScene::modified, m_centralWidget, [this]()
-                     { m_centralWidget->setWindowModified(true); });
+    layout->addWidget(m_graphicsSceneTabWidget);
 }
 
 void MainWindow::initMenuBar()
@@ -82,17 +63,17 @@ void MainWindow::initMenuBar()
     setMenuBar(menuBar);
 
     QMenu *fileMenu = menuBar->addMenu("File");
-    auto saveAction = fileMenu->addAction("Save Scene");
-    auto loadAction = fileMenu->addAction("Load Scene");
+    auto saveAction = fileMenu->addAction("Save");
+    auto saveAsAction = fileMenu->addAction("Save As...");
+    auto openAction = fileMenu->addAction("Open");
 
     saveAction->setShortcut(QKeySequence::Save);
-    loadAction->setShortcut(QKeySequence::Open);
+    saveAsAction->setShortcut(QKeySequence::SaveAs);
+    openAction->setShortcut(QKeySequence::Open);
 
-    connect(saveAction, &QAction::triggered, m_scene, [this]()
-            {
-        if (m_scene->save())
-            m_centralWidget->setWindowModified(false); });
-    connect(loadAction, &QAction::triggered, m_scene, &DataFlowGraphicsScene::load);
+    connect(saveAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::save);
+    connect(saveAsAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::saveAs);
+    connect(openAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::open);
 
     { // temp menu for testing code
         QMenu *tempMenu = menuBar->addMenu("Temp");
