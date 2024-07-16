@@ -30,4 +30,10 @@ private:
 
     QVector<LogPanel *> m_logPanels;
     QMutex m_mutex;
+    struct LogMessage
+    {
+        QString string;
+        QColor color;
+    };
+    std::vector<LogMessage> m_notPrinted;
 };

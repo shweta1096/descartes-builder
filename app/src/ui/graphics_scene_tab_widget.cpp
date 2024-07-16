@@ -46,9 +46,13 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
 {
     connect(this, &GraphicsSceneTabWidget::tabCloseRequested, this, &GraphicsSceneTabWidget::closeTab);
 
-    auto newTabButton = new QPushButton("+");
-    setCornerWidget(newTabButton);
-    connect(newTabButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::newTab);
+    // if we want a new tab button
+    // auto newTabButton = new QPushButton("+");
+    // setCornerWidget(newTabButton);
+    // connect(newTabButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::newTab);
+    auto runButton = new QPushButton("Run");
+    setCornerWidget(runButton);
+    connect(runButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::runClicked);
 
     connect(this, &GraphicsSceneTabWidget::countChanged, this, &GraphicsSceneTabWidget::onTabCountChanged);
 

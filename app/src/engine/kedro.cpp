@@ -6,19 +6,25 @@ using QtNodes::DataFlowGraphModel;
 
 Kedro::Kedro()
 {
+    qDebug() << "Kedro engine init";
 }
 
 bool Kedro::execute(QtNodes::DataFlowGraphModel *model)
 {
-    return false;
+    qDebug() << "called";
+    if (!validityCheck(model))
+        return false;
+    return true;
 }
 
 bool Kedro::validityCheck(QtNodes::DataFlowGraphModel *model)
 {
-    return false;
+    if (model->isEmpty())
+        return false;
+    return true;
 }
 
-QVariant Kedro::getNodeOutput(QtNodes::NodeId id)
+QVariant Kedro::getNodeOutput(QtNodes::DataFlowGraphModel *model, QtNodes::NodeId id)
 {
-    return QVariant();
+    return model->nodeData(id, QtNodes::NodeRole::InternalData);
 }

@@ -37,6 +37,7 @@ public:
 
 signals:
     void countChanged(int count);
+    void runClicked();
 
 public slots:
     void newTab();

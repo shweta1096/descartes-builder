@@ -81,16 +81,26 @@ void LogManager::registerLogPanel(LogPanel *panel)
 {
     QMutexLocker locker(&m_mutex);
     if (!m_logPanels.contains(panel))
+    {
         m_logPanels.push_back(panel);
+        if (!m_notPrinted.empty())
+        {
+            for (auto message : m_notPrinted)
+                panel->appendMessage(message.string, message.color);
+            m_notPrinted.clear();
+        }
+    }
 }
 
 void LogManager::appendMessage(const QString &message, const QtMsgType &type)
 {
+    QMutexLocker locker(&m_mutex);
     QColor color;
     if (TYPE_COLOR.count(type) > 0)
         color = TYPE_COLOR[type];
-    QMutexLocker locker(&m_mutex);
     for (LogPanel *panel : m_logPanels)
         if (panel)
             panel->appendMessage(message, color);
+    if (m_logPanels.isEmpty())
+        m_notPrinted.push_back({message, color});
 }

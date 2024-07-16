@@ -3,6 +3,7 @@
 #include <QMainWindow>
 
 class GraphicsSceneTabWidget;
+class AbstractEngine;
 class Temp;
 
 class MainWindow : public QMainWindow
@@ -10,6 +11,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
     MainWindow();
+    ~MainWindow();
 
 private:
     // Ui inits
@@ -20,5 +22,6 @@ private:
 
     GraphicsSceneTabWidget *m_graphicsSceneTabWidget;
     QWidget *m_centralWidget;
+    std::unique_ptr<AbstractEngine> m_engine;
     Temp *m_temp; // class used for testing temporary code
 };

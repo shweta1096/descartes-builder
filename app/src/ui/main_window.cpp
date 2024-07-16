@@ -25,10 +25,12 @@ using QtNodes::NodeStyle;
 #include "data/constants.hpp"
 #include "ui/log_panel.hpp"
 #include "ui/graphics_scene_tab_widget.hpp"
+#include "engine/engine_starter.hpp"
 #include "temp.hpp"
 
 MainWindow::MainWindow()
-    : m_temp(new Temp(this))
+    : m_engine(EngineStarter::init()),
+      m_temp(new Temp(this))
 {
     initScene();
     initMenuBar();
@@ -37,6 +39,10 @@ MainWindow::MainWindow()
 
     setWindowTitle("DesCartes Builder");
     setGeometry(QApplication::primaryScreen()->availableGeometry());
+}
+
+MainWindow::~MainWindow()
+{
 }
 
 void MainWindow::initScene()
@@ -53,6 +59,8 @@ void MainWindow::initScene()
     layout->setSpacing(0);
 
     m_graphicsSceneTabWidget = new GraphicsSceneTabWidget(m_centralWidget);
+    connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::runClicked, this, [this]()
+            { m_engine->execute(m_graphicsSceneTabWidget->getCurrentModel()); });
 
     layout->addWidget(m_graphicsSceneTabWidget);
 }
