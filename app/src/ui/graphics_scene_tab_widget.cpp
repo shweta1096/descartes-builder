@@ -5,12 +5,12 @@
 #include <QPushButton>
 
 #include <QtNodes/NodeDelegateModelRegistry>
-#include <QtNodes/DataFlowGraphModel>
-#include <QtNodes/DataFlowGraphicsScene>
+#include <QtNodes/DagGraphModel>
+#include <QtNodes/DagGraphicsScene>
 #include <QtNodes/GraphicsView>
 
-using QtNodes::DataFlowGraphicsScene;
-using QtNodes::DataFlowGraphModel;
+using QtNodes::DagGraphicsScene;
+using QtNodes::DagGraphModel;
 using QtNodes::GraphicsView;
 using QtNodes::NodeDelegateModelRegistry;
 
@@ -22,17 +22,17 @@ namespace
 }
 
 TabComponents::TabComponents(QWidget *parent)
-    : m_model(new DataFlowGraphModel(registry)),
-      m_scene(new DataFlowGraphicsScene(*m_model, parent)),
+    : m_model(new DagGraphModel(registry)),
+      m_scene(new DagGraphicsScene(*m_model, parent)),
       m_view(new GraphicsView(m_scene))
 {
     m_model->setParent(parent);
     // Qt bug for MacOS throws warnings when using touch pad with graphics view
     // touch pad seems to trigger touch events, so touch events are disabled to supress the bug
     m_view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
-    QObject::connect(m_scene, &DataFlowGraphicsScene::sceneLoaded, m_view, &GraphicsView::centerScene);
+    QObject::connect(m_scene, &DagGraphicsScene::sceneLoaded, m_view, &GraphicsView::centerScene);
     if (parent)
-        QObject::connect(m_scene, &DataFlowGraphicsScene::modified, parent, [parent]()
+        QObject::connect(m_scene, &DagGraphicsScene::modified, parent, [parent]()
                          { parent->setWindowModified(true); });
 }
 
@@ -60,7 +60,7 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
     newTab();
 }
 
-QtNodes::DataFlowGraphModel *GraphicsSceneTabWidget::getCurrentModel() const
+QtNodes::DagGraphModel *GraphicsSceneTabWidget::getCurrentModel() const
 {
     if (!count())
         return nullptr;
@@ -145,14 +145,14 @@ void GraphicsSceneTabWidget::tabRemoved(int index)
     emit countChanged(count());
 }
 
-QtNodes::DataFlowGraphicsScene *GraphicsSceneTabWidget::getCurrentScene() const
+QtNodes::DagGraphicsScene *GraphicsSceneTabWidget::getCurrentScene() const
 {
     if (!count())
         return nullptr;
     return m_tabs.at(currentWidget()).getScene();
 }
 
-bool GraphicsSceneTabWidget::openIfExists(QtNodes::DataFlowGraphicsScene *scene)
+bool GraphicsSceneTabWidget::openIfExists(QtNodes::DagGraphicsScene *scene)
 {
     QFileInfo a;
     if (!scene)

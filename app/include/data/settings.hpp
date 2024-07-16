@@ -4,6 +4,8 @@
 #include <QString>
 #include <QVariant>
 
+#include <mutex>
+
 namespace data
 {
     class Settings
@@ -21,5 +23,6 @@ namespace data
         Settings &operator=(const Settings &) = delete;
 
         QSettings m_settings;
+        mutable std::mutex m_mutex;
     };
 }
