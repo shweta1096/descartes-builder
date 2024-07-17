@@ -3,7 +3,7 @@
 #include "log_manager.hpp"
 
 LogPanel::LogPanel(QWidget *parent)
-    : QTextEdit(parent),
+    : QPlainTextEdit(parent),
       m_DEFAULT_TEXT_COLOR(QApplication::palette().text().color())
 {
     setReadOnly(true);
@@ -12,6 +12,8 @@ LogPanel::LogPanel(QWidget *parent)
 
 void LogPanel::appendMessage(const QString &text, const QColor &color)
 {
-    setTextColor(color.isValid() ? color : m_DEFAULT_TEXT_COLOR);
-    append(text);
+    QTextCharFormat format = currentCharFormat();
+    format.setForeground(QBrush(color.isValid() ? color : m_DEFAULT_TEXT_COLOR));
+    setCurrentCharFormat(format);
+    appendPlainText(text);
 }

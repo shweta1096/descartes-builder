@@ -1,10 +1,10 @@
 #pragma once
 
-#include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QMutex>
 #include <QColor>
 
-class LogPanel : public QTextEdit
+class LogPanel : public QPlainTextEdit
 {
     Q_OBJECT
 public:

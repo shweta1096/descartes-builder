@@ -56,7 +56,7 @@ namespace
         out << message << "\n";
         std::cerr << message.toStdString() << std::endl;
 
-        LogManager::instance().appendMessage(message, type);
+        emit LogManager::instance().callAppendMessage(message, type);
 
         out.flush();
 
@@ -73,13 +73,14 @@ LogManager &LogManager::instance()
 
 void LogManager::init()
 {
+    // this must be queued connection to trigger appendMessage on a GUI thread
+    connect(this, &LogManager::callAppendMessage, this, &LogManager::appendMessage, Qt::QueuedConnection);
     qSetMessagePattern("[%{time yyyy-MM-dd HH:mm:ss.zzz}] [%{if-debug}debug%{endif}%{if-info}info%{endif}%{if-warning}warning%{endif}%{if-critical}error%{endif}%{if-fatal}fatal%{endif}] %{file}:%{line}<%{function}>: %{message}");
     qInstallMessageHandler(logHandler);
 }
 
 void LogManager::registerLogPanel(LogPanel *panel)
 {
-    QMutexLocker locker(&m_mutex);
     if (!m_logPanels.contains(panel))
     {
         m_logPanels.push_back(panel);
@@ -94,7 +95,6 @@ void LogManager::registerLogPanel(LogPanel *panel)
 
 void LogManager::appendMessage(const QString &message, const QtMsgType &type)
 {
-    QMutexLocker locker(&m_mutex);
     QColor color;
     if (TYPE_COLOR.count(type) > 0)
         color = TYPE_COLOR[type];

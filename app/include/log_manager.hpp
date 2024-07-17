@@ -20,6 +20,11 @@ public:
     static LogManager &instance();
     void init();
     void registerLogPanel(LogPanel *panel);
+
+signals:
+    void callAppendMessage(const QString &message, const QtMsgType &type);
+
+public slots:
     void appendMessage(const QString &message, const QtMsgType &type = QtInfoMsg);
 
 private:
@@ -29,7 +34,6 @@ private:
     LogManager &operator=(const LogManager &) = delete;
 
     QVector<LogPanel *> m_logPanels;
-    QMutex m_mutex;
     struct LogMessage
     {
         QString string;

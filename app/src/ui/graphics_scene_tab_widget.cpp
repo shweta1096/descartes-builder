@@ -66,6 +66,7 @@ QtNodes::DagGraphModel *GraphicsSceneTabWidget::getCurrentModel() const
         return nullptr;
     return m_tabs.at(currentWidget()).getModel();
 }
+
 void GraphicsSceneTabWidget::newTab()
 {
     TabComponents tab(qobject_cast<QWidget *>(parent()));
