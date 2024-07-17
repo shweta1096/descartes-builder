@@ -3,6 +3,8 @@
 #include <QTabWidget>
 #include <QFileInfo>
 
+#include <QtNodes/Definitions>
+
 class QWidget;
 
 namespace QtNodes
@@ -38,6 +40,7 @@ public:
 signals:
     void countChanged(int count);
     void runClicked();
+    void nodeSelected(QtNodes::NodeId id);
 
 public slots:
     void newTab();
@@ -50,6 +53,7 @@ private slots:
     void closeTab(int index);
     void onTabCountChanged(int count);
     void setCurrentTabText(const QString &label);
+    void onSceneSelectionChanged();
 
 protected:
     virtual void tabInserted(int index) override;
@@ -58,6 +62,7 @@ protected:
 private:
     QtNodes::DagGraphicsScene *getCurrentScene() const;
     bool openIfExists(QtNodes::DagGraphicsScene *scene);
+    void addTabComponent(const TabComponents &tabComponents);
 
     std::map<QWidget *, TabComponents> m_tabs;
 };

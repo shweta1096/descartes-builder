@@ -25,6 +25,7 @@ using QtNodes::NodeStyle;
 #include "data/constants.hpp"
 #include "ui/log_panel.hpp"
 #include "ui/graphics_scene_tab_widget.hpp"
+#include "ui/side_bar_widgets/blocks.hpp"
 #include "engine/engine_starter.hpp"
 #include "temp.hpp"
 
@@ -108,6 +109,10 @@ void MainWindow::initMenuBar()
 
 void MainWindow::initPrimarySideBar()
 {
+    // init widgets
+    auto blockWidget = new Blocks();
+    connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::nodeSelected, blockWidget, &Blocks::onNodeSelected);
+
     // prevent log panel from taking the corner
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
     struct SideBarWidgetData
@@ -119,7 +124,7 @@ void MainWindow::initPrimarySideBar()
     std::vector<SideBarWidgetData> widgets = {
         {media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
          "Blocks",
-         new QLabel("Block Dock Widget")},
+         blockWidget},
         {media::recolor(QIcon(":/menu.png"), constants::COLOR_SECONDARY),
          "Menu",
          new QLabel("Menu Dock Widget")},

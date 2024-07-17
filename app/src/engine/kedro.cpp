@@ -14,6 +14,7 @@ bool Kedro::execute(QtNodes::DagGraphModel *model)
     qInfo() << "Running...";
     if (!validityCheck(model))
         return false;
+    qDebug() << "TOPOLOGICAL ORDER: " << model->topologicalOrder();
     return true;
 }
 
@@ -21,9 +22,15 @@ bool Kedro::validityCheck(QtNodes::DagGraphModel *model)
 {
     qInfo() << "Checking validity...";
     if (model->isEmpty())
+    {
+        qWarning() << "There is no blocks in the graph to execute";
         return false;
-    for (auto id : model->allNodeIds())
-        qDebug() << getNodeOutput(model, id);
+    }
+    if (!model->isConnected())
+    {
+        qWarning() << "The blocks in the graph are not connected";
+        return false;
+    }
     qInfo() << "Passed validity checks!";
     return true;
 }

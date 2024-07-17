@@ -44,8 +44,6 @@ QFileInfo TabComponents::getFile() const
 GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
     : QTabWidget(parent)
 {
-    connect(this, &GraphicsSceneTabWidget::tabCloseRequested, this, &GraphicsSceneTabWidget::closeTab);
-
     // if we want a new tab button
     // auto newTabButton = new QPushButton("+");
     // setCornerWidget(newTabButton);
@@ -54,7 +52,9 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
     setCornerWidget(runButton);
     connect(runButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::runClicked);
 
+    connect(this, &GraphicsSceneTabWidget::tabCloseRequested, this, &GraphicsSceneTabWidget::closeTab);
     connect(this, &GraphicsSceneTabWidget::countChanged, this, &GraphicsSceneTabWidget::onTabCountChanged);
+    connect(this, &GraphicsSceneTabWidget::currentChanged, this, &GraphicsSceneTabWidget::onSceneSelectionChanged);
 
     // init with 1 blank tab
     newTab();
@@ -70,9 +70,7 @@ QtNodes::DagGraphModel *GraphicsSceneTabWidget::getCurrentModel() const
 void GraphicsSceneTabWidget::newTab()
 {
     TabComponents tab(qobject_cast<QWidget *>(parent()));
-    int index = addTab(tab.getView(), "blank");
-    m_tabs[widget(index)] = std::move(tab);
-    setCurrentIndex(index);
+    addTabComponent(tab);
 }
 
 bool GraphicsSceneTabWidget::save()
@@ -102,9 +100,7 @@ bool GraphicsSceneTabWidget::open()
     auto scene = tab.getScene();
     if (!scene || !scene->load() || openIfExists(scene))
         return false;
-    int index = addTab(tab.getView(), scene->getFile().baseName());
-    m_tabs[widget(index)] = std::move(tab);
-    setCurrentIndex(index);
+    addTabComponent(tab);
     return true;
 }
 
@@ -132,6 +128,16 @@ void GraphicsSceneTabWidget::onTabCountChanged(int count)
 void GraphicsSceneTabWidget::setCurrentTabText(const QString &label)
 {
     setTabText(currentIndex(), label);
+}
+
+void GraphicsSceneTabWidget::onSceneSelectionChanged()
+{
+    if (m_tabs.size() < 1)
+        return;
+    auto selection = getCurrentScene()->selectedNodes();
+    if (selection.size() < 1)
+        return emit nodeSelected(QtNodes::InvalidNodeId);
+    emit nodeSelected(selection.at(0));
 }
 
 void GraphicsSceneTabWidget::tabInserted(int index)
@@ -165,4 +171,13 @@ bool GraphicsSceneTabWidget::openIfExists(QtNodes::DagGraphicsScene *scene)
             return true;
         }
     return false;
+}
+
+void GraphicsSceneTabWidget::addTabComponent(const TabComponents &tabComponents)
+{
+    int index = addTab(tabComponents.getView(), "blank");
+    m_tabs[widget(index)] = std::move(tabComponents);
+    setCurrentIndex(index);
+
+    connect(m_tabs[widget(index)].getScene(), &DagGraphicsScene::selectionChanged, this, &GraphicsSceneTabWidget::onSceneSelectionChanged);
 }
