@@ -5,12 +5,12 @@
 #include <QPushButton>
 
 #include <QtNodes/NodeDelegateModelRegistry>
-#include <QtNodes/DagGraphModel>
+#include <QtNodes/DirectedAcyclicGraphModel>
 #include <QtNodes/DagGraphicsScene>
 #include <QtNodes/GraphicsView>
 
 using QtNodes::DagGraphicsScene;
-using QtNodes::DagGraphModel;
+using QtNodes::DirectedAcyclicGraphModel;
 using QtNodes::GraphicsView;
 using QtNodes::NodeDelegateModelRegistry;
 
@@ -22,7 +22,7 @@ namespace
 }
 
 TabComponents::TabComponents(QWidget *parent)
-    : m_model(new DagGraphModel(registry)),
+    : m_model(new DirectedAcyclicGraphModel(registry)),
       m_scene(new DagGraphicsScene(*m_model, parent)),
       m_view(new GraphicsView(m_scene))
 {
@@ -60,7 +60,7 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
     newTab();
 }
 
-QtNodes::DagGraphModel *GraphicsSceneTabWidget::getCurrentModel() const
+QtNodes::DirectedAcyclicGraphModel *GraphicsSceneTabWidget::getCurrentModel() const
 {
     if (!count())
         return nullptr;

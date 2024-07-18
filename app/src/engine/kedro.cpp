@@ -1,15 +1,15 @@
 #include "engine/kedro.hpp"
 
-#include <QtNodes/DagGraphModel>
+#include <QtNodes/DirectedAcyclicGraphModel>
 
-using QtNodes::DagGraphModel;
+using QtNodes::DirectedAcyclicGraphModel;
 
 Kedro::Kedro()
 {
     qDebug() << "Kedro engine is initiated";
 }
 
-bool Kedro::execute(QtNodes::DagGraphModel *model)
+bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *model)
 {
     qInfo() << "Running...";
     if (!validityCheck(model))
@@ -18,7 +18,7 @@ bool Kedro::execute(QtNodes::DagGraphModel *model)
     return true;
 }
 
-bool Kedro::validityCheck(QtNodes::DagGraphModel *model)
+bool Kedro::validityCheck(QtNodes::DirectedAcyclicGraphModel *model)
 {
     qInfo() << "Checking validity...";
     if (model->isEmpty())
@@ -35,7 +35,7 @@ bool Kedro::validityCheck(QtNodes::DagGraphModel *model)
     return true;
 }
 
-QVariant Kedro::getNodeOutput(QtNodes::DagGraphModel *model, QtNodes::NodeId id)
+QVariant Kedro::getNodeOutput(QtNodes::DirectedAcyclicGraphModel *model, QtNodes::NodeId id)
 {
     return model->nodeData(id, QtNodes::NodeRole::InternalData);
 }

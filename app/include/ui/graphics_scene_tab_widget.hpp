@@ -9,7 +9,7 @@ class QWidget;
 
 namespace QtNodes
 {
-    class DagGraphModel;
+    class DirectedAcyclicGraphModel;
     class DagGraphicsScene;
     class GraphicsView;
 }
@@ -19,13 +19,13 @@ class TabComponents
 public:
     TabComponents(QWidget *parent = nullptr);
 
-    QtNodes::DagGraphModel *getModel() const { return m_model; }
+    QtNodes::DirectedAcyclicGraphModel *getModel() const { return m_model; }
     QtNodes::DagGraphicsScene *getScene() const { return m_scene; }
     QtNodes::GraphicsView *getView() const { return m_view; }
     QFileInfo getFile() const;
 
 private:
-    QtNodes::DagGraphModel *m_model;
+    QtNodes::DirectedAcyclicGraphModel *m_model;
     QtNodes::DagGraphicsScene *m_scene;
     QtNodes::GraphicsView *m_view;
 };
@@ -35,7 +35,7 @@ class GraphicsSceneTabWidget : public QTabWidget
     Q_OBJECT
 public:
     GraphicsSceneTabWidget(QWidget *parent = nullptr);
-    QtNodes::DagGraphModel *getCurrentModel() const;
+    QtNodes::DirectedAcyclicGraphModel *getCurrentModel() const;
 
 signals:
     void countChanged(int count);
