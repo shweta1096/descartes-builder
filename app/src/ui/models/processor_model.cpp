@@ -1,7 +1,7 @@
 #include "ui/models/processor_model.hpp"
 
 ProcessorModel::ProcessorModel()
-    : FdfBlockModel("Processor", "Processor Base")
+    : FdfBlockModel(FdfType::Processor, "reduce")
 {
     addPort(PortType::In, std::make_shared<DataNode>());
     addPort(PortType::In, std::make_shared<FunctionNode>());

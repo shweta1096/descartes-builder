@@ -14,19 +14,39 @@ class FdfBlockModel : public NodeDelegateModel
 {
     Q_OBJECT
 public:
-    FdfBlockModel(const QString &caption, const QString &name);
-    QString caption() const override;
-    QString name() const override;
+    enum FdfType
+    {
+        Coder,
+        Processor,
+        Trainer,
+        Data,
+    };
+
+    FdfBlockModel(FdfType type, const QString &name, const QString & = QString());
+    FdfType type() const { return m_type; }
+    QString name() const override { return m_name; }
+    QString functionName() const { return m_functionName; }
+    QString caption() const override { return m_caption; }
     unsigned int nPorts(PortType const portType) const override;
     NodeDataType dataType(PortType const portType, PortIndex const portIndex) const override;
     std::shared_ptr<NodeData> outData(PortIndex const port) override;
     virtual void setInData(std::shared_ptr<NodeData>, PortIndex const) override;
     virtual QWidget *embeddedWidget() override;
+    void setCaption(const QString &caption);
 
     PortIndex addPort(PortType const portType, std::shared_ptr<NodeData> port);
 
 private:
-    QString m_caption;
-    QString m_name;
+    FdfType m_type;
+    QString m_name; // name in the library
+    QString m_functionName;
+    QString m_caption; // appears in the scene
     std::map<PortType, std::vector<std::shared_ptr<NodeData>>> m_ports;
+
+    std::unordered_map<FdfType, QString> TYPE_STRING = {
+        {FdfType::Coder, "Coder"},
+        {FdfType::Processor, "Processor"},
+        {FdfType::Trainer, "Trainer"},
+        {FdfType::Data, "Data"},
+    };
 };

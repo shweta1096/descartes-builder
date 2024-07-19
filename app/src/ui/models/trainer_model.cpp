@@ -1,7 +1,7 @@
 #include "ui/models/trainer_model.hpp"
 
 TrainerModel::TrainerModel()
-    : FdfBlockModel("Trainer", "Trainer Base")
+    : FdfBlockModel(FdfType::Trainer, "trainer", "basic_trainer")
 {
     addPort(PortType::In, std::make_shared<DataNode>());
     addPort(PortType::In, std::make_shared<DataNode>());

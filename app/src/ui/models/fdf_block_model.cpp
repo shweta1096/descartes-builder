@@ -1,23 +1,15 @@
 #include "ui/models/fdf_block_model.hpp"
 
-FdfBlockModel::FdfBlockModel(const QString &caption, const QString &name)
+FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &functionName)
     : NodeDelegateModel(),
-      m_caption(caption),
-      m_name(name)
+      m_type(type),
+      m_name(name),
+      m_functionName(functionName)
 {
     // init empty port map
     auto portTypes = {PortType::In, PortType::Out, PortType::None};
     for (auto pType : portTypes)
         m_ports[pType] = {};
-}
-
-QString FdfBlockModel::caption() const
-{
-    return m_caption;
-}
-QString FdfBlockModel::name() const
-{
-    return m_name;
 }
 
 unsigned int FdfBlockModel::nPorts(PortType const portType) const
@@ -48,6 +40,13 @@ void FdfBlockModel::setInData(std::shared_ptr<NodeData>, PortIndex const)
 QWidget *FdfBlockModel::embeddedWidget()
 {
     return nullptr;
+}
+
+void FdfBlockModel::setCaption(const QString &caption)
+{
+    if (m_caption == caption)
+        return;
+    m_caption = caption;
 }
 
 PortIndex FdfBlockModel::addPort(PortType const portType, std::shared_ptr<NodeData> port)

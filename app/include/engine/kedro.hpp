@@ -9,4 +9,7 @@ public:
     virtual bool execute(QtNodes::DirectedAcyclicGraphModel *model) override;
     virtual bool validityCheck(QtNodes::DirectedAcyclicGraphModel *model) override;
     virtual QVariant getNodeOutput(QtNodes::DirectedAcyclicGraphModel *model, QtNodes::NodeId id) override;
+
+private:
+    QString serialNode(const QtNodes::NodeId &id, QtNodes::DirectedAcyclicGraphModel *model) const;
 };

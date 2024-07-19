@@ -1,7 +1,7 @@
 #include "ui/models/coder_model.hpp"
 
 CoderModel::CoderModel()
-    : FdfBlockModel("Coder", "Coder Base")
+    : FdfBlockModel(FdfType::Coder, "xform", "xform_data")
 {
     addPort(PortType::In, std::make_shared<DataNode>());
     addPort(PortType::Out, std::make_shared<FunctionNode>());

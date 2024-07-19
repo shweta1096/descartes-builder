@@ -10,9 +10,9 @@ namespace model_registry
     {
         // All models to be used must be registered here
         auto ret = std::make_shared<NodeDelegateModelRegistry>();
-        ret->registerModel<ProcessorModel>("Processors");
-        ret->registerModel<CoderModel>("Coders");
-        ret->registerModel<TrainerModel>("Trainers");
+        ret->registerModel<ProcessorModel>("Processor");
+        ret->registerModel<CoderModel>("Coder");
+        ret->registerModel<TrainerModel>("Trainer");
 
         return ret;
     }
