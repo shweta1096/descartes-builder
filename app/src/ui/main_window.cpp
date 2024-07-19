@@ -46,6 +46,11 @@ MainWindow::~MainWindow()
 {
 }
 
+bool MainWindow::callExecute()
+{
+    return m_engine->execute(m_graphicsSceneTabWidget->getCurrentModel());
+}
+
 void MainWindow::initScene()
 {
     ConnectionStyle::setConnectionStyle(constants::CONNECTION_STYLE);
@@ -60,8 +65,7 @@ void MainWindow::initScene()
     layout->setSpacing(0);
 
     m_graphicsSceneTabWidget = new GraphicsSceneTabWidget(m_centralWidget);
-    connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::runClicked, this, [this]()
-            { m_engine->execute(m_graphicsSceneTabWidget->getCurrentModel()); });
+    connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::runClicked, this, &MainWindow::callExecute);
 
     layout->addWidget(m_graphicsSceneTabWidget);
 }
@@ -78,12 +82,14 @@ void MainWindow::initMenuBar()
     auto openAction = fileMenu->addAction("Open");
     auto closeAction = fileMenu->addAction("Close current tab");
     closeAction->setDisabled(true);
+    auto runAction = fileMenu->addAction("Run");
 
-    newAction->setShortcut(QKeySequence::New);
+    newAction->setShortcuts({QKeySequence::New, QKeySequence::AddTab});
     saveAction->setShortcut(QKeySequence::Save);
     saveAsAction->setShortcut(QKeySequence::SaveAs);
     openAction->setShortcut(QKeySequence::Open);
     closeAction->setShortcut(QKeySequence::Close);
+    runAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
 
     connect(newAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::newTab);
     connect(saveAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::save);
@@ -93,6 +99,7 @@ void MainWindow::initMenuBar()
     if (m_graphicsSceneTabWidget)
         connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::countChanged, closeAction, [closeAction](int count)
                 { closeAction->setEnabled(count > 1); });
+    connect(runAction, &QAction::triggered, this, &MainWindow::callExecute);
 
     { // temp menu for testing code
         QMenu *tempMenu = menuBar->addMenu("Temp");

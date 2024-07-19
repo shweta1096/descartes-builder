@@ -13,6 +13,9 @@ public:
     MainWindow();
     ~MainWindow();
 
+private slots:
+    bool callExecute();
+
 private:
     // Ui inits
     void initScene();

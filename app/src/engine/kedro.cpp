@@ -4,7 +4,28 @@
 
 #include "ui/models/fdf_block_model.hpp"
 
+#include <iostream>
+
 using QtNodes::DirectedAcyclicGraphModel;
+
+namespace
+{
+    QString toString(FdfBlockModel *model)
+    {
+        if (model->functionName().isEmpty())
+            return QString("%1(name=\"%2\",inputs=%3,outputs=%4,)")
+                .arg(model->typeAsString(),
+                     model->name(),
+                     "[]",
+                     "[]");
+        return QString("%1(func=%2,name=\"%3\",inputs=%4,outputs=%5,)")
+            .arg(model->typeAsString(),
+                 model->functionName(),
+                 model->name(),
+                 "[]",
+                 "[]");
+    }
+}
 
 Kedro::Kedro()
 {
@@ -48,6 +69,5 @@ QVariant Kedro::getNodeOutput(QtNodes::DirectedAcyclicGraphModel *model, QtNodes
 QString Kedro::serialNode(const QtNodes::NodeId &id, QtNodes::DirectedAcyclicGraphModel *model) const
 {
     auto data = model->delegateModel<FdfBlockModel>(id);
-    qDebug() << data;
-    return "";
+    return toString(data);
 }

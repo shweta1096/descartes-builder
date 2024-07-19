@@ -24,6 +24,7 @@ public:
 
     FdfBlockModel(FdfType type, const QString &name, const QString & = QString());
     FdfType type() const { return m_type; }
+    QString typeAsString() const { return TYPE_STRING.at(m_type); }
     QString name() const override { return m_name; }
     QString functionName() const { return m_functionName; }
     QString caption() const override { return m_caption; }
@@ -44,9 +45,9 @@ private:
     std::map<PortType, std::vector<std::shared_ptr<NodeData>>> m_ports;
 
     std::unordered_map<FdfType, QString> TYPE_STRING = {
-        {FdfType::Coder, "Coder"},
-        {FdfType::Processor, "Processor"},
-        {FdfType::Trainer, "Trainer"},
-        {FdfType::Data, "Data"},
+        {FdfType::Coder, "coder"},
+        {FdfType::Processor, "processor"},
+        {FdfType::Trainer, "trainer"},
+        {FdfType::Data, "data"},
     };
 };
