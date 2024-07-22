@@ -2,10 +2,10 @@
 
 #include "fdf_block_model.hpp"
 
-class ProcessorModel : public FdfBlockModel
+class BasicTrainerModel : public FdfBlockModel
 {
     Q_OBJECT
 public:
-    ProcessorModel();
+    BasicTrainerModel();
     void setInData(std::shared_ptr<NodeData>, PortIndex const) override;
 };

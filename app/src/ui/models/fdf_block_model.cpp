@@ -4,7 +4,8 @@ FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &f
     : NodeDelegateModel(),
       m_type(type),
       m_name(name),
-      m_functionName(functionName)
+      m_functionName(functionName),
+      m_caption(QString("%1(%2)").arg(typeAsString(), name))
 {
     // init empty port map
     auto portTypes = {PortType::In, PortType::Out, PortType::None};
@@ -33,6 +34,14 @@ std::shared_ptr<NodeData> FdfBlockModel::outData(PortIndex const port)
     return ports.at(port);
 }
 
+std::shared_ptr<NodeData> FdfBlockModel::inData(PortIndex const port)
+{
+    auto ports = m_ports.at(PortType::In);
+    if (ports.size() <= port)
+        return std::shared_ptr<NodeData>();
+    return ports.at(port);
+}
+
 void FdfBlockModel::setInData(std::shared_ptr<NodeData>, PortIndex const)
 {
 }
@@ -54,4 +63,18 @@ PortIndex FdfBlockModel::addPort(PortType const portType, std::shared_ptr<NodeDa
     PortIndex i = m_ports[portType].size();
     m_ports[portType].push_back(port);
     return i;
+}
+
+std::shared_ptr<NodeData> FdfBlockModel::portData(PortType const type, PortIndex const index) const
+{
+    auto ports = m_ports.at(type);
+    if (ports.size() <= index)
+        return std::shared_ptr<NodeData>();
+    return ports.at(index);
+}
+
+void FdfBlockModel::propagateUpdate()
+{
+    for (uint i = 0; i < nPorts(PortType::Out); ++i)
+        emit dataUpdated(i);
 }

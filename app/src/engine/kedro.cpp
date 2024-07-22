@@ -10,20 +10,33 @@ using QtNodes::DirectedAcyclicGraphModel;
 
 namespace
 {
-    QString toString(FdfBlockModel *model)
+    QStringList getPortList(const FdfBlockModel &model, const PortType &type)
     {
-        if (model->functionName().isEmpty())
-            return QString("%1(name=\"%2\",inputs=%3,outputs=%4,)")
-                .arg(model->typeAsString(),
-                     model->name(),
-                     "[]",
-                     "[]");
-        return QString("%1(func=%2,name=\"%3\",inputs=%4,outputs=%5,)")
-            .arg(model->typeAsString(),
-                 model->functionName(),
-                 model->name(),
-                 "[]",
-                 "[]");
+        QStringList result;
+        for (uint i = 0; i < model.nPorts(type); ++i)
+            if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(model.portData(type, i)))
+                result.append(QString("\"%1\"").arg(namedNode->name()));
+        return result;
+    }
+
+    QString toString(const FdfBlockModel &model)
+    {
+        QString result = model.typeAsString() + '(';
+        if (!model.functionName().isEmpty())
+            result += QString("func=%1,").arg(model.functionName());
+        result += QString("name=\"%1\",").arg(model.name());
+        QStringList inputs = getPortList(model, PortType::In);
+        if (inputs.size() == 1)
+            result += QString("inputs=%1").arg(inputs.at(0));
+        else if (inputs.size() > 1)
+            result += QString("inputs=[%1]").arg(inputs.join(','));
+        QStringList outputs = getPortList(model, PortType::Out);
+        if (outputs.size() == 1)
+            result += QString("outputs=%1").arg(outputs.at(0));
+        else if (outputs.size() > 1)
+            result += QString("outputs=[%1]").arg(outputs.join(','));
+        result += ')';
+        return result;
     }
 }
 
@@ -39,8 +52,9 @@ bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *model)
         return false;
     QStringList serializedObjects;
     for (const auto &id : model->topologicalOrder())
-        serializedObjects.append(serialNode(id, model));
-    qDebug() << "Serialized objects: " << serializedObjects;
+        if (model->nodeData(id, QtNodes::NodeRole::Type) != "data_source") // ignore data source for kedro
+            serializedObjects.append(serializeNode(id, model));
+    qDebug().noquote() << serializedObjects.join(',');
     return true;
 }
 
@@ -66,8 +80,7 @@ QVariant Kedro::getNodeOutput(QtNodes::DirectedAcyclicGraphModel *model, QtNodes
     return model->nodeData(id, QtNodes::NodeRole::InternalData);
 }
 
-QString Kedro::serialNode(const QtNodes::NodeId &id, QtNodes::DirectedAcyclicGraphModel *model) const
+QString Kedro::serializeNode(const QtNodes::NodeId &id, QtNodes::DirectedAcyclicGraphModel *model) const
 {
-    auto data = model->delegateModel<FdfBlockModel>(id);
-    return toString(data);
+    return toString(*model->delegateModel<FdfBlockModel>(id));
 }

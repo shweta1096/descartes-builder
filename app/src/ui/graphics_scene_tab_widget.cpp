@@ -175,7 +175,10 @@ bool GraphicsSceneTabWidget::openIfExists(QtNodes::DagGraphicsScene *scene)
 
 void GraphicsSceneTabWidget::addTabComponent(const TabComponents &tabComponents)
 {
-    int index = addTab(tabComponents.getView(), "blank");
+    QString title = tabComponents.getScene()->getFile().baseName();
+    if (title.isEmpty())
+        title = "blank";
+    int index = addTab(tabComponents.getView(), title);
     m_tabs[widget(index)] = std::move(tabComponents);
     setCurrentIndex(index);
 

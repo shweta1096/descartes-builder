@@ -5,14 +5,34 @@
 using QtNodes::NodeData;
 using QtNodes::NodeDataType;
 
-class DataNode : public NodeData
+class NamedNode : public NodeData
 {
 public:
-    NodeDataType type() const override { return NodeDataType{"DataNode", "Data"}; }
+    NamedNode(const QString &name) : m_DEFAULT(name), m_name(m_DEFAULT) {}
+
+    QString name() const { return m_name; }
+    void setName(const QString &name) { m_name = name; }
+    void reset() { m_name = m_DEFAULT; }
+
+protected:
+    const QString m_DEFAULT;
+    QString m_name;
 };
 
-class FunctionNode : public NodeData
+class DataNode : public NamedNode
 {
 public:
-    NodeDataType type() const override { return NodeDataType{"FunctionNode", "Function"}; }
+    DataNode() : NamedNode("data") {}
+    DataNode(const QString &name) : NamedNode(name) {}
+
+    NodeDataType type() const override { return NodeDataType{"DataNode", m_name}; }
+};
+
+class FunctionNode : public NamedNode
+{
+public:
+    FunctionNode() : NamedNode("function") {}
+    FunctionNode(const QString &name) : NamedNode(name) {}
+
+    NodeDataType type() const override { return NodeDataType{"FunctionNode", m_name}; }
 };
