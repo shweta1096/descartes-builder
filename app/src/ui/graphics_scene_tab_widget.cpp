@@ -22,11 +22,11 @@ namespace
 }
 
 TabComponents::TabComponents(QWidget *parent)
-    : m_model(new DirectedAcyclicGraphModel(registry)),
-      m_scene(new DagGraphicsScene(*m_model, parent)),
+    : m_graph(new DirectedAcyclicGraphModel(registry)),
+      m_scene(new DagGraphicsScene(*m_graph, parent)),
       m_view(new GraphicsView(m_scene))
 {
-    m_model->setParent(parent);
+    m_graph->setParent(parent);
     // Qt bug for MacOS throws warnings when using touch pad with graphics view
     // touch pad seems to trigger touch events, so touch events are disabled to supress the bug
     m_view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
@@ -64,7 +64,7 @@ QtNodes::DirectedAcyclicGraphModel *GraphicsSceneTabWidget::getCurrentModel() co
 {
     if (!count())
         return nullptr;
-    return m_tabs.at(currentWidget()).getModel();
+    return m_tabs.at(currentWidget()).getGraph();
 }
 
 void GraphicsSceneTabWidget::newTab()

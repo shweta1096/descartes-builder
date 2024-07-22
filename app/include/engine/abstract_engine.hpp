@@ -14,13 +14,13 @@ class AbstractEngine
 {
 public:
     virtual ~AbstractEngine() {}
-    virtual bool execute(QtNodes::DirectedAcyclicGraphModel *model) = 0;
+    virtual bool execute(QtNodes::DirectedAcyclicGraphModel *graph) = 0;
     QString getExecutionError() const { return m_executionError; }
 
-    virtual bool validityCheck(QtNodes::DirectedAcyclicGraphModel *model) = 0;
+    virtual bool validityCheck(QtNodes::DirectedAcyclicGraphModel *graph) = 0;
     QStringList getValidityWarnings() const { return m_validityWarnings; }
 
-    virtual QVariant getNodeOutput(QtNodes::DirectedAcyclicGraphModel *model, QtNodes::NodeId id) = 0;
+    virtual QVariant getNodeOutput(QtNodes::DirectedAcyclicGraphModel *graph, QtNodes::NodeId id) = 0;
 
 protected:
     void setExecutionError(const QString &error) { m_executionError = error; }

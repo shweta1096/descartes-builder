@@ -21,3 +21,10 @@ private:
     std::shared_ptr<DataNode> m_data;
     QLineEdit *m_widget;
 };
+
+class FuncOutModel : public FdfBlockModel
+{
+    Q_OBJECT
+public:
+    FuncOutModel();
+};

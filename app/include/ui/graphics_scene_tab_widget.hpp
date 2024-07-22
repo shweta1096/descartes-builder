@@ -19,13 +19,13 @@ class TabComponents
 public:
     TabComponents(QWidget *parent = nullptr);
 
-    QtNodes::DirectedAcyclicGraphModel *getModel() const { return m_model; }
+    QtNodes::DirectedAcyclicGraphModel *getGraph() const { return m_graph; }
     QtNodes::DagGraphicsScene *getScene() const { return m_scene; }
     QtNodes::GraphicsView *getView() const { return m_view; }
     QFileInfo getFile() const;
 
 private:
-    QtNodes::DirectedAcyclicGraphModel *m_model;
+    QtNodes::DirectedAcyclicGraphModel *m_graph;
     QtNodes::DagGraphicsScene *m_scene;
     QtNodes::GraphicsView *m_view;
 };

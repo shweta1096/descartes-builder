@@ -1,4 +1,4 @@
-#include "ui/models/data_models.hpp"
+#include "ui/models/io_models.hpp"
 
 #include <QLineEdit>
 
@@ -51,4 +51,10 @@ void DataSourceModel::onWidgetEdited(const QString &name)
         return;
     m_data->setName(name);
     propagateUpdate();
+}
+
+FuncOutModel::FuncOutModel()
+    : FdfBlockModel(FdfType::Output, "func_out")
+{
+    addPort(PortType::In, std::make_shared<FunctionNode>("function"));
 }

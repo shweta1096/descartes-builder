@@ -20,6 +20,7 @@ public:
         Processor,
         Trainer,
         Data,
+        Output,
     };
 
     FdfBlockModel(FdfType type, const QString &name, const QString &functionName = QString());
@@ -47,6 +48,7 @@ private:
         {FdfType::Processor, "processor"},
         {FdfType::Trainer, "trainer"},
         {FdfType::Data, "data"},
+        {FdfType::Output, "output"},
     };
 
     FdfType m_type;
