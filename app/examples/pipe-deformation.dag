@@ -1,0 +1,152 @@
+{
+    "connections": [
+        {
+            "inPortIndex": 0,
+            "intNodeId": 8,
+            "outNodeId": 7,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 1,
+            "outNodeId": 0,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 3,
+            "outNodeId": 1,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 1,
+            "intNodeId": 7,
+            "outNodeId": 6,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 4,
+            "outNodeId": 1,
+            "outPortIndex": 2
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 5,
+            "outNodeId": 3,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 1,
+            "intNodeId": 1,
+            "outNodeId": 2,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 6,
+            "outNodeId": 4,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 7,
+            "outNodeId": 5,
+            "outPortIndex": 0
+        }
+    ],
+    "nodes": [
+        {
+            "id": 0,
+            "internal-data": {
+                "data-name": "displ",
+                "model-name": "data_source"
+            },
+            "position": {
+                "x": -618.2893081761013,
+                "y": -288.3993710691824
+            }
+        },
+        {
+            "id": 1,
+            "internal-data": {
+                "model-name": "split_data"
+            },
+            "position": {
+                "x": -375,
+                "y": -267
+            }
+        },
+        {
+            "id": 2,
+            "internal-data": {
+                "data-name": "eps",
+                "model-name": "data_source"
+            },
+            "position": {
+                "x": -615.6320754716987,
+                "y": -190.68553459119497
+            }
+        },
+        {
+            "id": 3,
+            "internal-data": {
+                "model-name": "xform"
+            },
+            "position": {
+                "x": -171,
+                "y": -316
+            }
+        },
+        {
+            "id": 4,
+            "internal-data": {
+                "model-name": "xform"
+            },
+            "position": {
+                "x": -171,
+                "y": -197
+            }
+        },
+        {
+            "id": 5,
+            "internal-data": {
+                "model-name": "reduce"
+            },
+            "position": {
+                "x": 45,
+                "y": -313
+            }
+        },
+        {
+            "id": 6,
+            "internal-data": {
+                "model-name": "reduce"
+            },
+            "position": {
+                "x": 43,
+                "y": -193
+            }
+        },
+        {
+            "id": 7,
+            "internal-data": {
+                "model-name": "trainer"
+            },
+            "position": {
+                "x": 266,
+                "y": -259
+            }
+        },
+        {
+            "id": 8,
+            "internal-data": {
+                "model-name": "func_out"
+            },
+            "position": {
+                "x": 461.5028282109097,
+                "y": -257.17333175111753
+            }
+        }
+    ]
+}
