@@ -25,7 +25,7 @@ NodeDataType FdfBlockModel::dataType(PortType const portType, PortIndex const po
     if (portType == PortType::In)
         return m_inPorts.at(portIndex).first->type();
     if (portType == PortType::Out)
-        return m_outPorts.at(portIndex)->type();
+        return m_outPorts.at(portIndex).first->type();
     return NodeDataType();
 }
 
@@ -33,7 +33,7 @@ std::shared_ptr<NodeData> FdfBlockModel::outData(PortIndex const index)
 {
     if (!indexCheck(PortType::Out, index))
         return std::shared_ptr<NodeData>();
-    return m_outPorts.at(index);
+    return m_outPorts.at(index).first;
 }
 
 void FdfBlockModel::setInData(std::shared_ptr<NodeData> data, PortIndex const index)
@@ -43,6 +43,7 @@ void FdfBlockModel::setInData(std::shared_ptr<NodeData> data, PortIndex const in
     if (!data)
     {
         emit dataInvalidated(index);
+        m_inPorts.at(index).second = std::weak_ptr<NodeData>();
         resetPortCaption(PortType::In, index);
         return;
     }
@@ -56,15 +57,6 @@ QWidget *FdfBlockModel::embeddedWidget()
     return nullptr;
 }
 
-std::shared_ptr<NodeData> FdfBlockModel::portData(PortType const type, PortIndex const index)
-{
-    if (type == PortType::In)
-        return inData(index);
-    if (type == PortType::Out)
-        return outData(index);
-    return std::shared_ptr<NodeData>();
-}
-
 QString FdfBlockModel::portCaption(PortType portType, PortIndex portIndex) const
 {
     if (!indexCheck(portType, portIndex))
@@ -76,8 +68,53 @@ QString FdfBlockModel::portCaption(PortType portType, PortIndex portIndex) const
         return m_inPorts.at(portIndex).first->type().name; // otherwise use the default
     }
     if (portType == PortType::Out)
-        return m_outPorts.at(portIndex)->type().name;
+        return m_outPorts.at(portIndex).first->type().name;
     return QString();
+}
+
+std::shared_ptr<NodeData> FdfBlockModel::portData(PortType const type, PortIndex const index)
+{
+    if (type == PortType::In)
+        return inData(index);
+    if (type == PortType::Out)
+        return outData(index);
+    return std::shared_ptr<NodeData>();
+}
+
+std::vector<std::shared_ptr<NodeData>> FdfBlockModel::connectedPortData(PortType const type) const
+{
+    std::vector<std::shared_ptr<NodeData>> result;
+    if (type == PortType::None)
+        return result;
+    if (type == PortType::In)
+    {
+        for (auto &portPair : m_inPorts)
+            if (auto block = portPair.second.lock())
+                result.push_back(block);
+    }
+    else if (type == PortType::Out)
+    {
+        for (auto &portPair : m_outPorts)
+            if (portPair.second) // second represents it's in use
+                result.push_back(portPair.first);
+    }
+    return result;
+}
+
+void FdfBlockModel::outputConnectionCreated(ConnectionId const &conn)
+{
+    PortIndex index = conn.outPortIndex;
+    if (!indexCheck(PortType::Out, index))
+        return;
+    m_outPorts.at(index).second = true;
+}
+
+void FdfBlockModel::outputConnectionDeleted(ConnectionId const &conn)
+{
+    PortIndex index = conn.outPortIndex;
+    if (!indexCheck(PortType::Out, index))
+        return;
+    m_outPorts.at(index).second = false;
 }
 
 bool FdfBlockModel::indexCheck(PortType type, PortIndex index) const
@@ -113,7 +150,7 @@ bool FdfBlockModel::setPortCaption(PortType type, PortIndex index, const QString
             return true;
         }
     if (type == PortType::Out)
-        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index)))
+        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first))
         {
             namedNode->setName(caption);
             return true;
@@ -132,7 +169,7 @@ bool FdfBlockModel::resetPortCaption(PortType type, PortIndex index)
             return true;
         }
     if (type == PortType::Out)
-        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index)))
+        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first))
         {
             namedNode->reset();
             return true;
@@ -161,6 +198,6 @@ PortIndex FdfBlockModel::addOutPort(std::shared_ptr<NodeData> port)
     if (!port)
         return QtNodes::InvalidPortIndex;
     PortIndex i = m_outPorts.size();
-    m_outPorts.push_back(port);
+    m_outPorts.push_back({port, false});
     return i;
 }

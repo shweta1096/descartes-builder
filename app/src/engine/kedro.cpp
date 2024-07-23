@@ -19,8 +19,8 @@ namespace
     QStringList getPortList(const FdfBlockModel &block, const PortType &type)
     {
         QStringList result;
-        for (uint i = 0; i < block.nPorts(type); ++i)
-            result.append(QString("\"%1\"").arg(block.portCaption(type, i)));
+        for (auto &port : block.connectedPortData(type))
+            result.append(QString("\"%1\"").arg(port->type().name));
         return result;
     }
 

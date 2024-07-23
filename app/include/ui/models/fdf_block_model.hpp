@@ -4,6 +4,7 @@
 
 #include <QtNodes/NodeDelegateModel>
 
+using QtNodes::ConnectionId;
 using QtNodes::NodeDelegateModel;
 using QtNodes::PortIndex;
 using QtNodes::PortType;
@@ -34,13 +35,18 @@ public:
     std::shared_ptr<NodeData> outData(PortIndex const index) override;
     virtual void setInData(std::shared_ptr<NodeData> data, PortIndex const index) override;
     virtual QWidget *embeddedWidget() override;
-    virtual std::shared_ptr<NodeData> portData(PortType const type, PortIndex const index);
     QString portCaption(PortType portType, PortIndex portIndex) const override;
 
+    virtual std::shared_ptr<NodeData> portData(PortType const type, PortIndex const index);
+    virtual std::vector<std::shared_ptr<NodeData>> connectedPortData(PortType const type) const;
     void setCaption(const QString &caption);
     bool setPortCaption(PortType type, PortIndex index, const QString &caption);
     bool resetPortCaption(PortType portType, PortIndex portIndex);
     virtual std::shared_ptr<NodeData> inData(PortIndex const index);
+
+public slots:
+    virtual void outputConnectionCreated(ConnectionId const &conn) override;
+    virtual void outputConnectionDeleted(ConnectionId const &conn) override;
 
 protected:
     bool indexCheck(PortType type, PortIndex index) const;
@@ -63,5 +69,6 @@ private:
     QString m_caption; // appears in the scene
     // first is for structuring, second is actual data linked to connected block
     std::vector<std::pair<std::unique_ptr<NodeData>, std::weak_ptr<NodeData>>> m_inPorts;
-    std::vector<std::shared_ptr<NodeData>> m_outPorts;
+    // first is for data, second represents whether it's in use
+    std::vector<std::pair<std::shared_ptr<NodeData>, bool>> m_outPorts;
 };

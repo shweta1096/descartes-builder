@@ -49,6 +49,7 @@ void DataSourceModel::onWidgetEdited(const QString &name)
     if (name == portCaption(PortType::Out, 0))
         return;
     setPortCaption(PortType::Out, 0, name);
+    portsInserted();
     propagateUpdate();
 }
 
