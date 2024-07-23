@@ -1,15 +1,6 @@
 #pragma once
 
-#include <QDebug>
-#include <QFile>
-#include <QTextStream>
-#include <QDateTime>
-#include <QApplication>
-#include <QDir>
-
-#include <iostream>
-
-#include "file/file.hpp"
+#include <QObject>
 
 #include "ui/log_panel.hpp"
 

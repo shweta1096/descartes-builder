@@ -1,13 +1,12 @@
 #include "ui/models/fdf_block_model.hpp"
 
 FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &functionName)
-    : NodeDelegateModel(),
-      m_type(type),
-      m_name(name),
-      m_functionName(functionName),
-      m_caption(QString("%1(%2)").arg(typeAsString(), name))
-{
-}
+    : NodeDelegateModel()
+    , m_type(type)
+    , m_name(name)
+    , m_functionName(functionName)
+    , m_caption(QString("%1(%2)").arg(typeAsString(), name))
+{}
 
 unsigned int FdfBlockModel::nPorts(PortType const portType) const
 {
@@ -40,8 +39,7 @@ void FdfBlockModel::setInData(std::shared_ptr<NodeData> data, PortIndex const in
 {
     if (!indexCheck(PortType::In, index))
         return;
-    if (!data)
-    {
+    if (!data) {
         emit dataInvalidated(index);
         m_inPorts.at(index).second = std::weak_ptr<NodeData>();
         resetPortCaption(PortType::In, index);
@@ -61,10 +59,9 @@ QString FdfBlockModel::portCaption(PortType portType, PortIndex portIndex) const
 {
     if (!indexCheck(portType, portIndex))
         return QString();
-    if (portType == PortType::In)
-    {
+    if (portType == PortType::In) {
         if (auto referencedPort = m_inPorts.at(portIndex).second.lock())
-            return referencedPort->type().name;            // if there's a referenced port, use that caption
+            return referencedPort->type().name; // if there's a referenced port, use that caption
         return m_inPorts.at(portIndex).first->type().name; // otherwise use the default
     }
     if (portType == PortType::Out)
@@ -86,14 +83,11 @@ std::vector<std::shared_ptr<NodeData>> FdfBlockModel::connectedPortData(PortType
     std::vector<std::shared_ptr<NodeData>> result;
     if (type == PortType::None)
         return result;
-    if (type == PortType::In)
-    {
+    if (type == PortType::In) {
         for (auto &portPair : m_inPorts)
             if (auto block = portPair.second.lock())
                 result.push_back(block);
-    }
-    else if (type == PortType::Out)
-    {
+    } else if (type == PortType::Out) {
         for (auto &portPair : m_outPorts)
             if (portPair.second) // second represents it's in use
                 result.push_back(portPair.first);
@@ -144,14 +138,12 @@ bool FdfBlockModel::setPortCaption(PortType type, PortIndex index, const QString
     if (!indexCheck(type, index))
         return false;
     if (type == PortType::In)
-        if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get()))
-        {
+        if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
             namedNode->setName(caption);
             return true;
         }
     if (type == PortType::Out)
-        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first))
-        {
+        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
             namedNode->setName(caption);
             return true;
         }
@@ -163,14 +155,12 @@ bool FdfBlockModel::resetPortCaption(PortType type, PortIndex index)
     if (!indexCheck(type, index))
         return false;
     if (type == PortType::In)
-        if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get()))
-        {
+        if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
             namedNode->reset();
             return true;
         }
     if (type == PortType::Out)
-        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first))
-        {
+        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
             namedNode->reset();
             return true;
         }

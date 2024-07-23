@@ -1,7 +1,8 @@
 #pragma once
 
 #include <QWidget>
-#include <QLabel>
+
+class QLabel;
 
 #include <QtNodes/Definitions>
 

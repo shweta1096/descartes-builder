@@ -1,20 +1,23 @@
 #pragma once
 
 #include <QColor>
-#include <QString>
 
-namespace constants
-{
-    // stylling constants
-    const QColor COLOR_PRIMARY(0, 0, 0);
-    const QColor COLOR_SECONDARY(255, 255, 255);
-    const QColor COLOR_ACCENT(51, 153, 255);
+#include <QtUtility/data/constexpr_qstring>
 
-    const QColor COLOR_CODER(185, 224, 165);
-    const QColor COLOR_PROCESSOR(169, 196, 236);
-    const QColor COLOR_TRAINER(205, 162, 190);
-    const QString CONNECTION_STYLE =
-        R"(
+using ConstLatin1String = QtUtility::data::ConstLatin1String;
+
+namespace constants {
+
+// stylling constants
+constexpr QColor COLOR_PRIMARY(0, 0, 0);
+constexpr QColor COLOR_SECONDARY(255, 255, 255);
+constexpr QColor COLOR_ACCENT(51, 153, 255);
+
+constexpr QColor COLOR_CODER(185, 224, 165);
+constexpr QColor COLOR_PROCESSOR(169, 196, 236);
+constexpr QColor COLOR_TRAINER(205, 162, 190);
+constexpr ConstLatin1String CONNECTION_STYLE =
+    R"(
         {
             "ConnectionStyle": {
                 "ConstructionColor": "gray",
@@ -31,8 +34,8 @@ namespace constants
             }
         }
         )";
-    const QString GRAPHICS_VIEW_STYLE =
-        R"(
+const ConstLatin1String GRAPHICS_VIEW_STYLE =
+    R"(
         {
             "GraphicsViewStyle": {
                 "BackgroundColor": [53, 53, 53],
@@ -41,8 +44,8 @@ namespace constants
             }
         }
     )";
-    const QString NODE_STYLE =
-        R"(
+const ConstLatin1String NODE_STYLE =
+    R"(
         {
             "NodeStyle": {
                 "NormalBoundaryColor": [255, 255, 255],
@@ -68,4 +71,5 @@ namespace constants
             }
         }
     )";
-}
+
+} // namespace constants

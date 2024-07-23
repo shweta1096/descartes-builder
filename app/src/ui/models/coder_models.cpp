@@ -1,10 +1,12 @@
 #include "ui/models/coder_models.hpp"
 
-XformDataModel::XformDataModel()
-    : FdfBlockModel(FdfType::Coder, "xform", "xform_data")
+#include "ui/models/function_names.hpp"
+
+TransformDataModel::TransformDataModel()
+    : FdfBlockModel(FdfType::Coder, "transform", coder_function::TRANSFORM_DATA)
 {
-    addInPort(std::make_unique<DataNode>("train"));
+    addInPort(std::make_unique<DataNode>());
     addInPort(std::make_unique<DataNode>("parameters"));
-    addOutPort(std::make_shared<FunctionNode>("xform"));
-    addOutPort(std::make_shared<FunctionNode>("inv_xform"));
+    addOutPort(std::make_shared<FunctionNode>("transform"));
+    addOutPort(std::make_shared<FunctionNode>("inv_transform"));
 }

@@ -8,4 +8,3 @@ class Information : public QWidget
 public:
     Information();
 };
-

@@ -15,7 +15,7 @@ namespace model_registry
         ret->registerModel<FuncOutModel>("IO");
         ret->registerModel<ProcessorSplitDataModel>("Processor");
         ret->registerModel<ReduceModel>("Processor");
-        ret->registerModel<XformDataModel>("Coder");
+        ret->registerModel<TransformDataModel>("Coder");
         ret->registerModel<BasicTrainerModel>("Trainer");
 
         return ret;

@@ -5,9 +5,8 @@
 
 #include <QtNodes/Definitions>
 
-namespace QtNodes
-{
-    class DirectedAcyclicGraphModel;
+namespace QtNodes {
+class DirectedAcyclicGraphModel;
 }
 
 class AbstractEngine

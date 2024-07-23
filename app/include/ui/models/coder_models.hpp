@@ -2,9 +2,9 @@
 
 #include "fdf_block_model.hpp"
 
-class XformDataModel : public FdfBlockModel
+class TransformDataModel : public FdfBlockModel
 {
     Q_OBJECT
 public:
-    XformDataModel();
+    TransformDataModel();
 };

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <QPlainTextEdit>
-#include <QMutex>
 #include <QColor>
+#include <QPlainTextEdit>
 
 class LogPanel : public QPlainTextEdit
 {

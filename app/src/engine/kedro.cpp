@@ -8,42 +8,42 @@
 
 using QtNodes::DirectedAcyclicGraphModel;
 
-namespace
+namespace {
+
+using FdfType = FdfBlockModel::FdfType;
+const std::unordered_set<FdfType> EXCLUDED_TYPES = {FdfType::Data, FdfType::Output};
+
+} // namespace
+
+namespace {
+QStringList getPortList(const FdfBlockModel &block, const PortType &type)
 {
-    using FdfType = FdfBlockModel::FdfType;
-    const std::unordered_set<FdfType> EXCLUDED_TYPES = {FdfType::Data, FdfType::Output};
+    QStringList result;
+    for (auto &port : block.connectedPortData(type))
+        result.append(QString("\"%1\"").arg(port->type().name));
+    return result;
 }
 
-namespace
+QString toString(const FdfBlockModel &block)
 {
-    QStringList getPortList(const FdfBlockModel &block, const PortType &type)
-    {
-        QStringList result;
-        for (auto &port : block.connectedPortData(type))
-            result.append(QString("\"%1\"").arg(port->type().name));
-        return result;
-    }
-
-    QString toString(const FdfBlockModel &block)
-    {
-        QString result = block.typeAsString() + '(';
-        if (!block.functionName().isEmpty())
-            result += QString("func=%1,").arg(block.functionName());
-        result += QString("name=\"%1\",").arg(block.name());
-        QStringList inputs = getPortList(block, PortType::In);
-        if (inputs.size() == 1)
-            result += QString("inputs=%1").arg(inputs.at(0));
-        else if (inputs.size() > 1)
-            result += QString("inputs=[%1]").arg(inputs.join(','));
-        QStringList outputs = getPortList(block, PortType::Out);
-        if (outputs.size() == 1)
-            result += QString("outputs=%1").arg(outputs.at(0));
-        else if (outputs.size() > 1)
-            result += QString("outputs=[%1]").arg(outputs.join(','));
-        result += ')';
-        return result;
-    }
+    QString result = block.typeAsString() + '(';
+    if (!block.functionName().isEmpty())
+        result += QString("func=%1,").arg(block.functionName());
+    result += QString("name=\"%1\",").arg(block.name());
+    QStringList inputs = getPortList(block, PortType::In);
+    if (inputs.size() == 1)
+        result += QString("inputs=%1").arg(inputs.at(0));
+    else if (inputs.size() > 1)
+        result += QString("inputs=[%1]").arg(inputs.join(','));
+    QStringList outputs = getPortList(block, PortType::Out);
+    if (outputs.size() == 1)
+        result += QString("outputs=%1").arg(outputs.at(0));
+    else if (outputs.size() > 1)
+        result += QString("outputs=[%1]").arg(outputs.join(','));
+    result += ')';
+    return result;
 }
+} // namespace
 
 Kedro::Kedro()
 {
@@ -68,13 +68,11 @@ bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph)
 bool Kedro::validityCheck(QtNodes::DirectedAcyclicGraphModel *graph)
 {
     qInfo() << "Checking validity...";
-    if (graph->isEmpty())
-    {
+    if (graph->isEmpty()) {
         qWarning() << "There is no blocks in the graph to execute";
         return false;
     }
-    if (!graph->isConnected())
-    {
+    if (!graph->isConnected()) {
         qWarning() << "The blocks in the graph are not connected";
         return false;
     }
@@ -87,7 +85,8 @@ QVariant Kedro::getNodeOutput(QtNodes::DirectedAcyclicGraphModel *graph, QtNodes
     return graph->nodeData(id, QtNodes::NodeRole::InternalData);
 }
 
-QString Kedro::serializeNode(const QtNodes::NodeId &id, QtNodes::DirectedAcyclicGraphModel *graph) const
+QString Kedro::serializeNode(const QtNodes::NodeId &id,
+                             QtNodes::DirectedAcyclicGraphModel *graph) const
 {
     return toString(*graph->delegateModel<FdfBlockModel>(id));
 }

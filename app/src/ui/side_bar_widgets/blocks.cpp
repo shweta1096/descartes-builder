@@ -1,11 +1,12 @@
 #include "ui/side_bar_widgets/blocks.hpp"
 
+#include <QLabel>
 #include <QLayout>
 
 Blocks::Blocks(QWidget *parent)
-    : QWidget(parent),
-      m_nodeId(QtNodes::InvalidNodeId),
-      m_nodeIdLabel(new QLabel())
+    : QWidget(parent)
+    , m_nodeId(QtNodes::InvalidNodeId)
+    , m_nodeIdLabel(new QLabel())
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setAlignment(Qt::AlignTop);

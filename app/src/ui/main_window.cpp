@@ -1,20 +1,20 @@
 #include "ui/main_window.hpp"
 
+#include <QActionGroup>
 #include <QApplication>
-#include <QScreen>
-#include <QVBoxLayout>
-#include <QMenuBar>
-#include <QToolBar>
 #include <QDockWidget>
 #include <QLabel>
-#include <QActionGroup>
+#include <QMenuBar>
+#include <QScreen>
+#include <QToolBar>
+#include <QVBoxLayout>
 
 #include <QtNodes/ConnectionStyle>
-#include <QtNodes/GraphicsViewStyle>
-#include <QtNodes/NodeStyle>
-#include <QtNodes/NodeData>
-#include <QtNodes/GraphicsView>
 #include <QtNodes/DataFlowGraphicsScene>
+#include <QtNodes/GraphicsView>
+#include <QtNodes/GraphicsViewStyle>
+#include <QtNodes/NodeData>
+#include <QtNodes/NodeStyle>
 
 using QtNodes::ConnectionStyle;
 using QtNodes::GraphicsViewStyle;
@@ -23,15 +23,15 @@ using QtNodes::NodeStyle;
 #include <QtUtility/media/media.hpp>
 
 #include "data/constants.hpp"
-#include "ui/log_panel.hpp"
-#include "ui/graphics_scene_tab_widget.hpp"
-#include "ui/side_bar_widgets/blocks.hpp"
 #include "engine/engine_starter.hpp"
 #include "temp.hpp"
+#include "ui/graphics_scene_tab_widget.hpp"
+#include "ui/log_panel.hpp"
+#include "ui/side_bar_widgets/blocks.hpp"
 
 MainWindow::MainWindow()
-    : m_engine(EngineStarter::init()),
-      m_temp(new Temp(this))
+    : m_engine(EngineStarter::init())
+    , m_temp(new Temp(this))
 {
     initScene();
     initMenuBar();
@@ -42,9 +42,7 @@ MainWindow::MainWindow()
     setGeometry(QApplication::primaryScreen()->availableGeometry());
 }
 
-MainWindow::~MainWindow()
-{
-}
+MainWindow::~MainWindow() {}
 
 bool MainWindow::callExecute()
 {
@@ -65,7 +63,10 @@ void MainWindow::initScene()
     layout->setSpacing(0);
 
     m_graphicsSceneTabWidget = new GraphicsSceneTabWidget(m_centralWidget);
-    connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::runClicked, this, &MainWindow::callExecute);
+    connect(m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::runClicked,
+            this,
+            &MainWindow::callExecute);
 
     layout->addWidget(m_graphicsSceneTabWidget);
 }
@@ -91,14 +92,31 @@ void MainWindow::initMenuBar()
     closeAction->setShortcut(QKeySequence::Close);
     runAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
 
-    connect(newAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::newTab);
-    connect(saveAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::save);
-    connect(saveAsAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::saveAs);
-    connect(openAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::open);
-    connect(closeAction, &QAction::triggered, m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::closeCurrentTab);
+    connect(newAction,
+            &QAction::triggered,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::newTab);
+    connect(saveAction,
+            &QAction::triggered,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::save);
+    connect(saveAsAction,
+            &QAction::triggered,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::saveAs);
+    connect(openAction,
+            &QAction::triggered,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::open);
+    connect(closeAction,
+            &QAction::triggered,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::closeCurrentTab);
     if (m_graphicsSceneTabWidget)
-        connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::countChanged, closeAction, [closeAction](int count)
-                { closeAction->setEnabled(count > 1); });
+        connect(m_graphicsSceneTabWidget,
+                &GraphicsSceneTabWidget::countChanged,
+                closeAction,
+                [closeAction](int count) { closeAction->setEnabled(count > 1); });
     connect(runAction, &QAction::triggered, this, &MainWindow::callExecute);
 
     { // temp menu for testing code
@@ -118,7 +136,10 @@ void MainWindow::initPrimarySideBar()
 {
     // init widgets
     auto blockWidget = new Blocks();
-    connect(m_graphicsSceneTabWidget, &GraphicsSceneTabWidget::nodeSelected, blockWidget, &Blocks::onNodeSelected);
+    connect(m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::nodeSelected,
+            blockWidget,
+            &Blocks::onNodeSelected);
 
     // prevent log panel from taking the corner
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
@@ -129,16 +150,16 @@ void MainWindow::initPrimarySideBar()
         QWidget *widget;
     };
     std::vector<SideBarWidgetData> widgets = {
-        {media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
+        {QtUtility::media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
          "Blocks",
          blockWidget},
-        {media::recolor(QIcon(":/menu.png"), constants::COLOR_SECONDARY),
+        {QtUtility::media::recolor(QIcon(":/menu.png"), constants::COLOR_SECONDARY),
          "Menu",
          new QLabel("Menu Dock Widget")},
-        {media::recolor(QIcon(":/settings.png"), constants::COLOR_SECONDARY),
+        {QtUtility::media::recolor(QIcon(":/settings.png"), constants::COLOR_SECONDARY),
          "Settings",
          new QLabel("Settings Dock Widget")},
-        {media::recolor(QIcon(":/information.png"), constants::COLOR_SECONDARY),
+        {QtUtility::media::recolor(QIcon(":/information.png"), constants::COLOR_SECONDARY),
          "Information",
          new QLabel("Information Dock Widget")},
     };
@@ -150,8 +171,7 @@ void MainWindow::initPrimarySideBar()
     auto primarySideBarGroup = new QActionGroup(this);
     primarySideBarGroup->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
 
-    for (auto widgetData : widgets)
-    {
+    for (auto widgetData : widgets) {
         auto action = toolBar->addAction(widgetData.icon, widgetData.title);
         action->setCheckable(true);
         primarySideBarGroup->addAction(action);

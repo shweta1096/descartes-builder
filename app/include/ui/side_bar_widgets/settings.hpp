@@ -8,4 +8,3 @@ class Settings : public QWidget
 public:
     Settings();
 };
-

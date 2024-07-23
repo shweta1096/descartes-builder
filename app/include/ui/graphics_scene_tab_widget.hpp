@@ -1,18 +1,17 @@
 #pragma once
 
-#include <QTabWidget>
 #include <QFileInfo>
+#include <QTabWidget>
 
 #include <QtNodes/Definitions>
 
 class QWidget;
 
-namespace QtNodes
-{
-    class DirectedAcyclicGraphModel;
-    class DagGraphicsScene;
-    class GraphicsView;
-}
+namespace QtNodes {
+class DirectedAcyclicGraphModel;
+class DagGraphicsScene;
+class GraphicsView;
+} // namespace QtNodes
 
 class TabComponents
 {

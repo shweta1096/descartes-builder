@@ -1,10 +1,12 @@
 #include "ui/log_panel.hpp"
 
+#include <QApplication>
+
 #include "log_manager.hpp"
 
 LogPanel::LogPanel(QWidget *parent)
-    : QPlainTextEdit(parent),
-      m_DEFAULT_TEXT_COLOR(QApplication::palette().text().color())
+    : QPlainTextEdit(parent)
+    , m_DEFAULT_TEXT_COLOR(QApplication::palette().text().color())
 {
     setReadOnly(true);
     LogManager::instance().registerLogPanel(this);

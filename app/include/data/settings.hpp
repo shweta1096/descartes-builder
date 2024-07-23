@@ -1,28 +1,26 @@
 #pragma once
 
 #include <QSettings>
-#include <QString>
 #include <QVariant>
 
 #include <mutex>
 
-namespace data
+namespace data {
+class Settings
 {
-    class Settings
-    {
-    public:
-        static Settings &instance();
+public:
+    static Settings &instance();
 
-        void setValue(const QString &key, const QVariant &value);
-        QVariant value(const QString &key) const;
+    void setValue(const QString &key, const QVariant &value);
+    QVariant value(const QString &key) const;
 
-    private:
-        Settings();
-        ~Settings();
-        Settings(const Settings &) = delete;
-        Settings &operator=(const Settings &) = delete;
+private:
+    Settings();
+    ~Settings();
+    Settings(const Settings &) = delete;
+    Settings &operator=(const Settings &) = delete;
 
-        QSettings m_settings;
-        mutable std::mutex m_mutex;
-    };
-}
+    QSettings m_settings;
+    mutable std::mutex m_mutex;
+};
+} // namespace data

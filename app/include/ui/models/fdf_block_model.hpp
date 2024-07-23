@@ -15,8 +15,7 @@ class FdfBlockModel : public NodeDelegateModel
 {
     Q_OBJECT
 public:
-    enum FdfType
-    {
+    enum FdfType {
         Coder,
         Processor,
         Trainer,

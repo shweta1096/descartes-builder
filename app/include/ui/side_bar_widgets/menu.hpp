@@ -8,4 +8,3 @@ class Menu : public QWidget
 public:
     Menu();
 };
-
