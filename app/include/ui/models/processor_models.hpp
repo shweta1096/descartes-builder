@@ -15,3 +15,17 @@ class ReduceModel : public FdfBlockModel
 public:
     ReduceModel();
 };
+
+class ScoreModel : public FdfBlockModel
+{
+    Q_OBJECT
+public:
+    ScoreModel();
+};
+
+class LoadMatModel : public FdfBlockModel
+{
+    Q_OBJECT
+public:
+    LoadMatModel();
+};

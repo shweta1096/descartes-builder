@@ -21,3 +21,20 @@ ReduceModel::ReduceModel()
     addInPort(std::make_unique<DataNode>());
     addOutPort(std::make_shared<DataNode>());
 }
+
+ScoreModel::ScoreModel()
+    : FdfBlockModel(FdfType::Processor, "score", processor_function::SCORE)
+{
+    addInPort(std::make_unique<DataNode>("Y_test"));
+    addInPort(std::make_unique<DataNode>("T_pred"));
+    addOutPort(std::make_shared<DataNode>("nrmse"));
+    addOutPort(std::make_shared<DataNode>("r2"));
+}
+
+LoadMatModel::LoadMatModel()
+    : FdfBlockModel(FdfType::Processor, "load_mat", processor_function::LOAD_MAT)
+{
+    addInPort(std::make_unique<DataNode>("parameters"));
+    addOutPort(std::make_shared<DataNode>("x"));
+    addOutPort(std::make_shared<DataNode>("y"));
+}

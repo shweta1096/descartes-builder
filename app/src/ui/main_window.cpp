@@ -42,7 +42,10 @@ MainWindow::MainWindow()
     setGeometry(QApplication::primaryScreen()->availableGeometry());
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow()
+{
+    qInfo() << "Program has finished.";
+}
 
 bool MainWindow::callExecute()
 {

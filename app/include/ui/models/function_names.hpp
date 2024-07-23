@@ -10,6 +10,8 @@ namespace processor_function {
 
 constexpr ConstLatin1String PROCESSOR = ""; // the first input must be a function
 constexpr ConstLatin1String SPLIT_DATA = "split_data";
+constexpr ConstLatin1String SCORE = "score";
+constexpr ConstLatin1String LOAD_MAT = "load_mat";
 
 } // namespace processor_function
 
