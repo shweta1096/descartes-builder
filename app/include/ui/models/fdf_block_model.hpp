@@ -31,16 +31,22 @@ public:
     QString caption() const override { return m_caption; }
     unsigned int nPorts(PortType const portType) const override;
     NodeDataType dataType(PortType const portType, PortIndex const portIndex) const override;
-    std::shared_ptr<NodeData> outData(PortIndex const port) override;
-    virtual std::shared_ptr<NodeData> inData(PortIndex const port);
-    virtual void setInData(std::shared_ptr<NodeData>, PortIndex const) override;
+    std::shared_ptr<NodeData> outData(PortIndex const index) override;
+    virtual void setInData(std::shared_ptr<NodeData> data, PortIndex const index) override;
     virtual QWidget *embeddedWidget() override;
+    virtual std::shared_ptr<NodeData> portData(PortType const type, PortIndex const index);
+    QString portCaption(PortType portType, PortIndex portIndex) const override;
+
     void setCaption(const QString &caption);
-    PortIndex addPort(PortType const portType, std::shared_ptr<NodeData> port);
-    virtual std::shared_ptr<NodeData> portData(PortType const type, PortIndex const index) const;
+    bool setPortCaption(PortType type, PortIndex index, const QString &caption);
+    bool resetPortCaption(PortType portType, PortIndex portIndex);
+    virtual std::shared_ptr<NodeData> inData(PortIndex const index);
 
 protected:
+    bool indexCheck(PortType type, PortIndex index) const;
     void propagateUpdate();
+    PortIndex addInPort(std::unique_ptr<NodeData> port);
+    PortIndex addOutPort(std::shared_ptr<NodeData> port);
 
 private:
     const std::unordered_map<FdfType, QString> TYPE_STRING = {
@@ -55,5 +61,7 @@ private:
     QString m_name; // name in the library
     QString m_functionName;
     QString m_caption; // appears in the scene
-    std::map<PortType, std::vector<std::shared_ptr<NodeData>>> m_ports;
+    // first is for structuring, second is actual data linked to connected block
+    std::vector<std::pair<std::unique_ptr<NodeData>, std::weak_ptr<NodeData>>> m_inPorts;
+    std::vector<std::shared_ptr<NodeData>> m_outPorts;
 };

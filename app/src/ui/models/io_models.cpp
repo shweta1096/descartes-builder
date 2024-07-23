@@ -3,10 +3,9 @@
 #include <QLineEdit>
 
 DataSourceModel::DataSourceModel()
-    : FdfBlockModel(FdfType::Data, "data_source"),
-      m_data(std::make_shared<DataNode>("data"))
+    : FdfBlockModel(FdfType::Data, "data_source")
 {
-    addPort(PortType::Out, m_data);
+    addOutPort(std::make_shared<DataNode>());
 }
 
 QWidget *DataSourceModel::embeddedWidget()
@@ -19,7 +18,7 @@ QWidget *DataSourceModel::embeddedWidget()
 
         connect(m_widget, &QLineEdit::textChanged, this, &DataSourceModel::onWidgetEdited);
 
-        m_widget->setText(m_data->name());
+        m_widget->setText(portCaption(PortType::Out, 0));
     }
 
     return m_widget;
@@ -28,7 +27,7 @@ QWidget *DataSourceModel::embeddedWidget()
 QJsonObject DataSourceModel::save() const
 {
     QJsonObject modelJson = NodeDelegateModel::save();
-    modelJson["data-name"] = m_data->name();
+    modelJson["data-name"] = portCaption(PortType::Out, 0);
     return modelJson;
 }
 
@@ -40,21 +39,21 @@ void DataSourceModel::load(QJsonObject const &p)
         return;
 
     QString data = value.toString();
-    m_data->setName(data);
+    setPortCaption(PortType::Out, 0, data);
     if (m_widget)
         m_widget->setText(data);
 }
 
 void DataSourceModel::onWidgetEdited(const QString &name)
 {
-    if (name == m_data->name())
+    if (name == portCaption(PortType::Out, 0))
         return;
-    m_data->setName(name);
+    setPortCaption(PortType::Out, 0, name);
     propagateUpdate();
 }
 
 FuncOutModel::FuncOutModel()
     : FdfBlockModel(FdfType::Output, "func_out")
 {
-    addPort(PortType::In, std::make_shared<FunctionNode>("function"));
+    addInPort(std::make_unique<FunctionNode>());
 }

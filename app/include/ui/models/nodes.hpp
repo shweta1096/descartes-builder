@@ -8,31 +8,28 @@ using QtNodes::NodeDataType;
 class NamedNode : public NodeData
 {
 public:
-    NamedNode(const QString &name) : m_DEFAULT(name), m_name(m_DEFAULT) {}
+    NamedNode(const QString &name) : m_DEFAULT_NAME(name), m_type({"NamedNode", m_DEFAULT_NAME}) {}
 
-    QString name() const { return m_name; }
-    void setName(const QString &name) { m_name = name; }
-    void reset() { m_name = m_DEFAULT; }
+    QString name() const { return m_type.name; }
+    void setName(const QString &name) { m_type.name = name; }
+    void reset() { m_type.name = m_DEFAULT_NAME; }
+    NodeDataType type() const override { return m_type; }
 
 protected:
-    const QString m_DEFAULT;
-    QString m_name;
+    const QString m_DEFAULT_NAME;
+    NodeDataType m_type;
 };
 
 class DataNode : public NamedNode
 {
 public:
-    DataNode() : NamedNode("data") {}
-    DataNode(const QString &name) : NamedNode(name) {}
-
-    NodeDataType type() const override { return NodeDataType{"DataNode", m_name}; }
+    DataNode() : DataNode("data") {}
+    DataNode(const QString &name) : NamedNode(name) { m_type.id = "DataNode"; }
 };
 
 class FunctionNode : public NamedNode
 {
 public:
-    FunctionNode() : NamedNode("function") {}
-    FunctionNode(const QString &name) : NamedNode(name) {}
-
-    NodeDataType type() const override { return NodeDataType{"FunctionNode", m_name}; }
+    FunctionNode() : FunctionNode("function") {}
+    FunctionNode(const QString &name) : NamedNode(name) { m_type.id = "FunctionNode"; }
 };

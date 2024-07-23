@@ -7,5 +7,4 @@ class BasicTrainerModel : public FdfBlockModel
     Q_OBJECT
 public:
     BasicTrainerModel();
-    void setInData(std::shared_ptr<NodeData>, PortIndex const) override;
 };

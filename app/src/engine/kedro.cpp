@@ -20,8 +20,7 @@ namespace
     {
         QStringList result;
         for (uint i = 0; i < block.nPorts(type); ++i)
-            if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(block.portData(type, i)))
-                result.append(QString("\"%1\"").arg(namedNode->name()));
+            result.append(QString("\"%1\"").arg(block.portCaption(type, i)));
         return result;
     }
 

@@ -18,7 +18,6 @@ private slots:
     void onWidgetEdited(const QString &name);
 
 private:
-    std::shared_ptr<DataNode> m_data;
     QLineEdit *m_widget;
 };
 
