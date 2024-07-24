@@ -91,7 +91,7 @@
         {
             "id": 3,
             "internal-data": {
-                "model-name": "xform"
+                "model-name": "transform"
             },
             "position": {
                 "x": -171,
@@ -101,7 +101,7 @@
         {
             "id": 4,
             "internal-data": {
-                "model-name": "xform"
+                "model-name": "transform"
             },
             "position": {
                 "x": -171,
