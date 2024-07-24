@@ -49,7 +49,7 @@ MainWindow::~MainWindow()
 
 bool MainWindow::callExecute()
 {
-    return m_engine->execute(m_graphicsSceneTabWidget->getCurrentModel());
+    return m_engine->execute(m_graphicsSceneTabWidget->getCurrentGraph());
 }
 
 void MainWindow::initScene()

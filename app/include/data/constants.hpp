@@ -2,7 +2,7 @@
 
 #include <QColor>
 
-#include <QtUtility/data/constexpr_qstring>
+#include <QtUtility/data/constexpr_qstring.hpp>
 
 using ConstLatin1String = QtUtility::data::ConstLatin1String;
 

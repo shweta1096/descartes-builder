@@ -2,13 +2,16 @@
 
 #include <QObject>
 
+#include <QtUtility/data/qsingleton.hpp>
+
 #include "ui/log_panel.hpp"
 
-class LogManager : public QObject
+class LogManager : public QSingleton<LogManager>
 {
     Q_OBJECT
+    friend class QSingleton<LogManager>;
+
 public:
-    static LogManager &instance();
     void init();
     void registerLogPanel(LogPanel *panel);
 
@@ -19,11 +22,6 @@ public slots:
     void appendMessage(const QString &message, const QtMsgType &type = QtInfoMsg);
 
 private:
-    LogManager() = default;
-    ~LogManager() = default;
-    LogManager(const LogManager &) = delete;
-    LogManager &operator=(const LogManager &) = delete;
-
     QVector<LogPanel *> m_logPanels;
     struct LogMessage
     {

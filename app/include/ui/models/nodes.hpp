@@ -14,6 +14,7 @@ public:
     {}
 
     QString name() const { return m_type.name; }
+    QString DefaultName() const { return m_DEFAULT_NAME; }
     void setName(const QString &name) { m_type.name = name; }
     void reset() { m_type.name = m_DEFAULT_NAME; }
     NodeDataType type() const override { return m_type; }

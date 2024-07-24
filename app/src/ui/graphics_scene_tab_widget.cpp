@@ -1,13 +1,13 @@
 #include "ui/graphics_scene_tab_widget.hpp"
 
-#include <QWidget>
-#include <QTabBar>
 #include <QPushButton>
+#include <QTabBar>
+#include <QWidget>
 
-#include <QtNodes/NodeDelegateModelRegistry>
-#include <QtNodes/DirectedAcyclicGraphModel>
 #include <QtNodes/DagGraphicsScene>
+#include <QtNodes/DirectedAcyclicGraphModel>
 #include <QtNodes/GraphicsView>
+#include <QtNodes/NodeDelegateModelRegistry>
 
 using QtNodes::DagGraphicsScene;
 using QtNodes::DirectedAcyclicGraphModel;
@@ -16,15 +16,14 @@ using QtNodes::NodeDelegateModelRegistry;
 
 #include "ui/model_registry.hpp"
 
-namespace
-{
-    std::shared_ptr<NodeDelegateModelRegistry> registry = model_registry::registerDataModels();
+namespace {
+std::shared_ptr<NodeDelegateModelRegistry> registry = model_registry::registerDataModels();
 }
 
 TabComponents::TabComponents(QWidget *parent)
-    : m_graph(new DirectedAcyclicGraphModel(registry)),
-      m_scene(new DagGraphicsScene(*m_graph, parent)),
-      m_view(new GraphicsView(m_scene))
+    : m_graph(new DirectedAcyclicGraphModel(registry))
+    , m_scene(new DagGraphicsScene(*m_graph, parent))
+    , m_view(new GraphicsView(m_scene))
 {
     m_graph->setParent(parent);
     // Qt bug for MacOS throws warnings when using touch pad with graphics view
@@ -32,8 +31,9 @@ TabComponents::TabComponents(QWidget *parent)
     m_view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
     QObject::connect(m_scene, &DagGraphicsScene::sceneLoaded, m_view, &GraphicsView::centerScene);
     if (parent)
-        QObject::connect(m_scene, &DagGraphicsScene::modified, parent, [parent]()
-                         { parent->setWindowModified(true); });
+        QObject::connect(m_scene, &DagGraphicsScene::modified, parent, [parent]() {
+            parent->setWindowModified(true);
+        });
 }
 
 QFileInfo TabComponents::getFile() const
@@ -52,15 +52,24 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
     setCornerWidget(runButton);
     connect(runButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::runClicked);
 
-    connect(this, &GraphicsSceneTabWidget::tabCloseRequested, this, &GraphicsSceneTabWidget::closeTab);
-    connect(this, &GraphicsSceneTabWidget::countChanged, this, &GraphicsSceneTabWidget::onTabCountChanged);
-    connect(this, &GraphicsSceneTabWidget::currentChanged, this, &GraphicsSceneTabWidget::onSceneSelectionChanged);
+    connect(this,
+            &GraphicsSceneTabWidget::tabCloseRequested,
+            this,
+            &GraphicsSceneTabWidget::closeTab);
+    connect(this,
+            &GraphicsSceneTabWidget::countChanged,
+            this,
+            &GraphicsSceneTabWidget::onTabCountChanged);
+    connect(this,
+            &GraphicsSceneTabWidget::currentChanged,
+            this,
+            &GraphicsSceneTabWidget::onSceneSelectionChanged);
 
     // init with 1 blank tab
     newTab();
 }
 
-QtNodes::DirectedAcyclicGraphModel *GraphicsSceneTabWidget::getCurrentModel() const
+QtNodes::DirectedAcyclicGraphModel *GraphicsSceneTabWidget::getCurrentGraph() const
 {
     if (!count())
         return nullptr;
@@ -165,8 +174,7 @@ bool GraphicsSceneTabWidget::openIfExists(QtNodes::DagGraphicsScene *scene)
     if (!scene)
         return false;
     for (auto tab : m_tabs)
-        if (tab.second.getFile() == scene->getFile())
-        { // file exists, open that tab
+        if (tab.second.getFile() == scene->getFile()) { // file exists, open that tab
             setCurrentWidget(tab.first);
             return true;
         }
@@ -182,5 +190,8 @@ void GraphicsSceneTabWidget::addTabComponent(const TabComponents &tabComponents)
     m_tabs[widget(index)] = std::move(tabComponents);
     setCurrentIndex(index);
 
-    connect(m_tabs[widget(index)].getScene(), &DagGraphicsScene::selectionChanged, this, &GraphicsSceneTabWidget::onSceneSelectionChanged);
+    connect(m_tabs[widget(index)].getScene(),
+            &DagGraphicsScene::selectionChanged,
+            this,
+            &GraphicsSceneTabWidget::onSceneSelectionChanged);
 }

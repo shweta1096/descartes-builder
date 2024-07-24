@@ -34,7 +34,7 @@ class GraphicsSceneTabWidget : public QTabWidget
     Q_OBJECT
 public:
     GraphicsSceneTabWidget(QWidget *parent = nullptr);
-    QtNodes::DirectedAcyclicGraphModel *getCurrentModel() const;
+    QtNodes::DirectedAcyclicGraphModel *getCurrentGraph() const;
 
 signals:
     void countChanged(int count);

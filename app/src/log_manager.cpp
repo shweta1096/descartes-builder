@@ -74,12 +74,6 @@ void logHandler(QtMsgType type, const QMessageLogContext &context, const QString
 
 } // namespace
 
-LogManager &LogManager::instance()
-{
-    static LogManager instance;
-    return instance;
-}
-
 void LogManager::init()
 {
     // this must be queued connection to trigger appendMessage on a GUI thread
