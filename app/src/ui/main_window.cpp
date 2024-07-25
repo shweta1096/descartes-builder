@@ -34,7 +34,7 @@ using QtNodes::NodeStyle;
 MainWindow::MainWindow()
     : m_engine(EngineStarter::init())
     , m_tabManager(std::make_shared<TabManager>())
-    , m_blockManager(std::make_shared<BlockManager>())
+    , m_blockManager(std::make_shared<BlockManager>(m_tabManager))
     , m_temp(new Temp(this))
 {
     initScene();
@@ -132,7 +132,7 @@ void MainWindow::initPrimarySideBar()
 {
     // init widgets
     auto blockWidget = new Blocks();
-    connect(m_tabManager.get(), &TabManager::nodeSelected, blockWidget, &Blocks::onNodeSelected);
+    connect(m_blockManager.get(), &BlockManager::nodeSelected, blockWidget, &Blocks::onNodeSelected);
 
     // prevent log panel from taking the corner
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
@@ -169,6 +169,7 @@ void MainWindow::initPrimarySideBar()
         action->setCheckable(true);
         primarySideBarGroup->addAction(action);
         auto dockWidget = new QDockWidget(widgetData.title);
+        dockWidget->setMinimumWidth(constants::SIDE_BAR_MINIMUM_WIDTH);
         dockWidget->setTitleBarWidget(new QLabel(widgetData.title));
         dockWidget->setWidget(widgetData.widget);
         dockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
@@ -177,6 +178,8 @@ void MainWindow::initPrimarySideBar()
 
         connect(action, &QAction::toggled, dockWidget, &QDockWidget::setVisible);
     }
+    if (auto firstAction = toolBar->actions().first())
+        firstAction->trigger();
 }
 
 void MainWindow::initLogPanel()

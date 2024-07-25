@@ -41,9 +41,7 @@ QFileInfo TabComponents::getFile() const
 
 TabManager::TabManager(QObject *parent)
     : QObject(parent)
-{
-    connect(this, &TabManager::currentChanged, this, &TabManager::onSceneSelectionChanged);
-}
+{}
 
 std::optional<TabComponents> TabManager::getCurrentTab() const
 {
@@ -83,10 +81,6 @@ bool TabManager::addTab(const TabComponents &tab)
     if (m_tabs.count(tab.getView()) > 0)
         return false;
     m_tabs[tab.getView()] = std::move(tab);
-    connect(tab.getScene(),
-            &DagGraphicsScene::selectionChanged,
-            this,
-            &TabManager::onSceneSelectionChanged);
     emit newTabCreated(tab.getView(), tab.getScene()->getFile().baseName());
     emit currentChanged(tab.getView());
     return true;
@@ -142,14 +136,6 @@ bool TabManager::open()
     if (!scene || !scene->load() || openIfExists(scene))
         return false;
     return addTab(tab);
-}
-
-void TabManager::onSceneSelectionChanged()
-{
-    if (m_tabs.size() < 1)
-        return;
-    auto selection = currentScene()->selectedNodes();
-    emit nodeSelected(selection.size() < 1 ? QtNodes::InvalidNodeId : selection.at(0));
 }
 
 bool TabManager::openIfExists(QtNodes::DagGraphicsScene *scene)

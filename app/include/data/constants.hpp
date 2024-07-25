@@ -16,6 +16,9 @@ constexpr QColor COLOR_ACCENT(51, 153, 255);
 constexpr QColor COLOR_CODER(185, 224, 165);
 constexpr QColor COLOR_PROCESSOR(169, 196, 236);
 constexpr QColor COLOR_TRAINER(205, 162, 190);
+
+constexpr uint SIDE_BAR_MINIMUM_WIDTH = 200;
+
 constexpr ConstLatin1String CONNECTION_STYLE =
     R"(
         {

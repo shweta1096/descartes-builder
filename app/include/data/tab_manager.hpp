@@ -48,7 +48,6 @@ public:
     void setCurrentView(ViewWidget *view) { m_currentView = view; }
 
 signals:
-    void nodeSelected(QtNodes::NodeId id);
     void newTabCreated(ViewWidget *view, QString filename);
     void currentChanged(ViewWidget *view);
     void tabFileNameChanged(ViewWidget *view, QString fileName);
@@ -58,9 +57,6 @@ public:
     bool save();
     bool saveAs();
     bool open();
-
-private slots:
-    void onSceneSelectionChanged();
 
 private:
     bool openIfExists(QtNodes::DagGraphicsScene *scene);
