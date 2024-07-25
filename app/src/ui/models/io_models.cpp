@@ -10,8 +10,7 @@ DataSourceModel::DataSourceModel()
 
 QWidget *DataSourceModel::embeddedWidget()
 {
-    if (!m_widget)
-    {
+    if (!m_widget) {
         m_widget = new QLineEdit();
 
         m_widget->setMaximumSize(m_widget->sizeHint());
@@ -49,8 +48,8 @@ void DataSourceModel::onWidgetEdited(const QString &name)
     if (name == portCaption(PortType::Out, 0))
         return;
     setPortCaption(PortType::Out, 0, name);
-    portsInserted();
     propagateUpdate();
+    emit contentUpdated();
 }
 
 FuncOutModel::FuncOutModel()

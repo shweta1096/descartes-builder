@@ -44,6 +44,8 @@ MainWindow::MainWindow()
 
     setWindowTitle("DesCartes Builder");
     setGeometry(QApplication::primaryScreen()->availableGeometry());
+
+    qInfo() << "Welcome to DesCartes Builder";
 }
 
 MainWindow::~MainWindow()

@@ -5,6 +5,7 @@
 #include <QtNodes/DagGraphicsScene>
 
 #include "data/tab_manager.hpp"
+#include "ui/models/fdf_block_model.hpp"
 
 using QtNodes::DagGraphicsScene;
 
@@ -12,8 +13,6 @@ BlockManager::BlockManager(std::shared_ptr<TabManager> tabManager, QObject *pare
     : QObject(parent)
     , m_tabManager(tabManager)
 {
-    qDebug() << "Block Manager Init";
-
     connect(m_tabManager.get(),
             &TabManager::currentChanged,
             this,

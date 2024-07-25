@@ -1,15 +1,15 @@
 {
     "connections": [
         {
-            "inPortIndex": 0,
-            "intNodeId": 8,
-            "outNodeId": 7,
+            "inPortIndex": 2,
+            "intNodeId": 7,
+            "outNodeId": 10,
             "outPortIndex": 0
         },
         {
-            "inPortIndex": 0,
-            "intNodeId": 1,
-            "outNodeId": 0,
+            "inPortIndex": 1,
+            "intNodeId": 3,
+            "outNodeId": 10,
             "outPortIndex": 0
         },
         {
@@ -20,8 +20,20 @@
         },
         {
             "inPortIndex": 1,
-            "intNodeId": 7,
-            "outNodeId": 6,
+            "intNodeId": 4,
+            "outNodeId": 10,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 1,
+            "outNodeId": 0,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 8,
+            "outNodeId": 7,
             "outPortIndex": 0
         },
         {
@@ -29,6 +41,30 @@
             "intNodeId": 4,
             "outNodeId": 1,
             "outPortIndex": 2
+        },
+        {
+            "inPortIndex": 1,
+            "intNodeId": 7,
+            "outNodeId": 6,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 7,
+            "outNodeId": 5,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 6,
+            "outNodeId": 4,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 2,
+            "intNodeId": 1,
+            "outNodeId": 10,
+            "outPortIndex": 0
         },
         {
             "inPortIndex": 0,
@@ -41,18 +77,6 @@
             "intNodeId": 1,
             "outNodeId": 2,
             "outPortIndex": 0
-        },
-        {
-            "inPortIndex": 0,
-            "intNodeId": 6,
-            "outNodeId": 4,
-            "outPortIndex": 0
-        },
-        {
-            "inPortIndex": 0,
-            "intNodeId": 7,
-            "outNodeId": 5,
-            "outPortIndex": 0
         }
     ],
     "nodes": [
@@ -63,8 +87,8 @@
                 "model-name": "data_source"
             },
             "position": {
-                "x": -618.2893081761013,
-                "y": -288.3993710691824
+                "x": -595.7131164059169,
+                "y": -313.1256763412883
             }
         },
         {
@@ -73,8 +97,8 @@
                 "model-name": "split_data"
             },
             "position": {
-                "x": -375,
-                "y": -267
+                "x": -369.6247162451944,
+                "y": -312.1523835403673
             }
         },
         {
@@ -84,8 +108,8 @@
                 "model-name": "data_source"
             },
             "position": {
-                "x": -615.6320754716987,
-                "y": -190.68553459119497
+                "x": -597.1416446079572,
+                "y": -244.97726364670677
             }
         },
         {
@@ -94,8 +118,8 @@
                 "model-name": "transform"
             },
             "position": {
-                "x": -171,
-                "y": -316
+                "x": -169.92494324903888,
+                "y": -311.6997729961555
             }
         },
         {
@@ -105,17 +129,7 @@
             },
             "position": {
                 "x": -171,
-                "y": -197
-            }
-        },
-        {
-            "id": 5,
-            "internal-data": {
-                "model-name": "reduce"
-            },
-            "position": {
-                "x": 45,
-                "y": -313
+                "y": -192.6997729961555
             }
         },
         {
@@ -134,8 +148,8 @@
                 "model-name": "trainer"
             },
             "position": {
-                "x": 266,
-                "y": -259
+                "x": 225.14784346347722,
+                "y": -172.99545992311
             }
         },
         {
@@ -144,8 +158,29 @@
                 "model-name": "func_out"
             },
             "position": {
-                "x": 461.5028282109097,
-                "y": -257.17333175111753
+                "x": 420.65067167438696,
+                "y": -173.31890517614977
+            }
+        },
+        {
+            "id": 5,
+            "internal-data": {
+                "model-name": "reduce"
+            },
+            "position": {
+                "x": 45,
+                "y": -313
+            }
+        },
+        {
+            "id": 10,
+            "internal-data": {
+                "data-name": "parameters",
+                "model-name": "data_source"
+            },
+            "position": {
+                "x": -631.2500600453361,
+                "y": -117.46562606021558
             }
         }
     ]

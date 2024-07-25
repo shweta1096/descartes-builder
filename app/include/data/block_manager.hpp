@@ -19,7 +19,7 @@ public slots:
     void onSelectionChanged();
 
 private slots:
-    void onNewTabCreated(QWidget* view);
+    void onNewTabCreated(QWidget *view);
 
 private:
     std::shared_ptr<TabManager> m_tabManager;

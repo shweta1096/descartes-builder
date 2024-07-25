@@ -45,10 +45,7 @@ QString toString(const FdfBlockModel &block)
 }
 } // namespace
 
-Kedro::Kedro()
-{
-    qDebug() << "Kedro engine is initiated";
-}
+Kedro::Kedro() {}
 
 bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph)
 {
