@@ -1,16 +1,21 @@
 #include "ui/side_bar_widgets/blocks.hpp"
 
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLabel>
 #include <QLayout>
 
-Blocks::Blocks(QWidget *parent)
+#include "data/block_manager.hpp"
+
+Blocks::Blocks(std::shared_ptr<BlockManager> blockManager, QWidget *parent)
     : QWidget(parent)
+    , m_blockManager(blockManager)
     , m_nodeId(QtNodes::InvalidNodeId)
-    , m_nodeIdLabel(new QLabel())
+    , m_nodeDataLabel(new QLabel())
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setAlignment(Qt::AlignTop);
-    layout->addWidget(m_nodeIdLabel);
+    layout->addWidget(m_nodeDataLabel);
     setLayout(layout);
 
     updateFields();
@@ -32,8 +37,9 @@ void Blocks::onNodeSelected(QtNodes::NodeId id)
 
 void Blocks::updateFields()
 {
-    if (m_nodeId == QtNodes::InvalidNodeId)
-        m_nodeIdLabel->setText("Id:\t-");
+    auto jsonObject = m_blockManager->getJson(m_nodeId);
+    if (jsonObject.isEmpty())
+        m_nodeDataLabel->setText("No block selected");
     else
-        m_nodeIdLabel->setText("Id:\t" + QString::number(m_nodeId));
+        m_nodeDataLabel->setText(QJsonDocument(jsonObject).toJson(QJsonDocument::Indented));
 }

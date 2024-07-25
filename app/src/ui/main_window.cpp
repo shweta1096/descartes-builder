@@ -133,7 +133,7 @@ void MainWindow::initMenuBar()
 void MainWindow::initPrimarySideBar()
 {
     // init widgets
-    auto blockWidget = new Blocks();
+    auto blockWidget = new Blocks(m_blockManager);
     connect(m_blockManager.get(), &BlockManager::nodeSelected, blockWidget, &Blocks::onNodeSelected);
 
     // prevent log panel from taking the corner

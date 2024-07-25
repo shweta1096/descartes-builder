@@ -17,7 +17,7 @@ constexpr QColor COLOR_CODER(185, 224, 165);
 constexpr QColor COLOR_PROCESSOR(169, 196, 236);
 constexpr QColor COLOR_TRAINER(205, 162, 190);
 
-constexpr uint SIDE_BAR_MINIMUM_WIDTH = 200;
+constexpr uint SIDE_BAR_MINIMUM_WIDTH = 250;
 
 constexpr ConstLatin1String CONNECTION_STYLE =
     R"(

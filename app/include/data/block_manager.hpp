@@ -11,6 +11,7 @@ class BlockManager : public QObject
     Q_OBJECT
 public:
     BlockManager(std::shared_ptr<TabManager> tabManager, QObject *parent = nullptr);
+    QJsonObject getJson(QtNodes::NodeId id);
 
 signals:
     void nodeSelected(QtNodes::NodeId id);
@@ -23,4 +24,5 @@ private slots:
 
 private:
     std::shared_ptr<TabManager> m_tabManager;
+    std::vector<QtNodes::NodeId> m_selectedNodes;
 };

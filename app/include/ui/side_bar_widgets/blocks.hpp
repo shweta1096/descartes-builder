@@ -3,6 +3,7 @@
 #include <QWidget>
 
 class QLabel;
+class BlockManager;
 
 #include <QtNodes/Definitions>
 
@@ -11,7 +12,7 @@ class Blocks : public QWidget
     Q_OBJECT
     Q_PROPERTY(QtNodes::NodeId nodeId READ nodeId WRITE setNodeId NOTIFY nodeIdChanged)
 public:
-    Blocks(QWidget *parent = nullptr);
+    Blocks(std::shared_ptr<BlockManager> blockManager, QWidget *parent = nullptr);
 
     QtNodes::NodeId nodeId() const { return m_nodeId; }
     void setNodeId(QtNodes::NodeId id);
@@ -26,7 +27,8 @@ private slots:
     void updateFields();
 
 private:
+    std::shared_ptr<BlockManager> m_blockManager;
     QtNodes::NodeId m_nodeId;
 
-    QLabel *m_nodeIdLabel;
+    QLabel *m_nodeDataLabel;
 };
