@@ -92,7 +92,11 @@ void MainWindow::initMenuBar()
     auto saveAsAction = fileMenu->addAction("Save As...");
     auto openAction = fileMenu->addAction("Open");
     auto closeAction = fileMenu->addAction("Close current tab");
+    auto nextTabAction = fileMenu->addAction("Next tab");
+    auto previousTabAction = fileMenu->addAction("Previous tab");
     closeAction->setDisabled(true);
+    nextTabAction->setDisabled(true);
+    previousTabAction->setDisabled(true);
     auto runAction = fileMenu->addAction("Run");
 
     newAction->setShortcuts({QKeySequence::New, QKeySequence::AddTab});
@@ -100,6 +104,9 @@ void MainWindow::initMenuBar()
     saveAsAction->setShortcut(QKeySequence::SaveAs);
     openAction->setShortcut(QKeySequence::Open);
     closeAction->setShortcut(QKeySequence::Close);
+    nextTabAction->setShortcut(QKeyCombination(Qt::MetaModifier, Qt::Key_Tab));
+    previousTabAction->setShortcut(
+        QKeyCombination(Qt::MetaModifier | Qt::ShiftModifier, Qt::Key_Tab));
     runAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
 
     connect(newAction, &QAction::triggered, m_tabManager.get(), &TabManager::newTab);
@@ -110,11 +117,24 @@ void MainWindow::initMenuBar()
             &QAction::triggered,
             m_graphicsSceneTabWidget,
             &GraphicsSceneTabWidget::closeCurrentTab);
+    connect(nextTabAction,
+            &QAction::triggered,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::nextTab);
+    connect(previousTabAction,
+            &QAction::triggered,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::previousTab);
     if (m_graphicsSceneTabWidget)
         connect(m_graphicsSceneTabWidget,
                 &GraphicsSceneTabWidget::countChanged,
-                closeAction,
-                [closeAction](int count) { closeAction->setEnabled(count > 1); });
+                fileMenu,
+                [closeAction, nextTabAction, previousTabAction](int count) {
+                    const bool MORE_THAN_ONE = count > 1;
+                    closeAction->setEnabled(MORE_THAN_ONE);
+                    nextTabAction->setEnabled(MORE_THAN_ONE);
+                    previousTabAction->setEnabled(MORE_THAN_ONE);
+                });
     connect(runAction, &QAction::triggered, this, &MainWindow::callExecute);
 
     { // temp menu for testing code

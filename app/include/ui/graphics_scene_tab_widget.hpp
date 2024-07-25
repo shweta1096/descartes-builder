@@ -17,6 +17,8 @@ signals:
 
 public slots:
     void closeCurrentTab();
+    void nextTab();
+    void previousTab();
 
 private slots:
     void closeTab(int index);

@@ -60,6 +60,22 @@ void GraphicsSceneTabWidget::closeTab(int index)
     m_tabManager->removeTab(targetWidget);
 }
 
+void GraphicsSceneTabWidget::nextTab()
+{
+    if (count() < 2)
+        return;
+    int nextIndex = (currentIndex() + 1) % count();
+    setCurrentIndex(nextIndex);
+}
+
+void GraphicsSceneTabWidget::previousTab()
+{
+    if (count() < 2)
+        return;
+    int nextIndex = (currentIndex() - 1 + count()) % count();
+    setCurrentIndex(nextIndex);
+}
+
 void GraphicsSceneTabWidget::onTabCountChanged(int count)
 {
     setTabsClosable(count > 1);
