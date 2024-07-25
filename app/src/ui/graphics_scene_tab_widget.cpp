@@ -4,50 +4,13 @@
 #include <QTabBar>
 #include <QWidget>
 
-#include <QtNodes/DagGraphicsScene>
-#include <QtNodes/DirectedAcyclicGraphModel>
-#include <QtNodes/GraphicsView>
-#include <QtNodes/NodeDelegateModelRegistry>
+#include "data/tab_manager.hpp"
 
-using QtNodes::DagGraphicsScene;
-using QtNodes::DirectedAcyclicGraphModel;
-using QtNodes::GraphicsView;
-using QtNodes::NodeDelegateModelRegistry;
-
-#include "ui/model_registry.hpp"
-
-namespace {
-std::shared_ptr<NodeDelegateModelRegistry> registry = model_registry::registerDataModels();
-}
-
-TabComponents::TabComponents(QWidget *parent)
-    : m_graph(new DirectedAcyclicGraphModel(registry))
-    , m_scene(new DagGraphicsScene(*m_graph, parent))
-    , m_view(new GraphicsView(m_scene))
-{
-    m_graph->setParent(parent);
-    // Qt bug for MacOS throws warnings when using touch pad with graphics view
-    // touch pad seems to trigger touch events, so touch events are disabled to supress the bug
-    m_view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
-    QObject::connect(m_scene, &DagGraphicsScene::sceneLoaded, m_view, &GraphicsView::centerScene);
-    if (parent)
-        QObject::connect(m_scene, &DagGraphicsScene::modified, parent, [parent]() {
-            parent->setWindowModified(true);
-        });
-}
-
-QFileInfo TabComponents::getFile() const
-{
-    return m_scene->getFile();
-}
-
-GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
+GraphicsSceneTabWidget::GraphicsSceneTabWidget(std::shared_ptr<TabManager> tabManager,
+                                               QWidget *parent)
     : QTabWidget(parent)
+    , m_tabManager(tabManager)
 {
-    // if we want a new tab button
-    // auto newTabButton = new QPushButton("+");
-    // setCornerWidget(newTabButton);
-    // connect(newTabButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::newTab);
     auto runButton = new QPushButton("Run");
     setCornerWidget(runButton);
     connect(runButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::runClicked);
@@ -63,54 +26,22 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(QWidget *parent)
     connect(this,
             &GraphicsSceneTabWidget::currentChanged,
             this,
-            &GraphicsSceneTabWidget::onSceneSelectionChanged);
+            &GraphicsSceneTabWidget::onCurrentChanged);
+    connect(m_tabManager.get(),
+            &TabManager::newTabCreated,
+            this,
+            &GraphicsSceneTabWidget::onNewTabCreated);
+    connect(m_tabManager.get(),
+            &TabManager::currentChanged,
+            this,
+            &GraphicsSceneTabWidget::setCurrentWidget);
+    connect(m_tabManager.get(),
+            &TabManager::tabFileNameChanged,
+            this,
+            &GraphicsSceneTabWidget::onTabFileNameChanged);
 
     // init with 1 blank tab
-    newTab();
-}
-
-QtNodes::DirectedAcyclicGraphModel *GraphicsSceneTabWidget::getCurrentGraph() const
-{
-    if (!count())
-        return nullptr;
-    return m_tabs.at(currentWidget()).getGraph();
-}
-
-void GraphicsSceneTabWidget::newTab()
-{
-    TabComponents tab(qobject_cast<QWidget *>(parent()));
-    addTabComponent(tab);
-}
-
-bool GraphicsSceneTabWidget::save()
-{
-    auto scene = getCurrentScene();
-    if (!scene || !scene->save())
-        return false;
-    setCurrentTabText(scene->getFile().baseName());
-    qInfo() << "File saved to: " << scene->getFile().absoluteFilePath();
-    return true;
-}
-
-bool GraphicsSceneTabWidget::saveAs()
-{
-    auto scene = getCurrentScene();
-    if (!scene || !scene->saveAs())
-        return false;
-    setCurrentTabText(scene->getFile().baseName());
-    qInfo() << "File saved as: " << scene->getFile().absoluteFilePath();
-    return true;
-}
-
-bool GraphicsSceneTabWidget::open()
-{
-    // open in a new tab
-    TabComponents tab(qobject_cast<QWidget *>(parent()));
-    auto scene = tab.getScene();
-    if (!scene || !scene->load() || openIfExists(scene))
-        return false;
-    addTabComponent(tab);
-    return true;
+    m_tabManager->newTab();
 }
 
 void GraphicsSceneTabWidget::closeCurrentTab()
@@ -126,7 +57,7 @@ void GraphicsSceneTabWidget::closeTab(int index)
     auto targetWidget = widget(index);
     removeTab(index);
 
-    m_tabs.erase(targetWidget);
+    m_tabManager->removeTab(targetWidget);
 }
 
 void GraphicsSceneTabWidget::onTabCountChanged(int count)
@@ -134,19 +65,23 @@ void GraphicsSceneTabWidget::onTabCountChanged(int count)
     setTabsClosable(count > 1);
 }
 
-void GraphicsSceneTabWidget::setCurrentTabText(const QString &label)
+void GraphicsSceneTabWidget::onCurrentChanged(const int &index)
 {
-    setTabText(currentIndex(), label);
+    auto view = widget(index);
+    if (m_tabManager->currentWidget() == view)
+        return;
+    m_tabManager->setCurrentView(view);
 }
 
-void GraphicsSceneTabWidget::onSceneSelectionChanged()
+void GraphicsSceneTabWidget::onNewTabCreated(QWidget *widget, const QString &fileName)
 {
-    if (m_tabs.size() < 1)
-        return;
-    auto selection = getCurrentScene()->selectedNodes();
-    if (selection.size() < 1)
-        return emit nodeSelected(QtNodes::InvalidNodeId);
-    emit nodeSelected(selection.at(0));
+    int index = addTab(widget, fileName.isEmpty() ? "blank" : fileName);
+    setCurrentIndex(index);
+}
+
+void GraphicsSceneTabWidget::onTabFileNameChanged(QWidget *widget, const QString &fileName)
+{
+    setTabText(indexOf(widget), fileName);
 }
 
 void GraphicsSceneTabWidget::tabInserted(int index)
@@ -159,39 +94,4 @@ void GraphicsSceneTabWidget::tabRemoved(int index)
 {
     QTabWidget::tabRemoved(index);
     emit countChanged(count());
-}
-
-QtNodes::DagGraphicsScene *GraphicsSceneTabWidget::getCurrentScene() const
-{
-    if (!count())
-        return nullptr;
-    return m_tabs.at(currentWidget()).getScene();
-}
-
-bool GraphicsSceneTabWidget::openIfExists(QtNodes::DagGraphicsScene *scene)
-{
-    QFileInfo a;
-    if (!scene)
-        return false;
-    for (auto tab : m_tabs)
-        if (tab.second.getFile() == scene->getFile()) { // file exists, open that tab
-            setCurrentWidget(tab.first);
-            return true;
-        }
-    return false;
-}
-
-void GraphicsSceneTabWidget::addTabComponent(const TabComponents &tabComponents)
-{
-    QString title = tabComponents.getScene()->getFile().baseName();
-    if (title.isEmpty())
-        title = "blank";
-    int index = addTab(tabComponents.getView(), title);
-    m_tabs[widget(index)] = std::move(tabComponents);
-    setCurrentIndex(index);
-
-    connect(m_tabs[widget(index)].getScene(),
-            &DagGraphicsScene::selectionChanged,
-            this,
-            &GraphicsSceneTabWidget::onSceneSelectionChanged);
 }

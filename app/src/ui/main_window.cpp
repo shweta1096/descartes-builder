@@ -22,7 +22,9 @@ using QtNodes::NodeStyle;
 
 #include <QtUtility/media/media.hpp>
 
+#include "data/block_manager.hpp"
 #include "data/constants.hpp"
+#include "data/tab_manager.hpp"
 #include "engine/engine_starter.hpp"
 #include "temp.hpp"
 #include "ui/graphics_scene_tab_widget.hpp"
@@ -31,6 +33,8 @@ using QtNodes::NodeStyle;
 
 MainWindow::MainWindow()
     : m_engine(EngineStarter::init())
+    , m_tabManager(std::make_shared<TabManager>())
+    , m_blockManager(std::make_shared<BlockManager>())
     , m_temp(new Temp(this))
 {
     initScene();
@@ -49,7 +53,7 @@ MainWindow::~MainWindow()
 
 bool MainWindow::callExecute()
 {
-    return m_engine->execute(m_graphicsSceneTabWidget->getCurrentGraph());
+    return m_engine->execute(m_tabManager->currentGraph());
 }
 
 void MainWindow::initScene()
@@ -60,12 +64,13 @@ void MainWindow::initScene()
 
     m_centralWidget = new QWidget();
     setCentralWidget(m_centralWidget);
+    m_tabManager->setTabParent(m_centralWidget);
 
     QVBoxLayout *layout = new QVBoxLayout(m_centralWidget);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    m_graphicsSceneTabWidget = new GraphicsSceneTabWidget(m_centralWidget);
+    m_graphicsSceneTabWidget = new GraphicsSceneTabWidget(m_tabManager, m_centralWidget);
     connect(m_graphicsSceneTabWidget,
             &GraphicsSceneTabWidget::runClicked,
             this,
@@ -95,22 +100,10 @@ void MainWindow::initMenuBar()
     closeAction->setShortcut(QKeySequence::Close);
     runAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
 
-    connect(newAction,
-            &QAction::triggered,
-            m_graphicsSceneTabWidget,
-            &GraphicsSceneTabWidget::newTab);
-    connect(saveAction,
-            &QAction::triggered,
-            m_graphicsSceneTabWidget,
-            &GraphicsSceneTabWidget::save);
-    connect(saveAsAction,
-            &QAction::triggered,
-            m_graphicsSceneTabWidget,
-            &GraphicsSceneTabWidget::saveAs);
-    connect(openAction,
-            &QAction::triggered,
-            m_graphicsSceneTabWidget,
-            &GraphicsSceneTabWidget::open);
+    connect(newAction, &QAction::triggered, m_tabManager.get(), &TabManager::newTab);
+    connect(saveAction, &QAction::triggered, m_tabManager.get(), &TabManager::save);
+    connect(saveAsAction, &QAction::triggered, m_tabManager.get(), &TabManager::saveAs);
+    connect(openAction, &QAction::triggered, m_tabManager.get(), &TabManager::open);
     connect(closeAction,
             &QAction::triggered,
             m_graphicsSceneTabWidget,
@@ -139,10 +132,7 @@ void MainWindow::initPrimarySideBar()
 {
     // init widgets
     auto blockWidget = new Blocks();
-    connect(m_graphicsSceneTabWidget,
-            &GraphicsSceneTabWidget::nodeSelected,
-            blockWidget,
-            &Blocks::onNodeSelected);
+    connect(m_tabManager.get(), &TabManager::nodeSelected, blockWidget, &Blocks::onNodeSelected);
 
     // prevent log panel from taking the corner
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
