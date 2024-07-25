@@ -91,12 +91,14 @@ void MainWindow::initMenuBar()
     auto saveAction = fileMenu->addAction("Save");
     auto saveAsAction = fileMenu->addAction("Save As...");
     auto openAction = fileMenu->addAction("Open");
+    fileMenu->addSeparator();
     auto closeAction = fileMenu->addAction("Close current tab");
     auto nextTabAction = fileMenu->addAction("Next tab");
     auto previousTabAction = fileMenu->addAction("Previous tab");
     closeAction->setDisabled(true);
     nextTabAction->setDisabled(true);
     previousTabAction->setDisabled(true);
+    fileMenu->addSeparator();
     auto runAction = fileMenu->addAction("Run");
 
     newAction->setShortcuts({QKeySequence::New, QKeySequence::AddTab});
@@ -125,16 +127,15 @@ void MainWindow::initMenuBar()
             &QAction::triggered,
             m_graphicsSceneTabWidget,
             &GraphicsSceneTabWidget::previousTab);
-    if (m_graphicsSceneTabWidget)
-        connect(m_graphicsSceneTabWidget,
-                &GraphicsSceneTabWidget::countChanged,
-                fileMenu,
-                [closeAction, nextTabAction, previousTabAction](int count) {
-                    const bool MORE_THAN_ONE = count > 1;
-                    closeAction->setEnabled(MORE_THAN_ONE);
-                    nextTabAction->setEnabled(MORE_THAN_ONE);
-                    previousTabAction->setEnabled(MORE_THAN_ONE);
-                });
+    connect(m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::countChanged,
+            fileMenu,
+            [closeAction, nextTabAction, previousTabAction](int count) {
+                const bool MORE_THAN_ONE = count > 1;
+                closeAction->setEnabled(MORE_THAN_ONE);
+                nextTabAction->setEnabled(MORE_THAN_ONE);
+                previousTabAction->setEnabled(MORE_THAN_ONE);
+            });
     connect(runAction, &QAction::triggered, this, &MainWindow::callExecute);
 
     { // temp menu for testing code
