@@ -1,59 +1,42 @@
-name: build descartes-builder
+name: build QtUtility
 
 on:
   push:
-    branches:
-      - master
-      - main
-    tags:
-      - "*"
+    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
 
 jobs:
-  build-and-test:
-
-    name: ${{ matrix.toolchain }}
+  build:
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        toolchain:
-          - linux-gcc
-          - macos-clang
-          - windows-msvc
-
-        configuration:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: 
           - Release
-
+        qt_version: 
+          - "6.3.0"
         include:
-          - toolchain: linux-gcc
-            os: ubuntu-22.04
+          - os: ubuntu-latest
             compiler: gcc
-            qt_version: "6.3.0"
-
-          - toolchain: macos-clang
-            os: macos-latest
+          - os: macos-latest
             compiler: clang
-            qt_version: "6.3.0"
-
-          - toolchain: windows-msvc
-            os: windows-latest
+          - os: windows-latest
             compiler: msvc
-            qt_version: "6.3.0"
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
         version: ${{ matrix.qt_version }}
 
-    - name: Setup (Linux)
+    - name: Setup (Ubuntu)
       if: startsWith (matrix.os, 'ubuntu')
       run: sudo apt-get install libxkbcommon-dev libgl1-mesa-dev
 
@@ -63,8 +46,15 @@ jobs:
       with:
         arch: x64
 
-    - name: Configure (${{ matrix.configuration }})
-      run: cmake -S app -Bbuild -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+    - name: Configure CMake
+      run: >
+        cmake -B build
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -S ${{ github.workspace }}/app
 
-    - name: Build with ${{ matrix.compiler }}
-      run: cmake --build build --config ${{ matrix.configuration }}
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    # - name: Test
+    #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
+    #   run: ctest --build-config ${{ matrix.build_type }}
