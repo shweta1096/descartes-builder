@@ -28,18 +28,13 @@ jobs:
 
         include:
           - toolchain: linux-gcc
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             compiler: gcc
             qt_version: "6.3.0"
 
           - toolchain: macos-clang
             os: macos-latest
             compiler: clang
-            qt_version: "6.3.0"
-
-          - toolchain: windows-msvc
-            os: windows-latest
-            compiler: msvc
             qt_version: "6.3.0"
 
           - toolchain: windows-msvc
