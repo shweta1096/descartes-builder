@@ -1,4 +1,4 @@
-name: build QtUtility
+name: build descartes-builder
 
 on:
   push:
