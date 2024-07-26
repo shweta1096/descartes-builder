@@ -60,7 +60,7 @@ jobs:
 
     - name: Setup (Linux)
       if: startsWith (matrix.os, 'ubuntu')
-      run: sudo apt-get install libxkbcommon-dev
+      run: sudo apt-get install libxkbcommon-dev libgl1-mesa-dev
 
     - name: Setup VS tools (Windows)
       if: startsWith (matrix.os, 'windows')
