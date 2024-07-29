@@ -67,6 +67,17 @@ if(QT_VERSION_MAJOR EQUAL 6)
   qt_finalize_executable(DescartesBuilder)
 endif()
 
+# copy engine lib to binary dir
+
+set(ENGINE_DIR "${CMAKE_BINARY_DIR}/engine")
+file(MAKE_DIRECTORY ${ENGINE_DIR})
+add_custom_target(
+  copy_engine ALL
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/external/kedro-umbrella ${ENGINE_DIR}/kedro-umbrella)
+add_dependencies(DescartesBuilder copy_engine)
+
 # make library for test to link to
 add_library(DescartesBuilder_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                         ${PROJECT_RESOURCES})
