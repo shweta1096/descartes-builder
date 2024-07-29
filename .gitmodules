@@ -7,3 +7,6 @@
 [submodule "app/external/qtutility"]
 	path = app/external/qtutility
 	url = https://github.com/nicholasng99/qtutility.git
+[submodule "app/external/kedro-umbrella"]
+	path = app/external/kedro-umbrella
+	url = https://github.com/CPS-research-group/kedro-umbrella.git
