@@ -64,6 +64,7 @@ jobs:
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v3
+        run: ls -a
         with:
           name: DescartesBuilder-${{ matrix.os }}
-          path: bin
+          path: ${{ github.workspace }}/app/build/bin
