@@ -74,18 +74,10 @@ endif()
 set(ENGINE_DIR "${CMAKE_BINARY_DIR}/engine")
 file(MAKE_DIRECTORY ${ENGINE_DIR})
 set(KEDRO_DIR "${ENGINE_DIR}/kedro-umbrella")
-if(WIN32)
-  set(VENV_SCRIPT "${KEDRO_DIR}/venv/Scripts")
-else()
-  set(VENV_SCRIPT "${KEDRO_DIR}/venv/bin")
-endif()
 add_custom_target(
   setup_engine ALL
   COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_SOURCE_DIR}/external/kedro-umbrella ${KEDRO_DIR}
-  COMMAND ${Python3_EXECUTABLE} -m venv ${KEDRO_DIR}/venv
-  COMMAND ${VENV_SCRIPT}/python -m pip install --upgrade pip setuptools
-  COMMAND ${VENV_SCRIPT}/python -m pip install -r ${KEDRO_DIR}/requirements.txt)
+          ${CMAKE_SOURCE_DIR}/external/kedro-umbrella ${KEDRO_DIR})
 add_dependencies(DescartesBuilder setup_engine)
 
 # make library for test to link to
