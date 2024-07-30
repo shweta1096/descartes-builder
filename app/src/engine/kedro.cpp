@@ -1,5 +1,7 @@
 #include "engine/kedro.hpp"
 
+#include <QApplication>
+
 #include <QtNodes/DirectedAcyclicGraphModel>
 
 #include "ui/models/fdf_block_model.hpp"
@@ -45,7 +47,10 @@ QString toString(const FdfBlockModel &block)
 }
 } // namespace
 
-Kedro::Kedro() {}
+Kedro::Kedro()
+{
+    qDebug() << QApplication::applicationDirPath();
+}
 
 bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph)
 {

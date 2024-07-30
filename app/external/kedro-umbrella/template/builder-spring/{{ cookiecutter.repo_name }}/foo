@@ -1,0 +1,151 @@
+
+diff -ru "../../pandas-iris/{{ cookiecutter.repo_name }}/conf/base/logging.yml" ./conf/base/logging.yml
+--- "../../pandas-iris/{{ cookiecutter.repo_name }}/conf/base/logging.yml"	2024-07-30 13:30:57.769622732 +0800
++++ ./conf/base/logging.yml	2024-07-30 14:27:01.980457403 +0800
+@@ -34,7 +34,10 @@
+   kedro:
+     level: INFO
+ 
+-  {{ cookiecutter.python_package }}:
++  spring_system:
++    level: INFO
++  
++  kedro_umbrella:
+     level: INFO
+ 
+ root:
+diff -ru "../../pandas-iris/{{ cookiecutter.repo_name }}/conf/base/parameters.yml" ./conf/base/parameters.yml
+--- "../../pandas-iris/{{ cookiecutter.repo_name }}/conf/base/parameters.yml"	2024-07-30 13:30:57.769622732 +0800
++++ ./conf/base/parameters.yml	2024-07-30 14:27:01.980457403 +0800
+@@ -1,3 +1,13 @@
++## Spring System Case Study
+ train_fraction: 0.8
+-random_state: 3
+-target_column: species
++random_state: 0
++data_xform: std_pca
++model: lr
++get_data:
++  noise: "gaussian"
++  N: 100
++  T: 1000
++  F: 1
++  data_xform: "dEps_dK"
++  test_T: 1
++fmu_path: "data/06_models/dynamic_fmu/dynamicFMU.fmu/DynamicFMU.fmu"
+Only in ../../pandas-iris/{{ cookiecutter.repo_name }}/conf/local: credentials.yml
+Only in ./data/06_models: dynamic_fmu
+diff -ru "../../pandas-iris/{{ cookiecutter.repo_name }}/docs/source/conf.py" ./docs/source/conf.py
+--- "../../pandas-iris/{{ cookiecutter.repo_name }}/docs/source/conf.py"	2024-07-30 13:30:57.769622732 +0800
++++ ./docs/source/conf.py	2024-07-30 14:27:01.980457403 +0800
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env python3
+ 
+ 
+-# {{ cookiecutter.python_package }} documentation build
++# spring_system documentation build
+ # configuration file, created by sphinx-quickstart.
+ #
+ # This file is execfile()d with the current directory set to its
+@@ -21,11 +21,11 @@
+ 
+ from kedro.framework.cli.utils import find_stylesheets
+ 
+-from {{ cookiecutter.python_package }} import __version__ as release
++from spring_system import __version__ as release
+ 
+ # -- Project information -----------------------------------------------------
+ 
+-project = "{{ cookiecutter.python_package }}"
++project = "spring_system"
+ author = "Kedro"
+ 
+ # The short X.Y version.
+@@ -118,7 +118,7 @@
+ # -- Options for HTMLHelp output ---------------------------------------------
+ 
+ # Output file base name for HTML help builder.
+-htmlhelp_basename = "{{ cookiecutter.python_package }}doc"
++htmlhelp_basename = "spring_systemdoc"
+ 
+ # -- Options for LaTeX output ------------------------------------------------
+ 
+@@ -146,8 +146,8 @@
+ latex_documents = [
+     (
+         master_doc,
+-        "{{ cookiecutter.python_package }}.tex",
+-        "{{ cookiecutter.python_package }} Documentation",
++        "spring_system.tex",
++        "spring_system Documentation",
+         "Kedro",
+         "manual",
+     )
+@@ -160,8 +160,8 @@
+ man_pages = [
+     (
+         master_doc,
+-        "{{ cookiecutter.python_package }}",
+-        "{{ cookiecutter.python_package }} Documentation",
++        "spring_system",
++        "spring_system Documentation",
+         [author],
+         1,
+     )
+@@ -175,11 +175,11 @@
+ texinfo_documents = [
+     (
+         master_doc,
+-        "{{ cookiecutter.python_package }}",
+-        "{{ cookiecutter.python_package }} Documentation",
++        "spring_system",
++        "spring_system Documentation",
+         author,
+-        "{{ cookiecutter.python_package }}",
+-        "Project {{ cookiecutter.python_package }} codebase.",
++        "spring_system",
++        "Project spring_system codebase.",
+         "Nearest-Neighbour",
+     )
+ ]
+diff -ru "../../pandas-iris/{{ cookiecutter.repo_name }}/docs/source/index.rst" ./docs/source/index.rst
+--- "../../pandas-iris/{{ cookiecutter.repo_name }}/docs/source/index.rst"	2024-07-30 13:30:57.769622732 +0800
++++ ./docs/source/index.rst	2024-07-30 14:27:01.980457403 +0800
+@@ -1,8 +1,8 @@
+-.. {{ cookiecutter.python_package }} documentation master file, created by sphinx-quickstart.
++.. spring_system documentation master file, created by sphinx-quickstart.
+    You can adapt this file completely to your liking, but it should at least
+    contain the root `toctree` directive.
+ 
+-Welcome to project {{ cookiecutter.python_package }}'s API docs!
++Welcome to project spring_system's API docs!
+ =============================================
+ 
+ .. toctree::
+Only in .: foo
+diff -ru "../../pandas-iris/{{ cookiecutter.repo_name }}/src/pyproject.toml" ./src/pyproject.toml
+--- "../../pandas-iris/{{ cookiecutter.repo_name }}/src/pyproject.toml"	2024-07-30 13:30:57.769622732 +0800
++++ ./src/pyproject.toml	2024-07-30 14:27:01.980457403 +0800
+@@ -3,7 +3,7 @@
+ build-backend = "setuptools.build_meta"
+ 
+ [project]
+-name = "{{ cookiecutter.python_package }}"
++name = "spring_system"
+ version = "0.1"
+ dynamic = ["dependencies"]
+ 
+@@ -11,7 +11,7 @@
+ exclude = ["tests"]
+ 
+ [project.scripts]
+-{{ cookiecutter.repo_name }} = "{{ cookiecutter.python_package }}.__main__:main"
++spring-system = "spring_system.__main__:main"
+ 
+ [project.optional-dependencies]
+ docs = [
+Only in ../../pandas-iris/{{ cookiecutter.repo_name }}/src: requirements.txt
+Only in ./src: spring_system
+Only in ../../pandas-iris/{{ cookiecutter.repo_name }}/src: tests
+Only in ../../pandas-iris/{{ cookiecutter.repo_name }}/src: {{ cookiecutter.python_package }}
+Only in .: stats.json

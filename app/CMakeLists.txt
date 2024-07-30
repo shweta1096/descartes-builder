@@ -32,15 +32,15 @@ file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
 file(GLOB_RECURSE PROJECT_HEADERS "include/*.hpp")
 file(GLOB_RECURSE PROJECT_RESOURCES "resources/*.qrc")
 
-qt_add_executable(DescartesBuilder MANUAL_FINALIZATION main.cpp
+qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp
                   ${PROJECT_SOURCES} ${PROJECT_HEADERS} ${PROJECT_RESOURCES})
 
 target_link_libraries(
-  DescartesBuilder PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-                           Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
+  ${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+                          Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
 
 target_compile_options(
-  DescartesBuilder
+  ${PROJECT_NAME}
   PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/W4
           /wd4127
           /EHsc
@@ -52,7 +52,7 @@ target_compile_options(
           -Werror>)
 
 set_target_properties(
-  DescartesBuilder
+  ${PROJECT_NAME}
   PROPERTIES ${BUNDLE_ID_OPTION} MACOSX_BUNDLE_BUNDLE_VERSION
              ${PROJECT_VERSION} MACOSX_BUNDLE_SHORT_VERSION_STRING
              ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR} MACOSX_BUNDLE
@@ -61,36 +61,37 @@ set_target_properties(
 
 include(GNUInstallDirs)
 install(
-  TARGETS DescartesBuilder
+  TARGETS ${PROJECT_NAME}
   BUNDLE DESTINATION .
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 if(QT_VERSION_MAJOR EQUAL 6)
-  qt_finalize_executable(DescartesBuilder)
+  qt_finalize_executable(${PROJECT_NAME})
 endif()
 
 # copy engine lib to binary dir
-
-set(ENGINE_DIR "${CMAKE_BINARY_DIR}/engine")
-file(MAKE_DIRECTORY ${ENGINE_DIR})
-set(KEDRO_DIR "${ENGINE_DIR}/kedro-umbrella")
 add_custom_target(
   setup_engine ALL
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_SOURCE_DIR}/external/kedro-umbrella ${KEDRO_DIR})
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/external/kedro-umbrella
+    $<IF:$<CONFIG:Debug>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release>/engine/kedro-umbrella
+)
 add_dependencies(DescartesBuilder setup_engine)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/external/kedro-umbrella
+        DESTINATION engine)
 
 # make library for test to link to
-add_library(DescartesBuilder_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-                                        ${PROJECT_RESOURCES})
+add_library(${PROJECT_NAME}_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
+                                       ${PROJECT_RESOURCES})
 
-target_include_directories(DescartesBuilder_lib
+target_include_directories(${PROJECT_NAME}_lib
                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(
-  DescartesBuilder_lib PUBLIC Qt${QT_VERSION_MAJOR}::Widgets
-                              Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
+  ${PROJECT_NAME}_lib PUBLIC Qt${QT_VERSION_MAJOR}::Widgets
+                             Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
 
 if(BUILD_TESTS)
   set(gtest_force_shared_crt
@@ -106,7 +107,23 @@ if(BUILD_TESTS)
 
   add_executable(unitTests ${TEST_SOURCES})
 
-  target_link_libraries(unitTests PRIVATE gtest DescartesBuilder_lib)
+  target_link_libraries(unitTests PRIVATE gtest ${PROJECT_NAME}_lib)
 
   add_test(NAME unitTests COMMAND unitTests)
 endif()
+
+# Pack
+include(CPack)
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Function + Data Flow Digital Twin Builder")
+set(CPACK_PACKAGE_VENDOR "CNRS@CREATE")
+set(CPACK_PACKAGE_CONTACT "nicholas.ng@cnrsatcreate.sg")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+
+# Set installation directories
+set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR};${PROJECT_NAME};ALL;/")
+
+# Define the generator to use (e.g., ZIP, TGZ, DEB, RPM, etc.)
+set(CPACK_GENERATOR "ZIP;TGZ;DEB;RPM")
