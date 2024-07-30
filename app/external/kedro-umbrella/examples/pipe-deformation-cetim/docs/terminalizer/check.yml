@@ -1,0 +1,147 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: bash -l
+  
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /home/eduardo002/edu-research/kedro-builder/examples/pipe-deformation-cetim
+  
+  # Export additional ENV variables
+  env:
+    recording: true
+  
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 120
+  
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 30
+  
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+  
+  # Quality
+  # 1 - 100
+  quality: 100
+  
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+  
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+  
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: DesCartes Builder
+    style:
+      border: 0px black solid
+      # boxShadow: none
+      # margin: 0px
+  
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+  
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+  
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "Monaco, Lucida Console, Ubuntu Mono, Monospace"
+  
+  # The size of the font
+  fontSize: 12
+  
+  # The height of lines
+  lineHeight: 1
+  
+  # The spacing between letters
+  letterSpacing: 0
+  
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#afafaf"
+    cursor: "#c7c7c7"
+    black: "#232628"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#75dff2"
+    magenta: "#ae89fe"
+    cyan: "#708387"
+    white: "#d5d5d0"
+    brightBlack: "#626566"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#75dff2"
+    brightMagenta: "#ae89fe"
+    brightCyan: "#b1c6ca"
+    brightWhite: "#f9f9f4"
+  
+# Records, feel free to edit them
+records:
+  - delay: 475
+    content: "\e[?2004h\e[01;32meduardo002@HESL-GS27L\e[00m:\e[01;34m~/edu-research/kedro-builder/examples/pipe-deformation-cetim\e[00m$ "
+  - delay: 1009
+    content: m
+  - delay: 50
+    content: a
+  - delay: 120
+    content: k
+  - delay: 23
+    content: e
+  - delay: 48
+    content: ' '
+  - delay: 127
+    content: c
+  - delay: 129
+    content: h
+  - delay: 435
+    content: "\aeck_builder_"
+  - delay: 594
+    content: b
+  - delay: 90
+    content: 'ad '
+  - delay: 200
+    content: "\r\n\e[?2004l\rcd src/cetim_kedro && ln -sf pipeline_builder_bad.py pipeline.py\r\nkedro check\r\n"
+  - delay: 609
+    content: "\e[2;36m[10/01/23 16:42:04]\e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Kedro project pipe-deformation-cetim                                         \e]8;id=871121;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro/framework/session/session.py\e\\\e[2msession.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=73121;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro/framework/session/session.py#364\e\\\e[2m364\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[31mWARNING \e[0m \e[35m/home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/ked\e[0m \e]8;id=455361;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py\e\\\e[2mwarnings.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=110177;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py#109\e\\\e[2m109\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         \e[35mro/framework/session/\e[0m\e[95msession.py\e[0m:\e[1;36m266\e[0m: FutureWarning: ConfigLoader will be    \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         deprecated in Kedro \e[1;36m0.19\e[0m. Please use the OmegaConfigLoader instead. To      \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         consult the documentation for OmegaConfigLoader, see here:                  \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         \e[4;94mhttps://docs.kedro.org/en/stable/configuration/advanced_configuration.html#\e[0m \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         \e[4;94momegaconfigloader\e[0m                                                           \e[2m               \e[0m\r\n\e[2;36m                    \e[0m           \e[1;35mwarnings.warn\e[0m\e[1m(\e[0m                                                            \e[2m               \e[0m\r\n\e[2;36m                    \e[0m                                                                                     \e[2m               \e[0m\r\n"
+  - delay: 835
+    content: "\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking split: split_data: \e[1;35msplit_data_1\e[0m\e[1m(\e[0m\e[1m[\e[0mdispl,eps,parameters\e[1m]\e[0m\e[1m)\e[0m ->          \e]8;id=787807;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=593337;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#254\e\\\e[2m254\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         \e[1m[\e[0mX_train,X_test,Y_train,Y_test\e[1m]\e[0m                                              \e[2m              \e[0m\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m1\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=846169;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=862080;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking code: xform_X: \e[1;35mxform_data\e[0m\e[1m(\e[0m\e[1m[\e[0mX_train,parameters\e[1m]\e[0m\e[1m)\e[0m ->                  \e]8;id=251526;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=111942;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#167\e\\\e[2m167\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         \e[1m[\e[0mX_xform,X_inv_xform\e[1m]\e[0m                                                        \e[2m              \e[0m\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m2\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=602702;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=911250;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking code: xform_Y: \e[1;35mxform_data\e[0m\e[1m(\e[0m\e[1m[\e[0mY_train,parameters\e[1m]\e[0m\e[1m)\e[0m ->                  \e]8;id=380816;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=594283;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#167\e\\\e[2m167\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         \e[1m[\e[0mY_xform,Y_inv_xform\e[1m]\e[0m                                                        \e[2m              \e[0m\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m3\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=157465;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=924478;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking process: \e[32m'X_xform'\e[0m\e[1m(\e[0m\e[1m[\e[0mX_xform,X_test\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mX_test_red\e[1m]\e[0m                \e]8;id=713943;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=597858;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#193\e\\\e[2m193\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m4\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=606771;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=344461;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking process: reduce_X: \e[32m'Y_xform'\e[0m\e[1m(\e[0m\e[1m[\e[0mY_xform,X_train\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mX_train_red\e[1m]\e[0m    \e]8;id=77319;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=515346;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#193\e\\\e[2m193\e[0m\e]8;;\e\\\r\n"
+  - delay: 300
+    content: "\e[2;36m                   \e[0m\e[2;36m \e[0m\e[31mWARNING \e[0m \e[35m/home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/ked\e[0m \e]8;id=270134;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py\e\\\e[2mwarnings.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=646805;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py#109\e\\\e[2m109\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         \e[35mro_builder/\e[0m\e[95mchecker.py\e[0m:\e[1;36m21\e[0m: UserWarning: In process reduce_X:                \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         \e[32m'Y_xform'\e[0m\e[1m(\e[0m\e[1m[\e[0mY_xform,X_train\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mX_train_red\e[1m]\e[0m: Function and Data are not    \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         compatible.                                                                 \e[2m               \e[0m\r\n\e[2;36m                    \e[0m           \e[1;35mwarn\e[0m\e[1m(\e[0mmessage\e[1m)\e[0m                                                             \e[2m               \e[0m\r\n\e[2;36m                    \e[0m                                                                                     \e[2m               \e[0m\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m5\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=783335;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=641791;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking process: reduce_Y: \e[32m'X_xform'\e[0m\e[1m(\e[0m\e[1m[\e[0mX_xform,Y_train\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mY_train_red\e[1m]\e[0m    \e]8;id=811649;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=285850;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#193\e\\\e[2m193\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[31mWARNING \e[0m \e[35m/home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/ked\e[0m \e]8;id=831142;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py\e\\\e[2mwarnings.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=185275;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py#109\e\\\e[2m109\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         \e[35mro_builder/\e[0m\e[95mchecker.py\e[0m:\e[1;36m21\e[0m: UserWarning: In process reduce_Y:                \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         \e[32m'X_xform'\e[0m\e[1m(\e[0m\e[1m[\e[0mX_xform,Y_train\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mY_train_red\e[1m]\e[0m: Function and Data are not    \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         compatible.                                                                 \e[2m               \e[0m\r\n\e[2;36m                    \e[0m           \e[1;35mwarn\e[0m\e[1m(\e[0mmessage\e[1m)\e[0m                                                             \e[2m               \e[0m\r\n\e[2;36m                    \e[0m                                                                                     \e[2m               \e[0m\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m6\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=325079;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=515626;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking train: trainer: \e[1;35mbasic_trainer\e[0m\e[1m(\e[0m\e[1m[\e[0mX_train_red,Y_train_red,parameters\e[1m]\e[0m\e[1m)\e[0m \e]8;id=372535;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=231313;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#232\e\\\e[2m232\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         -> \e[1m[\e[0mregressor\e[1m]\e[0m                                                               \e[2m              \e[0m\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m7\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=310834;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=814958;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking process: \e[32m'regressor'\e[0m\e[1m(\e[0m\e[1m[\e[0mregressor,X_test_red\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mY_pred_red\e[1m]\e[0m        \e]8;id=655912;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=362811;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#193\e\\\e[2m193\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[31mWARNING \e[0m \e[35m/home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/ked\e[0m \e]8;id=107569;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py\e\\\e[2mwarnings.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=166236;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py#109\e\\\e[2m109\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         \e[35mro_builder/\e[0m\e[95mchecker.py\e[0m:\e[1;36m21\e[0m: UserWarning: In process                          \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         \e[32m'regressor'\e[0m\e[1m(\e[0m\e[1m[\e[0mregressor,X_test_red\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mY_pred_red\e[1m]\e[0m: Function and Data are  \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         not compatible.                                                             \e[2m               \e[0m\r\n\e[2;36m                    \e[0m           \e[1;35mwarn\e[0m\e[1m(\e[0mmessage\e[1m)\e[0m                                                             \e[2m               \e[0m\r\n\e[2;36m                    \e[0m                                                                                     \e[2m               \e[0m\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m8\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=735912;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=685448;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking process: \e[32m'Y_inv_xform'\e[0m\e[1m(\e[0m\e[1m[\e[0mY_inv_xform,Y_pred_red\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mY_pred\e[1m]\e[0m        \e]8;id=599522;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=719263;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#193\e\\\e[2m193\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[31mWARNING \e[0m \e[35m/home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/ked\e[0m \e]8;id=929410;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py\e\\\e[2mwarnings.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=263294;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/warnings.py#109\e\\\e[2m109\e[0m\e]8;;\e\\\r\n\e[2;36m                    \e[0m         \e[35mro_builder/\e[0m\e[95mchecker.py\e[0m:\e[1;36m21\e[0m: UserWarning: In process                          \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         \e[32m'Y_inv_xform'\e[0m\e[1m(\e[0m\e[1m[\e[0mY_inv_xform,Y_pred_red\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mY_pred\e[1m]\e[0m: Function and Data are  \e[2m               \e[0m\r\n\e[2;36m                    \e[0m         not compatible.                                                             \e[2m               \e[0m\r\n\e[2;36m                    \e[0m           \e[1;35mwarn\e[0m\e[1m(\e[0mmessage\e[1m)\e[0m                                                             \e[2m               \e[0m\r\n\e[2;36m                    \e[0m                                                                                     \e[2m               \e[0m\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m9\e[0m out of \e[1;36m10\e[0m tasks                                                  \e]8;id=426080;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=109712;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Checking node: score: \e[1;35mscore\e[0m\e[1m(\e[0m\e[1m[\e[0mY_test,Y_pred\e[1m]\e[0m\e[1m)\e[0m -> \e[1m[\e[0mnmrse,r2\e[1m]\e[0m                   \e]8;id=197138;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=629148;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#162\e\\\e[2m162\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Completed \e[1;36m10\e[0m out of \e[1;36m10\e[0m tasks                                                 \e]8;id=205002;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=639842;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#150\e\\\e[2m150\e[0m\e]8;;\e\\\r\n\e[2;36m                   \e[0m\e[2;36m \e[0m\e[34mINFO    \e[0m Pipeline execution completed successfully.                                   \e]8;id=994987;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py\e\\\e[2mchecker.py\e[0m\e]8;;\e\\\e[2m:\e[0m\e]8;id=355195;file:///home/eduardo002/miniconda3/envs/kedro_dev/lib/python3.10/site-packages/kedro_builder/checker.py#106\e\\\e[2m106\e[0m\e]8;;\e\\\r\n"
+  - delay: 353
+    content: "\e[?2004h\e[01;32meduardo002@HESL-GS27L\e[00m:\e[01;34m~/edu-research/kedro-builder/examples/pipe-deformation-cetim\e[00m$ "
+  - delay: 1500
+    content: "\e[?2004h\e[01;32meduardo002@HESL-GS27L\e[00m:\e[01;34m~/edu-research/kedro-builder/examples/pipe-deformation-cetim\e[00m$ "

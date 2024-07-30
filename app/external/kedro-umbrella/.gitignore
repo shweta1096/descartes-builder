@@ -1,0 +1,13 @@
+build/
+kedro_umbrella.egg-info/
+.pytest_cache
+.vscode
+__pycache__
+
+cetim
+kedro
+install
+.coverage*
+coverage.xml
+pkg_dir
+SOURCEME

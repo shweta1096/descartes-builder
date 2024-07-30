@@ -1,0 +1,6 @@
+train_fraction: 0.8
+random_state: 0
+data_xform: std_pca
+#model: mlp1 # TOO SLOW
+model: mlp
+data_path: data/01_raw/Results_Descartes.mat
