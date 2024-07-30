@@ -58,12 +58,12 @@ jobs:
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
 
-    # - name: Test
-    #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
-    #   run: ctest --build-config ${{ matrix.build_type }}
+      # - name: Test
+      #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      #   run: ctest --build-config ${{ matrix.build_type }}
 
       - name: Upload binary artifact
-       uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3
         with:
           name: DescartesBuilder-${{ matrix.os }}
           path: app/build/DescartesBuilder
