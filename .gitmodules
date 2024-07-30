@@ -1,12 +1,9 @@
 [submodule "app/external/googletest"]
-	path = app/external/googletest
-	url = https://github.com/google/googletest.git
+path = app/external/googletest
+url = https://github.com/google/googletest.git
 [submodule "app/external/qtnodes"]
-	path = app/external/qtnodes
-	url = https://github.com/nicholasng99/nodeeditor.git
+path = app/external/qtnodes
+url = https://github.com/nicholasng99/nodeeditor.git
 [submodule "app/external/qtutility"]
-	path = app/external/qtutility
-	url = https://github.com/nicholasng99/qtutility.git
-[submodule "app/external/kedro-umbrella"]
-	path = app/external/kedro-umbrella
-	url = https://github.com/CPS-research-group/kedro-umbrella.git
+path = app/external/qtutility
+url = https://github.com/nicholasng99/qtutility.git
