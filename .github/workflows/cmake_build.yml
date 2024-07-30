@@ -67,4 +67,4 @@ jobs:
         run: ls -a
         with:
           name: DescartesBuilder-${{ matrix.os }}
-          path: ${{ github.workspace }}/app/build/bin
+          path: ${{ github.workspace }}/build/bin
