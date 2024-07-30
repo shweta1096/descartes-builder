@@ -84,8 +84,8 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${CMAKE_SOURCE_DIR}/external/kedro-umbrella ${KEDRO_DIR}
   COMMAND ${Python3_EXECUTABLE} -m venv ${KEDRO_DIR}/venv
-  COMMAND ${VENV_SCRIPT}/pip install --upgrade pip setuptools
-  COMMAND ${VENV_SCRIPT}/pip install -r ${KEDRO_DIR}/requirements.txt)
+  COMMAND ${VENV_SCRIPT}/python -m pip install --upgrade pip setuptools
+  COMMAND ${VENV_SCRIPT}/python -m pip install -r ${KEDRO_DIR}/requirements.txt)
 add_dependencies(DescartesBuilder setup_engine)
 
 # make library for test to link to
