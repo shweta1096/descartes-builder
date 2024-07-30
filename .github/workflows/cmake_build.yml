@@ -32,7 +32,7 @@ jobs:
           submodules: "recursive"
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.8"
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -61,3 +61,9 @@ jobs:
     # - name: Test
     #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
     #   run: ctest --build-config ${{ matrix.build_type }}
+
+      - name: Upload binary artifact
+       uses: actions/upload-artifact@v3
+        with:
+          name: DescartesBuilder-${{ matrix.os }}
+          path: app/build/DescartesBuilder
