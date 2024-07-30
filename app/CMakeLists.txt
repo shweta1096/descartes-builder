@@ -79,7 +79,6 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${CMAKE_SOURCE_DIR}/external/kedro-umbrella ${KEDRO_DIR}
   COMMAND ${Python3_EXECUTABLE} -m venv ${KEDRO_DIR}/venv
-  COMMAND ${KEDRO_DIR}/venv/bin/pip install --upgrade pip
   COMMAND ${KEDRO_DIR}/venv/bin/pip install -r ${KEDRO_DIR}/requirements.txt)
 add_dependencies(DescartesBuilder setup_engine)
 
