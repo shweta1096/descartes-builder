@@ -62,7 +62,6 @@ jobs:
       #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
       #   run: ctest --build-config ${{ matrix.build_type }}
 
-      - run: ls -a
       - name: Upload binary artifact
         uses: actions/upload-artifact@v3
         with:
