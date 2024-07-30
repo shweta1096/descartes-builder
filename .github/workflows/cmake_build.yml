@@ -43,6 +43,10 @@ jobs:
         if: startsWith (matrix.os, 'ubuntu')
         run: sudo apt-get install libxkbcommon-dev libgl1-mesa-dev
 
+      - name: Setup (MacOs)
+        if: startsWith (matrix.os, 'macos')
+        run: brew install python-setuptools
+
       - name: Setup VS tools (Windows)
         if: startsWith (matrix.os, 'windows')
         uses: egor-tensin/vs-shell@v2
