@@ -17,6 +17,8 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 add_definitions("-DQT_MESSAGELOGCONTEXT")
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL)
 
@@ -71,12 +73,15 @@ endif()
 
 set(ENGINE_DIR "${CMAKE_BINARY_DIR}/engine")
 file(MAKE_DIRECTORY ${ENGINE_DIR})
+set(KEDRO_DIR "${ENGINE_DIR}/kedro-umbrella")
 add_custom_target(
-  copy_engine ALL
-  COMMAND
-    ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/external/kedro-umbrella ${ENGINE_DIR}/kedro-umbrella)
-add_dependencies(DescartesBuilder copy_engine)
+  setup_engine ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${CMAKE_SOURCE_DIR}/external/kedro-umbrella ${KEDRO_DIR}
+  COMMAND ${Python3_EXECUTABLE} -m venv ${KEDRO_DIR}/venv
+  COMMAND ${KEDRO_DIR}/venv/bin/pip install --upgrade pip
+  COMMAND ${KEDRO_DIR}/venv/bin/pip install -r ${KEDRO_DIR}/requirements.txt)
+add_dependencies(DescartesBuilder setup_engine)
 
 # make library for test to link to
 add_library(DescartesBuilder_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
