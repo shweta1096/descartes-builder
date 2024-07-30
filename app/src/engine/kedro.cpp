@@ -29,17 +29,17 @@ QString toString(const FdfBlockModel &block)
     QString result = block.typeAsString() + '(';
     if (!block.functionName().isEmpty())
         result += QString("func=%1,").arg(block.functionName());
-    result += QString("name=\"%1\",").arg(block.name());
+    result += QString("name=\"%1\"").arg(block.name());
     QStringList inputs = getPortList(block, PortType::In);
     if (inputs.size() == 1)
-        result += QString("inputs=%1").arg(inputs.at(0));
+        result += QString(",inputs=%1").arg(inputs.at(0));
     else if (inputs.size() > 1)
-        result += QString("inputs=[%1]").arg(inputs.join(','));
+        result += QString(",inputs=[%1]").arg(inputs.join(','));
     QStringList outputs = getPortList(block, PortType::Out);
     if (outputs.size() == 1)
-        result += QString("outputs=%1").arg(outputs.at(0));
+        result += QString(",outputs=%1").arg(outputs.at(0));
     else if (outputs.size() > 1)
-        result += QString("outputs=[%1]").arg(outputs.join(','));
+        result += QString(",outputs=[%1]").arg(outputs.join(','));
     result += ')';
     return result;
 }
