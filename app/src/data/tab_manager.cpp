@@ -5,21 +5,15 @@
 #include <QtNodes/DagGraphicsScene>
 #include <QtNodes/DirectedAcyclicGraphModel>
 #include <QtNodes/GraphicsView>
-#include <QtNodes/NodeDelegateModelRegistry>
 
-#include "ui/model_registry.hpp"
+#include "data/block_manager.hpp"
 
 using QtNodes::DagGraphicsScene;
 using QtNodes::DirectedAcyclicGraphModel;
 using QtNodes::GraphicsView;
 
-namespace {
-using QtNodes::NodeDelegateModelRegistry;
-std::shared_ptr<NodeDelegateModelRegistry> registry = model_registry::registerDataModels();
-} // namespace
-
 TabComponents::TabComponents(QWidget *parent)
-    : m_graph(new DirectedAcyclicGraphModel(registry))
+    : m_graph(new DirectedAcyclicGraphModel(BlockManager::getRegistry()))
     , m_scene(new DagGraphicsScene(*m_graph, parent))
     , m_view(new GraphicsView(m_scene))
 {
@@ -42,6 +36,13 @@ QFileInfo TabComponents::getFile() const
 TabManager::TabManager(QObject *parent)
     : QObject(parent)
 {}
+
+void TabManager::setBlockManager(std::shared_ptr<BlockManager> blockManager)
+{
+    if (m_blockManager == blockManager)
+        return;
+    m_blockManager = blockManager;
+}
 
 std::optional<TabComponents> TabManager::getCurrentTab() const
 {

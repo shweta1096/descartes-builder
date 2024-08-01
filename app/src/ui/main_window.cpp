@@ -34,9 +34,10 @@ using QtNodes::NodeStyle;
 MainWindow::MainWindow()
     : m_engine(EngineStarter::init())
     , m_tabManager(std::make_shared<TabManager>())
-    , m_blockManager(std::make_shared<BlockManager>(m_tabManager))
+    , m_blockManager(std::make_shared<BlockManager>())
     , m_temp(new Temp(this))
 {
+    initManagers();
     initScene();
     initMenuBar();
     initPrimarySideBar();
@@ -56,6 +57,12 @@ MainWindow::~MainWindow()
 bool MainWindow::callExecute()
 {
     return m_engine->execute(m_tabManager->currentGraph());
+}
+
+void MainWindow::initManagers()
+{
+    m_blockManager->setTabManager(m_tabManager);
+    m_tabManager->setBlockManager(m_blockManager);
 }
 
 void MainWindow::initScene()
@@ -154,7 +161,7 @@ void MainWindow::initMenuBar()
 void MainWindow::initPrimarySideBar()
 {
     // init widgets
-    auto blockWidget = new Blocks(m_blockManager);
+    auto blockWidget = new Blocks(m_blockManager, m_tabManager);
     connect(m_blockManager.get(), &BlockManager::nodeSelected, blockWidget, &Blocks::onNodeSelected);
 
     // prevent log panel from taking the corner

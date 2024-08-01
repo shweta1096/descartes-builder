@@ -11,6 +11,8 @@ class DagGraphicsScene;
 class GraphicsView;
 } // namespace QtNodes
 
+class BlockManager;
+
 class TabComponents
 {
 public:
@@ -34,6 +36,7 @@ public:
     using ViewWidget = QWidget;
 
     TabManager(QObject *parent = nullptr);
+    void setBlockManager(std::shared_ptr<BlockManager> blockManager);
     std::optional<TabComponents> getCurrentTab() const;
     std::optional<TabComponents> getTab(QWidget *view) const;
     size_t size() const { return m_tabs.size(); }
@@ -61,6 +64,7 @@ public:
 private:
     bool openIfExists(QtNodes::DagGraphicsScene *scene);
 
+    std::shared_ptr<BlockManager> m_blockManager;
     std::unordered_map<ViewWidget *, TabComponents> m_tabs;
     ViewWidget *m_currentView;
     QWidget *m_tabParent;
