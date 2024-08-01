@@ -1,5 +1,0 @@
-train_fraction: 0.8
-random_state: 0
-data_xform: std_pca
-model: mlp
-fmu_path: "data/06_models/dynamic_fmu/dynamicFMU.fmu/DynamicFMU.fmu"
