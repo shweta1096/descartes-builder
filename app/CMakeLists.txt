@@ -70,17 +70,11 @@ if(QT_VERSION_MAJOR EQUAL 6)
   qt_finalize_executable(${PROJECT_NAME})
 endif()
 
-# copy engine lib to binary dir
-add_custom_target(
-  setup_engine ALL
-  COMMAND
-    ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/external/kedro-umbrella
-    $<IF:$<CONFIG:Debug>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release>/engine/kedro-umbrella
-)
-add_dependencies(DescartesBuilder setup_engine)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/external/kedro-umbrella
-        DESTINATION engine)
+# copy engine lib to binary dir add_custom_target( setup_engine ALL COMMAND
+# ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/external/kedro-umbrella
+# $<IF:$<CONFIG:Debug>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release>/engine/kedro-umbrella
+# ) add_dependencies(DescartesBuilder setup_engine) install(DIRECTORY
+# ${CMAKE_SOURCE_DIR}/external/kedro-umbrella DESTINATION engine)
 
 # make library for test to link to
 add_library(${PROJECT_NAME}_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
