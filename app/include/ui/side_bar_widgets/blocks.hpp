@@ -7,6 +7,12 @@ class QSplitter;
 class BlockManager;
 class TabManager;
 
+namespace QtUtility {
+namespace widgets {
+class QCollapsibleWidget;
+} // namespace widgets
+} // namespace QtUtility
+
 #include <QtNodes/Definitions>
 
 class Blocks : public QWidget
@@ -32,7 +38,7 @@ private slots:
 
 private:
     void initUi();
-    void initViewer();
+    void initEditor();
     void initLibrary();
 
     std::shared_ptr<BlockManager> m_blockManager;
@@ -40,7 +46,7 @@ private:
     QtNodes::NodeId m_nodeId;
 
     QSplitter *m_splitter;
-    QWidget *m_blockViewer;
+    QtUtility::widgets::QCollapsibleWidget *m_blockEditor;
     QLabel *m_viewerLabel;
-    QWidget *m_library;
+    QtUtility::widgets::QCollapsibleWidget *m_library;
 };

@@ -14,8 +14,12 @@
 #include <QtNodes/DagGraphicsScene>
 #include <QtNodes/NodeDelegateModelRegistry>
 
+#include <QtUtility/widgets/qcollapsible_widget.hpp>
+
 #include "data/block_manager.hpp"
 #include "data/tab_manager.hpp"
+
+using QCollapsibleWidget = QtUtility::widgets::QCollapsibleWidget;
 
 Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
                std::shared_ptr<TabManager> tabManager,
@@ -25,9 +29,9 @@ Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
     , m_tabManager(tabManager)
     , m_nodeId(QtNodes::InvalidNodeId)
     , m_splitter(new QSplitter(Qt::Vertical))
-    , m_blockViewer(new QWidget())
+    , m_blockEditor(new QCollapsibleWidget("Editor"))
     , m_viewerLabel(new QLabel())
-    , m_library(new QWidget())
+    , m_library(new QCollapsibleWidget("Library"))
 {
     initUi();
 }
@@ -44,69 +48,63 @@ void Blocks::initUi()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setAlignment(Qt::AlignTop);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_splitter);
 
-    initViewer();
+    initEditor();
     initLibrary();
-
-    m_splitter->addWidget(m_blockViewer);
+    m_splitter->addWidget(m_blockEditor);
     m_splitter->addWidget(m_library);
+    m_splitter->setStretchFactor(1, 1);
+    m_splitter->setChildrenCollapsible(false);
+
+    connect(m_blockEditor, &QCollapsibleWidget::contentSizeChanged, this, [this]() {
+        m_splitter->setSizes({1, 1});
+    });
 }
 
-void Blocks::initViewer()
+void Blocks::initEditor()
 {
-    auto layout = new QVBoxLayout(m_blockViewer);
+    auto layout = new QVBoxLayout();
     layout->setAlignment(Qt::AlignTop);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_viewerLabel);
 
     updateFields();
     connect(this, &Blocks::nodeIdChanged, this, &Blocks::updateFields);
+
+    m_blockEditor->setContentLayout(layout);
 }
 
 void Blocks::initLibrary()
 {
-    auto layout = new QVBoxLayout(m_library);
-    layout->setAlignment(Qt::AlignTop);
+    auto layout = new QVBoxLayout();
     layout->setContentsMargins(0, 0, 0, 0);
 
-    QMenu *modelMenu = new QMenu();
+    // search box
+    auto *searchBox = new QLineEdit();
+    searchBox->setPlaceholderText(QStringLiteral("Filter"));
+    searchBox->setClearButtonEnabled(true);
 
-    // Add filterbox to the context menu
-    auto *txtBox = new QLineEdit(modelMenu);
-    txtBox->setPlaceholderText(QStringLiteral("Filter"));
-    txtBox->setClearButtonEnabled(true);
+    layout->addWidget(searchBox);
 
-    auto *txtBoxAction = new QWidgetAction(modelMenu);
-    txtBoxAction->setDefaultWidget(txtBox);
+    // tree view
+    auto treeView = new QTreeWidget();
+    treeView->setHeaderHidden(true);
 
-    // 1.
-    modelMenu->addAction(txtBoxAction);
+    layout->addWidget(treeView);
 
-    // Add result treeview to the context menu
-    QTreeWidget *treeView = new QTreeWidget(modelMenu);
-    treeView->header()->close();
-
-    auto *treeViewAction = new QWidgetAction(modelMenu);
-    treeViewAction->setDefaultWidget(treeView);
-
-    // 2.
-    modelMenu->addAction(treeViewAction);
-
+    // populate tree view from registry
     auto registry = BlockManager::getRegistry();
-
-    for (auto const &cat : registry->categories()) {
+    for (auto const &category : registry->categories()) {
         auto item = new QTreeWidgetItem(treeView);
-        item->setText(0, cat);
+        item->setText(0, category);
         item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
     }
-
     for (auto const &assoc : registry->registeredModelsCategoryAssociation()) {
         QList<QTreeWidgetItem *> parent = treeView->findItems(assoc.second, Qt::MatchExactly);
-
         if (parent.count() <= 0)
             continue;
-
         auto item = new QTreeWidgetItem(parent.first());
         item->setText(0, assoc.first);
     }
@@ -120,8 +118,8 @@ void Blocks::initLibrary()
         m_tabManager->getCurrentTab()->getScene()->createNodeAt(item->text(0), {0, 0});
     });
 
-    //Setup filtering
-    connect(txtBox, &QLineEdit::textChanged, [treeView](const QString &text) {
+    // setup filtering
+    connect(searchBox, &QLineEdit::textChanged, [treeView](const QString &text) {
         QTreeWidgetItemIterator categoryIt(treeView, QTreeWidgetItemIterator::HasChildren);
         while (*categoryIt)
             (*categoryIt++)->setHidden(true);
@@ -141,7 +139,7 @@ void Blocks::initLibrary()
         }
     });
 
-    layout->addWidget(modelMenu);
+    m_library->setContentLayout(layout);
 }
 
 void Blocks::onNodeSelected(QtNodes::NodeId id)
