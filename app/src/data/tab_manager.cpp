@@ -139,6 +139,16 @@ bool TabManager::open()
     return addTab(tab);
 }
 
+bool TabManager::openFrom(const QString &filePath)
+{
+    // open in a new tab
+    TabComponents tab(m_tabParent);
+    auto scene = tab.getScene();
+    if (!scene || !scene->load(filePath) || openIfExists(scene))
+        return false;
+    return addTab(tab);
+}
+
 bool TabManager::openIfExists(QtNodes::DagGraphicsScene *scene)
 {
     QFileInfo a;

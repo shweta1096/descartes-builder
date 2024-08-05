@@ -2,6 +2,7 @@
 
 #include <QActionGroup>
 #include <QApplication>
+#include <QDir>
 #include <QDockWidget>
 #include <QLabel>
 #include <QMenuBar>
@@ -151,10 +152,20 @@ void MainWindow::initMenuBar()
         auto infoAction = tempMenu->addAction("print info");
         auto debugAction = tempMenu->addAction("print debug");
         auto errorAction = tempMenu->addAction("print error");
+        auto openExample = tempMenu->addAction("Open Example");
         connect(pythonAction, &QAction::triggered, m_temp, &Temp::runPython);
         connect(infoAction, &QAction::triggered, m_temp, &Temp::printInfo);
         connect(debugAction, &QAction::triggered, m_temp, &Temp::printDebug);
         connect(errorAction, &QAction::triggered, m_temp, &Temp::printError);
+        connect(openExample, &QAction::triggered, m_tabManager.get(), [this]() {
+            QDir dir(QApplication::applicationDirPath());
+            for (int i = 0; i < 6; ++i) // mac only due to bundle dir
+                dir.cdUp();
+            dir.cd("examples");
+            m_tabManager->openFrom(dir.absoluteFilePath("pipe-deformation.dag"));
+        });
+        openExample->setShortcut(
+            QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_E));
     }
 }
 

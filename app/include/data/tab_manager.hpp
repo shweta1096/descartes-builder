@@ -60,6 +60,7 @@ public:
     bool save();
     bool saveAs();
     bool open();
+    bool openFrom(const QString &filePath);
 
 private:
     bool openIfExists(QtNodes::DagGraphicsScene *scene);
