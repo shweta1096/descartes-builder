@@ -41,9 +41,9 @@ const ConstLatin1String GRAPHICS_VIEW_STYLE =
     R"(
         {
             "GraphicsViewStyle": {
-                "BackgroundColor": [53, 53, 53],
-                "FineGridColor": [60, 60, 60],
-                "CoarseGridColor": [25, 25, 25]
+                "BackgroundColor": "white",
+                "FineGridColor": "lightGray",
+                "CoarseGridColor": "gray"
             }
         }
     )";
@@ -51,17 +51,17 @@ const ConstLatin1String NODE_STYLE =
     R"(
         {
             "NodeStyle": {
-                "NormalBoundaryColor": [255, 255, 255],
+                "NormalBoundaryColor": "black",
                 "SelectedBoundaryColor": [255, 165, 0],
-                "GradientColor0": "gray",
-                "GradientColor1": [80, 80, 80],
-                "GradientColor2": [64, 64, 64],
-                "GradientColor3": [58, 58, 58],
+                "GradientColor0": "white",
+                "GradientColor1": "lightGray",
+                "GradientColor2": [130, 130, 130],
+                "GradientColor3": [90, 90, 90],
                 "ShadowColor": [20, 20, 20],
-                "FontColor" : "white",
-                "FontColorFaded" : "gray",
+                "FontColor" : "black",
+                "FontColorFaded" : [100, 100, 100],
                 "ConnectionPointColor": [169, 169, 169],
-                "FilledConnectionPointColor": "cyan",
+                "FilledConnectionPointColor": "yellow",
                 "ErrorColor": "red",
                 "WarningColor": [128, 128, 0],
 
@@ -70,7 +70,7 @@ const ConstLatin1String NODE_STYLE =
 
                 "ConnectionPointDiameter": 8.0,
 
-                "Opacity": 0.9
+                "Opacity": 0.8
             }
         }
     )";
