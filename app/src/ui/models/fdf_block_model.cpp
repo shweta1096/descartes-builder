@@ -6,7 +6,9 @@ FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &f
     , m_name(name)
     , m_functionName(functionName)
     , m_caption(QString("%1(%2)").arg(typeAsString(), name))
-{}
+{
+    updateShape();
+}
 
 unsigned int FdfBlockModel::nPorts(PortType const portType) const
 {
@@ -190,4 +192,24 @@ PortIndex FdfBlockModel::addOutPort(std::shared_ptr<NodeData> port)
     PortIndex i = m_outPorts.size();
     m_outPorts.push_back({port, false});
     return i;
+}
+
+void FdfBlockModel::updateShape()
+{
+    switch (m_type) {
+    case FdfType::Coder:
+        m_shape = NodeShape::Trapezoid;
+        break;
+    case FdfType::Processor:
+        m_shape = NodeShape::Rectangle;
+        break;
+    case FdfType::Trainer:
+        m_shape = NodeShape::Pentagon;
+        break;
+    case FdfType::Data:
+    case FdfType::Output:
+    default:
+        m_shape = NodeShape::RoundedRectangle;
+        break;
+    }
 }

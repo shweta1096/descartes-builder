@@ -6,6 +6,7 @@
 
 using QtNodes::ConnectionId;
 using QtNodes::NodeDelegateModel;
+using QtNodes::NodeShape;
 using QtNodes::PortIndex;
 using QtNodes::PortType;
 
@@ -27,6 +28,7 @@ public:
     FdfType type() const { return m_type; }
     QString typeAsString() const { return TYPE_STRING.at(m_type); }
     QString name() const override { return m_name; }
+    NodeShape shape() const override { return m_shape; }
     QString functionName() const { return m_functionName; }
     QString caption() const override { return m_caption; }
     unsigned int nPorts(PortType const portType) const override;
@@ -54,6 +56,8 @@ protected:
     PortIndex addOutPort(std::shared_ptr<NodeData> port);
 
 private:
+    void updateShape();
+
     const std::unordered_map<FdfType, QString> TYPE_STRING = {
         {FdfType::Coder, "coder"},
         {FdfType::Processor, "processor"},
@@ -64,6 +68,7 @@ private:
 
     FdfType m_type;
     QString m_name; // name in the library
+    NodeShape m_shape;
     QString m_functionName;
     QString m_caption; // appears in the scene
     // first is for structuring, second is actual data linked to connected block

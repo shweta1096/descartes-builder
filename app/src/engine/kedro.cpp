@@ -49,7 +49,7 @@ QString toString(const FdfBlockModel &block)
 
 Kedro::Kedro()
 {
-    qDebug() << QApplication::applicationDirPath();
+    // qDebug() << QApplication::applicationDirPath();
 }
 
 bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph)
