@@ -56,6 +56,7 @@ protected:
     PortIndex addOutPort(std::shared_ptr<NodeData> port);
 
 private:
+    void updateStyle();
     void updateShape();
 
     const std::unordered_map<FdfType, QString> TYPE_STRING = {

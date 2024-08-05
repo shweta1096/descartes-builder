@@ -70,7 +70,7 @@ const ConstLatin1String NODE_STYLE =
 
                 "ConnectionPointDiameter": 8.0,
 
-                "Opacity": 0.8
+                "Opacity": 0.9
             }
         }
     )";

@@ -1,5 +1,7 @@
 #include "ui/models/fdf_block_model.hpp"
 
+#include "data/constants.hpp"
+
 FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &functionName)
     : NodeDelegateModel()
     , m_type(type)
@@ -7,6 +9,7 @@ FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &f
     , m_functionName(functionName)
     , m_caption(QString("%1(%2)").arg(typeAsString(), name))
 {
+    updateStyle();
     updateShape();
 }
 
@@ -192,6 +195,30 @@ PortIndex FdfBlockModel::addOutPort(std::shared_ptr<NodeData> port)
     PortIndex i = m_outPorts.size();
     m_outPorts.push_back({port, false});
     return i;
+}
+
+void FdfBlockModel::updateStyle()
+{
+    auto style = nodeStyle();
+    switch (m_type) {
+    case FdfType::Coder:
+        style.GradientColor1 = constants::COLOR_CODER;
+        break;
+    case FdfType::Processor:
+        style.GradientColor1 = constants::COLOR_PROCESSOR;
+        break;
+    case FdfType::Trainer:
+        style.GradientColor1 = constants::COLOR_TRAINER;
+        break;
+    case FdfType::Data:
+    case FdfType::Output:
+    default:
+        return;
+    }
+    style.GradientColor0 = style.GradientColor1.lighter(110);
+    style.GradientColor2 = style.GradientColor1.darker(110);
+    style.GradientColor3 = style.GradientColor1.darker(150);
+    setNodeStyle(style);
 }
 
 void FdfBlockModel::updateShape()
