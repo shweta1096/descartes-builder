@@ -6,6 +6,8 @@
 
 #include <QtUtility/file/file.hpp>
 
+#include <quazip/JlCompress.h>
+
 #include "ui/models/fdf_block_model.hpp"
 
 #include <iostream>
@@ -54,8 +56,11 @@ Kedro::Kedro()
     if (!m_dir.isValid())
         qCritical() << "Temp dir failed to init";
     qDebug() << m_dir.path();
-    QFile::copy(":/kedro-umbrella.tar.gz", m_dir.filePath("kedro-umbrella.tar.gz"));
-    QFile::copy(":/templates.zip", m_dir.filePath("templates.zip"));
+    if (!QFile::copy(":/kedro-umbrella.tar.gz", m_dir.filePath("kedro-umbrella.tar.gz")))
+        qCritical() << "Failed to copy kedro-umbrella.tar.gz";
+    if (!QFile::copy(":/templates.zip", m_dir.filePath("templates.zip")))
+        qCritical() << "Failed to copy templates.zip";
+    JlCompress::extractDir(m_dir.filePath("templates.zip"), m_dir.path());
 }
 
 bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph)
@@ -91,6 +96,11 @@ bool Kedro::validityCheck(QtNodes::DirectedAcyclicGraphModel *graph)
 QVariant Kedro::getNodeOutput(QtNodes::DirectedAcyclicGraphModel *graph, QtNodes::NodeId id)
 {
     return graph->nodeData(id, QtNodes::NodeRole::InternalData);
+}
+
+QDir Kedro::initNewWorkspace()
+{
+    return QDir();
 }
 
 QString Kedro::serializeNode(const QtNodes::NodeId &id,

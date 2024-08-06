@@ -12,6 +12,7 @@ public:
     virtual bool validityCheck(QtNodes::DirectedAcyclicGraphModel *graph) override;
     virtual QVariant getNodeOutput(QtNodes::DirectedAcyclicGraphModel *graph,
                                    QtNodes::NodeId id) override;
+    QDir initNewWorkspace();
 
 private:
     QString serializeNode(const QtNodes::NodeId &id,
