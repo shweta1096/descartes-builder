@@ -29,7 +29,7 @@ constexpr ConstLatin1String CONNECTION_STYLE =
                 "SelectedHaloColor": "deepskyblue",
                 "HoveredColor": "deepskyblue",
 
-                "LineWidth": 3.0,
+                "LineWidth": 2.0,
                 "ConstructionLineWidth": 2.0,
                 "PointDiameter": 10.0,
 
@@ -68,7 +68,7 @@ const ConstLatin1String NODE_STYLE =
                 "PenWidth": 1.0,
                 "HoveredPenWidth": 1.5,
 
-                "ConnectionPointDiameter": 8.0,
+                "ConnectionPointDiameter": 5.0,
 
                 "Opacity": 0.8
             }

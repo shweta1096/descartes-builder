@@ -1,5 +1,6 @@
 #include "ui/side_bar_widgets/blocks.hpp"
 
+#include <QGraphicsItem>
 #include <QHeaderView>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -12,6 +13,7 @@
 #include <QWidgetAction>
 
 #include <QtNodes/DagGraphicsScene>
+#include <QtNodes/GraphicsView>
 #include <QtNodes/NodeDelegateModelRegistry>
 
 #include <QtUtility/widgets/qcollapsible_widget.hpp>
@@ -20,6 +22,10 @@
 #include "data/tab_manager.hpp"
 
 using QCollapsibleWidget = QtUtility::widgets::QCollapsibleWidget;
+
+namespace {
+constexpr uint ADD_BLOCK_SPACING = 20;
+}
 
 Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
                std::shared_ptr<TabManager> tabManager,
@@ -115,7 +121,16 @@ void Blocks::initLibrary()
         if (!(item->flags() & (Qt::ItemIsSelectable))) {
             return;
         }
-        m_tabManager->getCurrentTab()->getScene()->createNodeAt(item->text(0), {0, 0});
+        auto view = m_tabManager->getCurrentTab()->getView();
+        auto pos = view->mapToScene(view->rect().center()).toPoint();
+        auto scene = m_tabManager->getCurrentTab()->getScene();
+        while (auto exisitingItem = scene->itemAt(pos, QTransform())) {
+            // sometime will add to a previous location due to itemAt only return 1 item at the pos even though another item may also be there
+            if (exisitingItem->pos() != pos)
+                break;
+            pos += QPoint(ADD_BLOCK_SPACING, ADD_BLOCK_SPACING);
+        }
+        scene->createNodeAt(item->text(0), pos);
     });
 
     // setup filtering
