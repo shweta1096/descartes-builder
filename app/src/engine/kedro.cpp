@@ -4,6 +4,8 @@
 
 #include <QtNodes/DirectedAcyclicGraphModel>
 
+#include <QtUtility/file/file.hpp>
+
 #include "ui/models/fdf_block_model.hpp"
 
 #include <iostream>
@@ -49,7 +51,11 @@ QString toString(const FdfBlockModel &block)
 
 Kedro::Kedro()
 {
-    // qDebug() << QApplication::applicationDirPath();
+    if (!m_dir.isValid())
+        qCritical() << "Temp dir failed to init";
+    qDebug() << m_dir.path();
+    QFile::copy(":/kedro-umbrella.tar.gz", m_dir.filePath("kedro-umbrella.tar.gz"));
+    QFile::copy(":/templates.zip", m_dir.filePath("templates.zip"));
 }
 
 bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph)

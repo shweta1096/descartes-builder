@@ -2,6 +2,8 @@
 
 #include "abstract_engine.hpp"
 
+#include <QTemporaryDir>
+
 class Kedro : public AbstractEngine
 {
 public:
@@ -14,4 +16,6 @@ public:
 private:
     QString serializeNode(const QtNodes::NodeId &id,
                           QtNodes::DirectedAcyclicGraphModel *graph) const;
+
+    QTemporaryDir m_dir;
 };
