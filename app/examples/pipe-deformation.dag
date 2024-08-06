@@ -1,33 +1,39 @@
 {
     "connections": [
         {
-            "inPortIndex": 2,
-            "intNodeId": 7,
-            "outNodeId": 10,
-            "outPortIndex": 0
-        },
-        {
             "inPortIndex": 1,
-            "intNodeId": 3,
-            "outNodeId": 10,
-            "outPortIndex": 0
-        },
-        {
-            "inPortIndex": 0,
-            "intNodeId": 3,
-            "outNodeId": 1,
-            "outPortIndex": 0
-        },
-        {
-            "inPortIndex": 0,
             "intNodeId": 1,
-            "outNodeId": 0,
+            "outNodeId": 2,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 5,
+            "outNodeId": 3,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 2,
+            "intNodeId": 1,
+            "outNodeId": 10,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 6,
+            "outNodeId": 4,
             "outPortIndex": 0
         },
         {
             "inPortIndex": 1,
-            "intNodeId": 4,
-            "outNodeId": 10,
+            "intNodeId": 7,
+            "outNodeId": 6,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 8,
+            "outNodeId": 7,
             "outPortIndex": 0
         },
         {
@@ -38,25 +44,7 @@
         },
         {
             "inPortIndex": 0,
-            "intNodeId": 8,
-            "outNodeId": 7,
-            "outPortIndex": 0
-        },
-        {
-            "inPortIndex": 0,
             "intNodeId": 4,
-            "outNodeId": 1,
-            "outPortIndex": 2
-        },
-        {
-            "inPortIndex": 1,
-            "intNodeId": 7,
-            "outNodeId": 6,
-            "outPortIndex": 0
-        },
-        {
-            "inPortIndex": 1,
-            "intNodeId": 6,
             "outNodeId": 1,
             "outPortIndex": 2
         },
@@ -67,27 +55,39 @@
             "outPortIndex": 0
         },
         {
-            "inPortIndex": 0,
+            "inPortIndex": 1,
             "intNodeId": 6,
-            "outNodeId": 4,
-            "outPortIndex": 0
+            "outNodeId": 1,
+            "outPortIndex": 2
         },
         {
-            "inPortIndex": 2,
-            "intNodeId": 1,
+            "inPortIndex": 1,
+            "intNodeId": 4,
             "outNodeId": 10,
             "outPortIndex": 0
         },
         {
             "inPortIndex": 0,
-            "intNodeId": 5,
-            "outNodeId": 3,
+            "intNodeId": 1,
+            "outNodeId": 0,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 0,
+            "intNodeId": 3,
+            "outNodeId": 1,
             "outPortIndex": 0
         },
         {
             "inPortIndex": 1,
-            "intNodeId": 1,
-            "outNodeId": 2,
+            "intNodeId": 3,
+            "outNodeId": 10,
+            "outPortIndex": 0
+        },
+        {
+            "inPortIndex": 2,
+            "intNodeId": 7,
+            "outNodeId": 10,
             "outPortIndex": 0
         }
     ],
@@ -201,8 +201,8 @@
                 "shape": 0
             },
             "position": {
-                "x": -595.0810785638535,
-                "y": -129.5219532207094
+                "x": -639.0299793168266,
+                "y": -132.90263789401502
             }
         }
     ]
