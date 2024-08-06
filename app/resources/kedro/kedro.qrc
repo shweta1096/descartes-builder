@@ -1,6 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file>kedro-umbrella.tar.gz</file>
+    <file>kedro-umbrella.zip</file>
     <file>templates.zip</file>
 </qresource>
 </RCC>
