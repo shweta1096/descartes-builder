@@ -2,6 +2,7 @@
 
 #include <QDebug>
 
+#include <QtNodes/ConnectionStyle>
 #include <QtNodes/DagGraphicsScene>
 #include <QtNodes/NodeDelegateModelRegistry>
 
@@ -9,6 +10,7 @@
 #include "ui/model_registry.hpp"
 #include "ui/models/fdf_block_model.hpp"
 
+using QtNodes::ConnectionStyle;
 using QtNodes::DagGraphicsScene;
 
 std::shared_ptr<QtNodes::NodeDelegateModelRegistry> BlockManager::m_registry
@@ -16,7 +18,10 @@ std::shared_ptr<QtNodes::NodeDelegateModelRegistry> BlockManager::m_registry
 
 BlockManager::BlockManager(QObject *parent)
     : QObject(parent)
-{}
+{
+    ConnectionStyle::registerColor(DataNode().id(), Qt::black);
+    ConnectionStyle::registerColor(FunctionNode().id(), Qt::red);
+}
 
 void BlockManager::setTabManager(std::shared_ptr<TabManager> tabManager)
 {

@@ -13,6 +13,7 @@ public:
         , m_type({"NamedNode", m_DEFAULT_NAME})
     {}
 
+    virtual QString id() { return m_type.id; }
     QString name() const { return m_type.name; }
     QString DefaultName() const { return m_DEFAULT_NAME; }
     void setName(const QString &name) { m_type.name = name; }
