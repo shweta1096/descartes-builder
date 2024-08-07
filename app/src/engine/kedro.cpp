@@ -3,7 +3,6 @@
 #include <QApplication>
 #include <QProcess>
 #include <QStandardPaths>
-#include <QTemporaryDir>
 
 #include <QtNodes/DirectedAcyclicGraphModel>
 
@@ -70,6 +69,8 @@ Kedro::Kedro()
 {
     if (!m_KEDRO_DIR.exists())
         m_KEDRO_DIR.mkpath(".");
+    if (!m_runtimeCache.isValid())
+        qCritical() << "Temporary dir failed to setup";
     m_process->setWorkingDirectory(m_KEDRO_DIR.absolutePath());
     if (m_KEDRO_DIR.isEmpty())
         firstTimeSetup();
@@ -100,6 +101,9 @@ bool Kedro::execute(CustomGraph *graph, const QString &name)
     // create catalog.yml
     // create paramters.yml
     // create pipeline.py
+    auto zip = QtUtility::file::getUniqueFile(QFileInfo(m_runtimeCache.filePath(name + ".zip")));
+    if (JlCompress::compressDir(zip.absoluteFilePath(), workspace->path()))
+        qDebug() << "Kedro execution cached to: " << zip.absoluteFilePath();
     return true;
 }
 
