@@ -25,6 +25,7 @@ private:
     bool m_setup;
     const QDir m_KEDRO_DIR;
     QTemporaryDir m_runtimeCache;
+    // the working dir for this process is the kedro dir
     std::unique_ptr<QProcess> m_process;
     const QString m_VENV_PYTHON;
     const QString m_DEFAULT_TEMPLATE;

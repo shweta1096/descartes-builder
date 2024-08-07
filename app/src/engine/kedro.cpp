@@ -26,6 +26,16 @@ namespace {
 using FdfType = FdfBlockModel::FdfType;
 const std::unordered_set<FdfType> EXCLUDED_TYPES = {FdfType::Data, FdfType::Output};
 
+QString singleQuote(const QString &string)
+{
+    return '\'' + string + '\'';
+}
+
+QString quote(const QString &string)
+{
+    return '\"' + string + '\"';
+}
+
 } // namespace
 
 namespace {
@@ -101,6 +111,16 @@ bool Kedro::execute(CustomGraph *graph, const QString &name)
     // create catalog.yml
     // create paramters.yml
     // create pipeline.py
+
+    // call kedro run
+    QProcess run;
+    run.setWorkingDirectory(workspace->path() + QDir::separator() + name);
+    run.startCommand(QString("%1 -m kedro run").arg(quote(m_VENV_PYTHON)));
+    if (!run.waitForFinished()) {
+        qCritical() << "Failed to run kedro";
+    }
+
+    // compress dir to zip and cache to runtime dir
     auto zip = QtUtility::file::getUniqueFile(QFileInfo(m_runtimeCache.filePath(name + ".zip")));
     if (JlCompress::compressDir(zip.absoluteFilePath(), workspace->path()))
         qDebug() << "Kedro execution cached to: " << zip.absoluteFilePath();
@@ -132,11 +152,12 @@ std::unique_ptr<QTemporaryDir> Kedro::initNewWorkspace(const QString &name)
     std::unique_ptr<QTemporaryDir> dir = std::make_unique<QTemporaryDir>();
     if (!dir->isValid())
         qCritical() << "Temporary dir is invalid";
-    qDebug() << dir->path();
     QProcess workspaceProcess;
     workspaceProcess.setWorkingDirectory(dir->path());
-    QString command = QString("bash -c \"echo \'%1\' | \'%2\' -m kedro new -s \'%3\'\"")
-                          .arg(name, m_VENV_PYTHON, m_DEFAULT_TEMPLATE);
+    QString command = QString("bash -c \"echo %1 | %2 -m kedro new -s %3\"")
+                          .arg(singleQuote(name),
+                               singleQuote(m_VENV_PYTHON),
+                               singleQuote(m_DEFAULT_TEMPLATE));
     workspaceProcess.startCommand(command);
     if (!workspaceProcess.waitForFinished()) {
         qCritical() << "Failed to create workspace " << name;
