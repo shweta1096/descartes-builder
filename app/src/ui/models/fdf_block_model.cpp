@@ -155,6 +155,23 @@ bool FdfBlockModel::setPortCaption(PortType type, PortIndex index, const QString
     return false;
 }
 
+bool FdfBlockModel::setPortDefaultCaption(PortType type, PortIndex index, const QString &caption)
+{
+    if (!indexCheck(type, index))
+        return false;
+    if (type == PortType::In)
+        if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
+            namedNode->setDefaultName(caption);
+            return true;
+        }
+    if (type == PortType::Out)
+        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
+            namedNode->setDefaultName(caption);
+            return true;
+        }
+    return false;
+}
+
 bool FdfBlockModel::resetPortCaption(PortType type, PortIndex index)
 {
     if (!indexCheck(type, index))

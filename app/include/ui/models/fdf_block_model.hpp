@@ -42,6 +42,7 @@ public:
     virtual std::vector<std::shared_ptr<NodeData>> connectedPortData(PortType const type) const;
     void setCaption(const QString &caption);
     bool setPortCaption(PortType type, PortIndex index, const QString &caption);
+    bool setPortDefaultCaption(PortType type, PortIndex index, const QString &caption);
     bool resetPortCaption(PortType portType, PortIndex portIndex);
     virtual std::shared_ptr<NodeData> inData(PortIndex const index);
 
