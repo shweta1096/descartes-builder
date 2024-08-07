@@ -44,6 +44,7 @@ public:
     QtNodes::DirectedAcyclicGraphModel *currentGraph() const;
     QtNodes::DagGraphicsScene *currentScene() const;
     QtNodes::GraphicsView *currentView() const;
+    QString currentTabName() const;
     bool addTab(const TabComponents &tab);
     void removeTab(const TabComponents &tab);
     void removeTab(ViewWidget *view);

@@ -13,7 +13,8 @@ class AbstractEngine
 {
 public:
     virtual ~AbstractEngine() {}
-    virtual bool execute(QtNodes::DirectedAcyclicGraphModel *graph) = 0;
+    virtual bool execute(QtNodes::DirectedAcyclicGraphModel *graph, const QString &name = QString())
+        = 0;
     QString getExecutionError() const { return m_executionError; }
 
     virtual bool validityCheck(QtNodes::DirectedAcyclicGraphModel *graph) = 0;

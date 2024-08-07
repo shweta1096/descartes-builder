@@ -77,6 +77,13 @@ GraphicsView *TabManager::currentView() const
     return nullptr;
 }
 
+QString TabManager::currentTabName() const
+{
+    if (auto tab = getCurrentTab())
+        return tab->getScene()->getFile().baseName();
+    return QString();
+}
+
 bool TabManager::addTab(const TabComponents &tab)
 {
     if (m_tabs.count(tab.getView()) > 0)

@@ -57,7 +57,7 @@ MainWindow::~MainWindow()
 
 bool MainWindow::callExecute()
 {
-    return m_engine->execute(m_tabManager->currentGraph());
+    return m_engine->execute(m_tabManager->currentGraph(), m_tabManager->currentTabName());
 }
 
 void MainWindow::initManagers()

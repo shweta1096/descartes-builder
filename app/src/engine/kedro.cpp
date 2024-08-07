@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QTemporaryDir>
 
 #include <QtNodes/DirectedAcyclicGraphModel>
 
@@ -15,6 +16,12 @@
 #include <iostream>
 
 using QtNodes::DirectedAcyclicGraphModel;
+
+#ifdef Q_OS_WIN
+#define IS_WINDOWS true
+#else
+#define IS_WINDOWS false
+#endif
 
 namespace {
 
@@ -54,14 +61,18 @@ QString toString(const FdfBlockModel &block)
 } // namespace
 
 Kedro::Kedro()
-    : m_setup(false)
-    , m_kedroDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/kedro/")
+    : m_WINDOWS(IS_WINDOWS)
+    , m_setup(false)
+    , m_KEDRO_DIR(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/kedro/")
     , m_process(std::make_unique<QProcess>())
+    , m_VENV_PYTHON(
+          m_KEDRO_DIR.absoluteFilePath(m_WINDOWS ? "venv\\bin\\python.exe" : "venv/bin/python"))
+    , m_DEFAULT_TEMPLATE(m_KEDRO_DIR.absoluteFilePath("templates/builder-spring/"))
 {
-    if (!m_kedroDir.exists())
-        m_kedroDir.mkpath(".");
-    m_process->setWorkingDirectory(m_kedroDir.absolutePath());
-    if (m_kedroDir.isEmpty())
+    if (!m_KEDRO_DIR.exists())
+        m_KEDRO_DIR.mkpath(".");
+    m_process->setWorkingDirectory(m_KEDRO_DIR.absolutePath());
+    if (m_KEDRO_DIR.isEmpty())
         firstTimeSetup();
     else
         verifySetup();
@@ -69,23 +80,27 @@ Kedro::Kedro()
 
 Kedro::~Kedro() {}
 
-bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph)
+bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph, const QString &name)
 {
-    if (!m_setup) {
-        qCritical() << "Kedro is not setup yet, please setup kedro before executing";
-        return;
-    }
-    qInfo() << "Running...";
     if (!validityCheck(graph))
         return false;
+    if (!m_setup) {
+        qCritical() << "Kedro is not setup yet, please setup kedro before executing";
+        return false;
+    }
     QStringList serializedObjects;
     for (const auto &id : graph->topologicalOrder())
         if (auto block = graph->delegateModel<FdfBlockModel>(id))
             if (EXCLUDED_TYPES.count(block->type()) < 1)
                 serializedObjects.append(serializeNode(id, graph));
     qDebug().noquote() << serializedObjects.join(",\n");
+
     // TODO: use the serialized objects to call Kedro python scripts
-    auto workspace = initNewWorkspace();
+    // Temp dir will auto delete when out of scope
+    auto workspace = initNewWorkspace(name);
+    // create catalog.yml
+    // create paramters.yml
+    // create pipeline.py
     return true;
 }
 
@@ -109,9 +124,22 @@ QVariant Kedro::getNodeOutput(QtNodes::DirectedAcyclicGraphModel *graph, QtNodes
     return graph->nodeData(id, QtNodes::NodeRole::InternalData);
 }
 
-QDir Kedro::initNewWorkspace()
+std::unique_ptr<QTemporaryDir> Kedro::initNewWorkspace(const QString &name)
 {
-    return QDir();
+    std::unique_ptr<QTemporaryDir> dir = std::make_unique<QTemporaryDir>();
+    if (!dir->isValid())
+        qCritical() << "Temporary dir is invalid";
+    qDebug() << dir->path();
+    QProcess workspaceProcess;
+    workspaceProcess.setWorkingDirectory(dir->path());
+    QString command = QString("bash -c \"echo \'%1\' | \'%2\' -m kedro new -s \'%3\'\"")
+                          .arg(name, m_VENV_PYTHON, m_DEFAULT_TEMPLATE);
+    workspaceProcess.startCommand(command);
+    if (!workspaceProcess.waitForFinished()) {
+        qCritical() << "Failed to create workspace " << name;
+        return std::unique_ptr<QTemporaryDir>();
+    }
+    return dir;
 }
 
 QString Kedro::serializeNode(const QtNodes::NodeId &id,
@@ -124,17 +152,17 @@ void Kedro::firstTimeSetup()
 {
     qInfo() << "Performing first time set up";
     // extract resources to app data
-    if (!QFile::copy(":/kedro-umbrella.zip", m_kedroDir.filePath("kedro-umbrella.zip")))
+    if (!QFile::copy(":/kedro-umbrella.zip", m_KEDRO_DIR.filePath("kedro-umbrella.zip")))
         qCritical() << "Failed to copy kedro-umbrella.zip";
-    if (!QFile::copy(":/templates.zip", m_kedroDir.filePath("templates.zip")))
+    if (!QFile::copy(":/templates.zip", m_KEDRO_DIR.filePath("templates.zip")))
         qCritical() << "Failed to copy templates.zip";
-    JlCompress::extractDir(m_kedroDir.filePath("kedro-umbrella.zip"), m_kedroDir.absolutePath());
-    JlCompress::extractDir(m_kedroDir.filePath("templates.zip"), m_kedroDir.absolutePath());
-    QFile file(m_kedroDir.filePath("kedro-umbrella.zip"));
+    JlCompress::extractDir(m_KEDRO_DIR.filePath("kedro-umbrella.zip"), m_KEDRO_DIR.absolutePath());
+    JlCompress::extractDir(m_KEDRO_DIR.filePath("templates.zip"), m_KEDRO_DIR.absolutePath());
+    QFile file(m_KEDRO_DIR.filePath("kedro-umbrella.zip"));
 
     // clean zip files
     file.remove();
-    file.setFileName(m_kedroDir.filePath("templates.zip"));
+    file.setFileName(m_KEDRO_DIR.filePath("templates.zip"));
     file.remove();
 
     // setup venv
@@ -147,11 +175,10 @@ void Kedro::firstTimeSetup()
     }
 
     // install kedro-umbrella
-    QString pythonExecutable = "venv/bin/python";
-    QString pipExecutable = "venv/bin/pip";
+    QString venvPip = "venv/bin/pip";
 #ifdef Q_OS_WIN
-    pythonExecutable = "venv\\Scripts\\python.exe";
-    pipExecutable = "venv\\Scripts\\pip.exe";
+    m_venvPython = "venv\\Scripts\\python.exe";
+    venvPip = "venv\\Scripts\\pip.exe";
 #endif
     args.clear();
     args << "install";
@@ -166,10 +193,13 @@ void Kedro::firstTimeSetup()
                          if (exitStatus == QProcess::CrashExit)
                              qWarning() << "Failed to install kedro-umbrella: "
                                         << m_process->errorString();
-                         else
+                         else {
+                             QDir dir(m_KEDRO_DIR.absoluteFilePath("kedro-umbrella"));
+                             dir.removeRecursively();
                              verifySetup();
+                         }
                      });
-    m_process->start(pipExecutable, args);
+    m_process->start(venvPip, args);
 }
 
 void Kedro::verifySetup()
