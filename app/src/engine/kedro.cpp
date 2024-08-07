@@ -11,11 +11,10 @@
 
 #include <quazip/JlCompress.h>
 
+#include "data/custom_graph.hpp"
 #include "ui/models/fdf_block_model.hpp"
 
 #include <iostream>
-
-using QtNodes::DirectedAcyclicGraphModel;
 
 #ifdef Q_OS_WIN
 #define IS_WINDOWS true
@@ -80,7 +79,7 @@ Kedro::Kedro()
 
 Kedro::~Kedro() {}
 
-bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph, const QString &name)
+bool Kedro::execute(CustomGraph *graph, const QString &name)
 {
     if (!validityCheck(graph))
         return false;
@@ -104,7 +103,7 @@ bool Kedro::execute(QtNodes::DirectedAcyclicGraphModel *graph, const QString &na
     return true;
 }
 
-bool Kedro::validityCheck(QtNodes::DirectedAcyclicGraphModel *graph)
+bool Kedro::validityCheck(CustomGraph *graph)
 {
     qInfo() << "Checking validity...";
     if (graph->isEmpty()) {
@@ -119,7 +118,7 @@ bool Kedro::validityCheck(QtNodes::DirectedAcyclicGraphModel *graph)
     return true;
 }
 
-QVariant Kedro::getNodeOutput(QtNodes::DirectedAcyclicGraphModel *graph, QtNodes::NodeId id)
+QVariant Kedro::getNodeOutput(CustomGraph *graph, QtNodes::NodeId id)
 {
     return graph->nodeData(id, QtNodes::NodeRole::InternalData);
 }
@@ -142,8 +141,7 @@ std::unique_ptr<QTemporaryDir> Kedro::initNewWorkspace(const QString &name)
     return dir;
 }
 
-QString Kedro::serializeNode(const QtNodes::NodeId &id,
-                             QtNodes::DirectedAcyclicGraphModel *graph) const
+QString Kedro::serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const
 {
     return toString(*graph->delegateModel<FdfBlockModel>(id));
 }

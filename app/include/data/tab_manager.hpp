@@ -6,25 +6,25 @@
 #include <QtNodes/Definitions>
 
 namespace QtNodes {
-class DirectedAcyclicGraphModel;
 class DagGraphicsScene;
 class GraphicsView;
 } // namespace QtNodes
 
 class BlockManager;
+class CustomGraph;
 
 class TabComponents
 {
 public:
     TabComponents(QWidget *parent = nullptr);
 
-    QtNodes::DirectedAcyclicGraphModel *getGraph() const { return m_graph; }
+    CustomGraph *getGraph() const { return m_graph; }
     QtNodes::DagGraphicsScene *getScene() const { return m_scene; }
     QtNodes::GraphicsView *getView() const { return m_view; }
     QFileInfo getFile() const;
 
 private:
-    QtNodes::DirectedAcyclicGraphModel *m_graph;
+    CustomGraph *m_graph;
     QtNodes::DagGraphicsScene *m_scene;
     QtNodes::GraphicsView *m_view;
 };
@@ -41,7 +41,7 @@ public:
     std::optional<TabComponents> getTab(QWidget *view) const;
     size_t size() const { return m_tabs.size(); }
     QWidget *currentWidget() const { return m_currentView; }
-    QtNodes::DirectedAcyclicGraphModel *currentGraph() const;
+    CustomGraph *currentGraph() const;
     QtNodes::DagGraphicsScene *currentScene() const;
     QtNodes::GraphicsView *currentView() const;
     QString currentTabName() const;

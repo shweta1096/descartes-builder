@@ -5,22 +5,19 @@
 
 #include <QtNodes/Definitions>
 
-namespace QtNodes {
-class DirectedAcyclicGraphModel;
-}
+class CustomGraph;
 
 class AbstractEngine
 {
 public:
     virtual ~AbstractEngine() {}
-    virtual bool execute(QtNodes::DirectedAcyclicGraphModel *graph, const QString &name = QString())
-        = 0;
+    virtual bool execute(CustomGraph *graph, const QString &name = QString()) = 0;
     QString getExecutionError() const { return m_executionError; }
 
-    virtual bool validityCheck(QtNodes::DirectedAcyclicGraphModel *graph) = 0;
+    virtual bool validityCheck(CustomGraph *graph) = 0;
     QStringList getValidityWarnings() const { return m_validityWarnings; }
 
-    virtual QVariant getNodeOutput(QtNodes::DirectedAcyclicGraphModel *graph, QtNodes::NodeId id) = 0;
+    virtual QVariant getNodeOutput(CustomGraph *graph, QtNodes::NodeId id) = 0;
 
 protected:
     void setExecutionError(const QString &error) { m_executionError = error; }

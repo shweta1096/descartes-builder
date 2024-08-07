@@ -12,15 +12,13 @@ class Kedro : public AbstractEngine
 public:
     Kedro();
     ~Kedro();
-    virtual bool execute(QtNodes::DirectedAcyclicGraphModel *graph, const QString &name) override;
-    virtual bool validityCheck(QtNodes::DirectedAcyclicGraphModel *graph) override;
-    virtual QVariant getNodeOutput(QtNodes::DirectedAcyclicGraphModel *graph,
-                                   QtNodes::NodeId id) override;
+    virtual bool execute(CustomGraph *graph, const QString &name) override;
+    virtual bool validityCheck(CustomGraph *graph) override;
+    virtual QVariant getNodeOutput(CustomGraph *graph, QtNodes::NodeId id) override;
     std::unique_ptr<QTemporaryDir> initNewWorkspace(const QString &name);
 
 private:
-    QString serializeNode(const QtNodes::NodeId &id,
-                          QtNodes::DirectedAcyclicGraphModel *graph) const;
+    QString serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const;
     void firstTimeSetup();
     void verifySetup();
 

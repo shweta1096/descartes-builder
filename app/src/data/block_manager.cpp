@@ -6,6 +6,7 @@
 #include <QtNodes/DagGraphicsScene>
 #include <QtNodes/NodeDelegateModelRegistry>
 
+#include "data/custom_graph.hpp"
 #include "data/tab_manager.hpp"
 #include "ui/model_registry.hpp"
 #include "ui/models/fdf_block_model.hpp"

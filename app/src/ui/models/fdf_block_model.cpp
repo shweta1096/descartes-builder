@@ -142,51 +142,72 @@ bool FdfBlockModel::setPortCaption(PortType type, PortIndex index, const QString
 {
     if (!indexCheck(type, index))
         return false;
-    if (type == PortType::In)
+    switch (type) {
+    case PortType::In:
         if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
             namedNode->setName(caption);
-            return true;
-        }
-    if (type == PortType::Out)
+        } else
+            return false;
+        break;
+    case PortType::Out:
         if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
             namedNode->setName(caption);
-            return true;
-        }
-    return false;
+        } else
+            return false;
+        break;
+    default:
+        return false;
+    }
+    propagateUpdate();
+    return true;
 }
 
 bool FdfBlockModel::setPortDefaultCaption(PortType type, PortIndex index, const QString &caption)
 {
     if (!indexCheck(type, index))
         return false;
-    if (type == PortType::In)
+    switch (type) {
+    case PortType::In:
         if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
             namedNode->setDefaultName(caption);
-            return true;
-        }
-    if (type == PortType::Out)
+        } else
+            return false;
+        break;
+    case PortType::Out:
         if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
             namedNode->setDefaultName(caption);
-            return true;
-        }
-    return false;
+        } else
+            return false;
+        break;
+    default:
+        return false;
+    }
+    propagateUpdate();
+    return true;
 }
 
 bool FdfBlockModel::resetPortCaption(PortType type, PortIndex index)
 {
     if (!indexCheck(type, index))
         return false;
-    if (type == PortType::In)
+    switch (type) {
+    case PortType::In:
         if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
             namedNode->reset();
-            return true;
-        }
-    if (type == PortType::Out)
+        } else
+            return false;
+        break;
+    case PortType::Out:
         if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
             namedNode->reset();
-            return true;
-        }
-    return false;
+        } else
+            return false;
+        break;
+    default:
+        return false;
+    }
+    propagateUpdate();
+    return true;
 }
 
 std::shared_ptr<NodeData> FdfBlockModel::inData(PortIndex const index)

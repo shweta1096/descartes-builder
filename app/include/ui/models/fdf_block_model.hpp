@@ -65,7 +65,9 @@ protected:
             m_outPorts.push_back({port, false});
         } else {
             qCritical() << "Unhandled type";
+            return;
         }
+        emit portsInserted();
     }
 
 private:

@@ -3,17 +3,16 @@
 #include <QDebug>
 
 #include <QtNodes/DagGraphicsScene>
-#include <QtNodes/DirectedAcyclicGraphModel>
 #include <QtNodes/GraphicsView>
 
 #include "data/block_manager.hpp"
+#include "data/custom_graph.hpp"
 
 using QtNodes::DagGraphicsScene;
-using QtNodes::DirectedAcyclicGraphModel;
 using QtNodes::GraphicsView;
 
 TabComponents::TabComponents(QWidget *parent)
-    : m_graph(new DirectedAcyclicGraphModel(BlockManager::getRegistry()))
+    : m_graph(new CustomGraph(BlockManager::getRegistry()))
     , m_scene(new DagGraphicsScene(*m_graph, parent))
     , m_view(new GraphicsView(m_scene))
 {
@@ -56,7 +55,7 @@ std::optional<TabComponents> TabManager::getTab(QWidget *view) const
     return m_tabs.at(view);
 }
 
-DirectedAcyclicGraphModel *TabManager::currentGraph() const
+CustomGraph *TabManager::currentGraph() const
 {
     if (auto tab = getCurrentTab())
         return tab->getGraph();
