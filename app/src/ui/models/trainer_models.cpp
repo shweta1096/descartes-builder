@@ -5,8 +5,8 @@
 BasicTrainerModel::BasicTrainerModel()
     : FdfBlockModel(FdfType::Trainer, "trainer", trainer_function::BASIC_TRAINER)
 {
-    addInPort(std::make_unique<DataNode>("X"));
-    addInPort(std::make_unique<DataNode>("Y"));
-    addInPort(std::make_unique<DataNode>("parameters"));
-    addOutPort(std::make_shared<FunctionNode>("predict"));
+    addPort<DataNode>(PortType::In, "X");
+    addPort<DataNode>(PortType::In, "Y");
+    addPort<DataNode>(PortType::In, "parameters");
+    addPort<FunctionNode>(PortType::Out, "predict");
 }

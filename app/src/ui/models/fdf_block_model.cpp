@@ -179,24 +179,6 @@ std::shared_ptr<NodeData> FdfBlockModel::inData(PortIndex const index)
     return m_inPorts.at(index).second.lock();
 }
 
-PortIndex FdfBlockModel::addInPort(std::unique_ptr<NodeData> port)
-{
-    if (!port)
-        return QtNodes::InvalidPortIndex;
-    PortIndex i = m_inPorts.size();
-    m_inPorts.push_back({std::move(port), std::weak_ptr<NodeData>()});
-    return i;
-}
-
-PortIndex FdfBlockModel::addOutPort(std::shared_ptr<NodeData> port)
-{
-    if (!port)
-        return QtNodes::InvalidPortIndex;
-    PortIndex i = m_outPorts.size();
-    m_outPorts.push_back({port, false});
-    return i;
-}
-
 void FdfBlockModel::updateStyle()
 {
     auto style = nodeStyle();

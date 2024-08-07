@@ -52,8 +52,20 @@ public slots:
 protected:
     bool indexCheck(PortType type, PortIndex index) const;
     void propagateUpdate();
-    PortIndex addInPort(std::unique_ptr<NodeData> port);
-    PortIndex addOutPort(std::shared_ptr<NodeData> port);
+    template<typename T>
+    void addPort(PortType type, const QString &name = QString())
+    {
+        static_assert(std::is_base_of<NodeData, T>::value, "T must derive from NodeData");
+        if (type == PortType::In) {
+            auto port = name.isEmpty() ? std::make_unique<T>() : std::make_unique<T>(name);
+            m_inPorts.push_back({std::move(port), std::weak_ptr<NodeData>()});
+        } else if (type == PortType::Out) {
+            auto port = name.isEmpty() ? std::make_shared<T>() : std::make_shared<T>(name);
+            m_outPorts.push_back({port, false});
+        } else {
+            qCritical() << "Unhandled type";
+        }
+    }
 
 private:
     void updateStyle();

@@ -5,7 +5,7 @@
 DataSourceModel::DataSourceModel()
     : FdfBlockModel(FdfType::Data, "data_source")
 {
-    addOutPort(std::make_shared<DataNode>());
+    addPort<DataNode>(PortType::Out);
 }
 
 QWidget *DataSourceModel::embeddedWidget()
@@ -55,5 +55,5 @@ void DataSourceModel::onWidgetEdited(const QString &name)
 FuncOutModel::FuncOutModel()
     : FdfBlockModel(FdfType::Output, "func_out")
 {
-    addInPort(std::make_unique<FunctionNode>());
+    addPort<FunctionNode>(PortType::In);
 }
