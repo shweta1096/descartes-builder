@@ -39,8 +39,10 @@ void DataSourceModel::load(QJsonObject const &p)
 
     QString data = value.toString();
     setPortCaption(PortType::Out, 0, data);
-    if (m_widget)
+    if (m_widget) {
         m_widget->setText(data);
+        emit contentUpdated();
+    }
 }
 
 void DataSourceModel::onWidgetEdited(const QString &name)
