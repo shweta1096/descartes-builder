@@ -10,6 +10,7 @@
 
 #include <quazip/JlCompress.h>
 
+#include "data/constants.hpp"
 #include "data/custom_graph.hpp"
 #include "ui/models/fdf_block_model.hpp"
 
@@ -35,6 +36,14 @@ QString quote(const QString &string)
 {
     return '\"' + string + '\"';
 }
+
+enum CatalogType { Pickle, Csv, H5 };
+
+std::unordered_map<CatalogType, QString> catalogString = {
+    {CatalogType::Pickle, "pickle.PickleDataSet"},
+    {CatalogType::Csv, "pandas.CSVDataSet"},
+    {CatalogType::H5, "kedro_umbrella.library.H5Dataset"},
+};
 
 } // namespace
 
@@ -98,23 +107,16 @@ bool Kedro::execute(CustomGraph *graph, const QString &name)
         qCritical() << "Kedro is not setup yet, please setup kedro before executing";
         return false;
     }
-    QStringList serializedObjects;
-    for (const auto &id : graph->topologicalOrder())
-        if (auto block = graph->delegateModel<FdfBlockModel>(id))
-            if (EXCLUDED_TYPES.count(block->type()) < 1)
-                serializedObjects.append(serializeNode(id, graph));
-    qDebug().noquote() << serializedObjects.join(",\n");
-
-    // TODO: use the serialized objects to call Kedro python scripts
     // Temp dir will auto delete when out of scope
     auto workspace = initNewWorkspace(name);
-    // create catalog.yml
-    // create paramters.yml
-    // create pipeline.py
+    QDir kedroProject(workspace->path() + QDir::separator() + name);
+    generateCatalogYml(kedroProject);
+    generateParametersYml(kedroProject);
+    generatePipelinePy(kedroProject, graph);
 
     // call kedro run
     QProcess run;
-    run.setWorkingDirectory(workspace->path() + QDir::separator() + name);
+    run.setWorkingDirectory(kedroProject.absolutePath());
     run.startCommand(QString("%1 -m kedro run").arg(quote(m_VENV_PYTHON)));
     if (!run.waitForFinished()) {
         qCritical() << "Failed to run kedro";
@@ -229,4 +231,29 @@ void Kedro::verifySetup()
 {
     m_setup = true;
     qInfo() << "Kedro is ready to execute!";
+}
+
+void Kedro::generateCatalogYml(const QDir &kedroProject)
+{
+    QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
+    qDebug() << "Generate catalog to: " << conf.absolutePath();
+}
+
+void Kedro::generateParametersYml(const QDir &kedroProject)
+{
+    QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
+    qDebug() << "Generate parameters to: " << conf.absolutePath();
+}
+
+void Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
+{
+    QDir source(kedroProject.absoluteFilePath(
+        QString(constants::kedro::SOURCE_PATH).arg(kedroProject.dirName())));
+    QStringList serializedObjects;
+    for (const auto &id : graph->topologicalOrder())
+        if (auto block = graph->delegateModel<FdfBlockModel>(id))
+            if (EXCLUDED_TYPES.count(block->type()) < 1)
+                serializedObjects.append(serializeNode(id, graph));
+    qDebug().noquote() << serializedObjects.join(",\n");
+    qDebug() << "Generate pipeline to: " << source.absolutePath();
 }

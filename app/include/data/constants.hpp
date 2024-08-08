@@ -37,7 +37,7 @@ constexpr ConstLatin1String CONNECTION_STYLE =
             }
         }
         )";
-const ConstLatin1String GRAPHICS_VIEW_STYLE =
+constexpr ConstLatin1String GRAPHICS_VIEW_STYLE =
     R"(
         {
             "GraphicsViewStyle": {
@@ -47,7 +47,7 @@ const ConstLatin1String GRAPHICS_VIEW_STYLE =
             }
         }
     )";
-const ConstLatin1String NODE_STYLE =
+constexpr ConstLatin1String NODE_STYLE =
     R"(
         {
             "NodeStyle": {
@@ -74,5 +74,38 @@ const ConstLatin1String NODE_STYLE =
             }
         }
     )";
+
+namespace kedro {
+
+// relative paths from kedro project dir
+constexpr ConstLatin1String CONF_PATH = "conf/base/";
+// %1 is the kedro project name
+constexpr ConstLatin1String SOURCE_PATH = "src/%1/";
+constexpr ConstLatin1String RAW_DATA_PATH = "data/01_raw/";
+
+// templates for gnerating files
+constexpr ConstLatin1String CATALOG_YML_ENTRY =
+    R"(
+%1:
+  type: %2
+  filepath: %3
+    )";
+
+// %1 is the list of all pipeline objects
+constexpr ConstLatin1String PIPELINE_PY =
+    R"(
+from kedro.pipeline import Pipeline, node, pipeline
+from kedro_umbrella import coder, processor, trainer
+from kedro_umbrella.library import *
+from .nodes import *
+
+def create_pipeline(**kwargs) -> Pipeline:
+    return pipeline(
+        [
+            %1
+        ]
+    )
+    )";
+} // namespace kedro
 
 } // namespace constants

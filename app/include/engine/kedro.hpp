@@ -20,6 +20,9 @@ private:
     QString serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const;
     void firstTimeSetup();
     void verifySetup();
+    void generateCatalogYml(const QDir &kedroProject);
+    void generateParametersYml(const QDir &kedroProject);
+    void generatePipelinePy(const QDir &kedroProject, CustomGraph *graph);
 
     const bool m_WINDOWS;
     bool m_setup;
