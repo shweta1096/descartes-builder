@@ -12,21 +12,36 @@ void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
     auto model = delegateModel<FdfBlockModel>(nodeId);
     if (!model)
         return;
-    // rename out ports that are duplicates
+    makeCaptionUnique(nodeId, model);
+    makeOutPortsUnique(nodeId, model);
+}
+
+void CustomGraph::makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *model)
+{
+    QString uniqueCaption = model->caption();
+    uint counter = 1;
+    while (m_usedNodeCaptions.count(uniqueCaption) > 0) {
+        uniqueCaption = QString("%1 %2").arg(model->caption(), QString::number(++counter));
+    }
+    m_usedNodeCaptions.insert({uniqueCaption, nodeId});
+    if (counter > 1) // if we need to update the name
+        model->setCaption(uniqueCaption);
+}
+
+void CustomGraph::makeOutPortsUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *model)
+{
     auto portType = QtNodes::PortType::Out;
     for (uint i = 0; i < model->nPorts(portType); ++i) {
-        auto originalName = model->portCaption(portType, i);
-        if (m_usedOutPortCaptions.count(originalName) < 1) {
-            m_usedOutPortCaptions.insert({originalName, nodeId});
-            continue;
+        const auto ORIGINAL_NAME = model->portCaption(portType, i);
+        auto uniqueName = model->portCaption(portType, i);
+        uint counter = 1;
+        while (m_usedOutPortCaptions.count(uniqueName) > 0) {
+            uniqueName = QString("%1 %2").arg(ORIGINAL_NAME, QString::number(++counter));
         }
-        int counter = 1;
-        auto newName = QString("%1 %2").arg(originalName, QString::number(++counter));
-        while (m_usedOutPortCaptions.count(newName) > 0) {
-            newName = QString("%1 %2").arg(originalName, QString::number(++counter));
+        m_usedOutPortCaptions.insert({uniqueName, nodeId});
+        if (counter > 1) { // if we need to update the name
+            model->setPortDefaultCaption(portType, i, uniqueName);
+            model->resetPortCaption(portType, i);
         }
-        model->setPortDefaultCaption(portType, i, newName);
-        model->resetPortCaption(portType, i);
-        m_usedOutPortCaptions.insert({newName, nodeId});
     }
 }

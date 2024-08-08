@@ -61,7 +61,7 @@ QString toString(const FdfBlockModel &block)
     QString result = block.typeAsString() + '(';
     if (!block.functionName().isEmpty())
         result += QString("func=%1,").arg(block.functionName());
-    result += QString("name=\"%1\"").arg(block.name());
+    result += QString("name=\"%1\"").arg(block.caption());
     QStringList inputs = getPortList(block, PortType::In);
     if (inputs.size() == 1)
         result += QString(",inputs=%1").arg(inputs.at(0));
