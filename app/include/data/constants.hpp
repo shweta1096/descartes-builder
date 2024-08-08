@@ -102,7 +102,7 @@ from .nodes import *
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
         [
-            %1
+%1
         ]
     )
     )";

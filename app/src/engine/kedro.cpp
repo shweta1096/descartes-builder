@@ -52,7 +52,7 @@ QStringList getPortList(const FdfBlockModel &block, const PortType &type)
 {
     QStringList result;
     for (auto &port : block.connectedPortData(type))
-        result.append(QString("\"%1\"").arg(port->type().name));
+        result.append(QString("\"%1\"").arg(port->type().name.replace(' ', '_')));
     return result;
 }
 
@@ -61,7 +61,7 @@ QString toString(const FdfBlockModel &block)
     QString result = block.typeAsString() + '(';
     if (!block.functionName().isEmpty())
         result += QString("func=%1,").arg(block.functionName());
-    result += QString("name=\"%1\"").arg(block.caption());
+    result += QString("name=\"%1\"").arg(block.caption().replace(' ', '_'));
     QStringList inputs = getPortList(block, PortType::In);
     if (inputs.size() == 1)
         result += QString(",inputs=%1").arg(inputs.at(0));
@@ -110,9 +110,12 @@ bool Kedro::execute(CustomGraph *graph, const QString &name)
     // Temp dir will auto delete when out of scope
     auto workspace = initNewWorkspace(name);
     QDir kedroProject(workspace->path() + QDir::separator() + name);
-    generateCatalogYml(kedroProject);
-    generateParametersYml(kedroProject);
-    generatePipelinePy(kedroProject, graph);
+    if (!generateCatalogYml(kedroProject))
+        return false;
+    if (!generateParametersYml(kedroProject))
+        return false;
+    if (!generatePipelinePy(kedroProject, graph))
+        return false;
 
     // call kedro run
     QProcess run;
@@ -233,27 +236,39 @@ void Kedro::verifySetup()
     qInfo() << "Kedro is ready to execute!";
 }
 
-void Kedro::generateCatalogYml(const QDir &kedroProject)
+bool Kedro::generateCatalogYml(const QDir &kedroProject)
 {
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
-    qDebug() << "Generate catalog to: " << conf.absolutePath();
+    qDebug() << "Generated catalog to: " << conf.absolutePath();
+    return true;
 }
 
-void Kedro::generateParametersYml(const QDir &kedroProject)
+bool Kedro::generateParametersYml(const QDir &kedroProject)
 {
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
-    qDebug() << "Generate parameters to: " << conf.absolutePath();
+    qDebug() << "Generated parameters to: " << conf.absolutePath();
+    return true;
 }
 
-void Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
+bool Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
 {
+    // for some reason dir name char '-' will convert to '_'
     QDir source(kedroProject.absoluteFilePath(
-        QString(constants::kedro::SOURCE_PATH).arg(kedroProject.dirName())));
+        QString(constants::kedro::SOURCE_PATH).arg(kedroProject.dirName().replace('-', '_'))));
     QStringList serializedObjects;
     for (const auto &id : graph->topologicalOrder())
         if (auto block = graph->delegateModel<FdfBlockModel>(id))
             if (EXCLUDED_TYPES.count(block->type()) < 1)
                 serializedObjects.append(serializeNode(id, graph));
-    qDebug().noquote() << serializedObjects.join(",\n");
-    qDebug() << "Generate pipeline to: " << source.absolutePath();
+    QString data = constants::kedro::PIPELINE_PY.arg(serializedObjects.join(",\n"));
+    QFile pipelinePy(source.absoluteFilePath("pipeline.py"));
+    if (!pipelinePy.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qCritical() << "Cannot open pipeline.py:" << pipelinePy.errorString();
+        return false;
+    }
+    QTextStream out(&pipelinePy);
+    out << data;
+    pipelinePy.close();
+    qDebug() << "Generated pipeline to: " << source.absolutePath();
+    return true;
 }

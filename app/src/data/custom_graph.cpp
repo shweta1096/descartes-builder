@@ -20,11 +20,13 @@ void CustomGraph::makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel
 {
     QString uniqueCaption = model->caption();
     uint counter = 1;
-    while (m_usedNodeCaptions.count(uniqueCaption) > 0) {
+    while (m_usedNodeCaptions.count(uniqueCaption) > 0
+           && m_usedNodeCaptions.at(uniqueCaption) != nodeId) {
         uniqueCaption = QString("%1 %2").arg(model->caption(), QString::number(++counter));
     }
+    m_usedNodeCaptions[uniqueCaption] = nodeId;
     m_usedNodeCaptions.insert({uniqueCaption, nodeId});
-    if (counter > 1) // if we need to update the name
+    if (model->caption() != uniqueCaption)
         model->setCaption(uniqueCaption);
 }
 
@@ -35,11 +37,12 @@ void CustomGraph::makeOutPortsUnique(const QtNodes::NodeId &nodeId, FdfBlockMode
         const auto ORIGINAL_NAME = model->portCaption(portType, i);
         auto uniqueName = model->portCaption(portType, i);
         uint counter = 1;
-        while (m_usedOutPortCaptions.count(uniqueName) > 0) {
+        while (m_usedOutPortCaptions.count(uniqueName) > 0
+               && m_usedOutPortCaptions.at(uniqueName) != nodeId) {
             uniqueName = QString("%1 %2").arg(ORIGINAL_NAME, QString::number(++counter));
         }
-        m_usedOutPortCaptions.insert({uniqueName, nodeId});
-        if (counter > 1) { // if we need to update the name
+        m_usedOutPortCaptions[uniqueName] = nodeId;
+        if (ORIGINAL_NAME != uniqueName) {
             model->setPortDefaultCaption(portType, i, uniqueName);
             model->resetPortCaption(portType, i);
         }
