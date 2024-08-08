@@ -38,7 +38,7 @@ public:
     virtual QWidget *embeddedWidget() override;
     QString portCaption(PortType portType, PortIndex portIndex) const override;
 
-    virtual std::shared_ptr<NodeData> portData(PortType const type, PortIndex const index);
+    virtual std::shared_ptr<NodeData> portData(PortType const type, PortIndex const index) const;
     virtual std::vector<std::shared_ptr<NodeData>> connectedPortData(PortType const type) const;
     void setCaption(const QString &caption);
     bool setPortCaption(PortType type, PortIndex index, const QString &caption);

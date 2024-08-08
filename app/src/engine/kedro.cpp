@@ -51,8 +51,10 @@ namespace {
 QStringList getPortList(const FdfBlockModel &block, const PortType &type)
 {
     QStringList result;
-    for (auto &port : block.connectedPortData(type))
+    for (PortIndex i = 0; i < block.nPorts(type); ++i) {
+        auto port = block.portData(type, i);
         result.append(QString("\"%1\"").arg(port->type().name.replace(' ', '_')));
+    }
     return result;
 }
 

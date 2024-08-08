@@ -74,12 +74,14 @@ QString FdfBlockModel::portCaption(PortType portType, PortIndex portIndex) const
     return QString();
 }
 
-std::shared_ptr<NodeData> FdfBlockModel::portData(PortType const type, PortIndex const index)
+std::shared_ptr<NodeData> FdfBlockModel::portData(PortType const type, PortIndex const index) const
 {
+    if (!indexCheck(type, index))
+        return std::shared_ptr<NodeData>();
     if (type == PortType::In)
-        return inData(index);
+        return m_inPorts.at(index).second.lock();
     if (type == PortType::Out)
-        return outData(index);
+        return m_outPorts.at(index).first;
     return std::shared_ptr<NodeData>();
 }
 
