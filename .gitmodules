@@ -8,5 +8,5 @@ url = https://github.com/nicholasng99/nodeeditor.git
 path = app/external/qtutility
 url = https://github.com/nicholasng99/qtutility.git
 [submodule "app/external/quazip"]
-	path = app/external/quazip
-	url = https://github.com/stachenov/quazip.git
+path = app/external/quazip
+url = https://github.com/stachenov/quazip.git
