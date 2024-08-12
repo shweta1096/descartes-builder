@@ -89,8 +89,9 @@ void GraphicsSceneTabWidget::onCurrentChanged(const int &index)
     m_tabManager->setCurrentView(view);
 }
 
-void GraphicsSceneTabWidget::onTabCreated(QWidget *widget, const QString &fileName)
+void GraphicsSceneTabWidget::onTabCreated(QWidget *widget)
 {
+    auto fileName = m_tabManager->getFileInfo(widget).baseName();
     int index = addTab(widget, fileName.isEmpty() ? "blank" : fileName);
     setCurrentIndex(index);
 }

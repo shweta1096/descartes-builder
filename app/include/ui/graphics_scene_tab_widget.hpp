@@ -25,7 +25,7 @@ private slots:
     void onTabCountChanged(int count);
     void onCurrentChanged(const int &index);
     // slots for tab manager
-    void onTabCreated(QWidget *widget, const QString &fileName);
+    void onTabCreated(QWidget *widget);
     void onTabFileNameChanged(QWidget *widget, const QString &fileName);
 
 protected:

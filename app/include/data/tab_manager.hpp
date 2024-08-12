@@ -52,7 +52,7 @@ public:
     QFileInfo getFileInfo(ViewWidget *view) const;
 
 signals:
-    void tabCreated(ViewWidget *view, QString filename);
+    void tabCreated(ViewWidget *view);
     void tabDeleted(ViewWidget *view);
     void currentChanged(ViewWidget *view);
     void tabFileNameChanged(ViewWidget *view, QString fileName);

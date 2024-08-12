@@ -90,7 +90,7 @@ bool TabManager::addTab(std::shared_ptr<TabComponents> tab)
     if (!tab || m_tabs.count(tab->getView()) > 0)
         return false;
     m_tabs[tab->getView()] = tab;
-    emit tabCreated(tab->getView(), tab->getScene()->getFile().baseName());
+    emit tabCreated(tab->getView());
     setCurrentView(tab->getView());
     return true;
 }
