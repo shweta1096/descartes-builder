@@ -8,9 +8,10 @@ class CustomGraph : public QtNodes::DirectedAcyclicGraphModel
 {
 public:
     CustomGraph(std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registry);
-    virtual void onNodeCreated(const QtNodes::NodeId nodeId) override;
 
-private:
+protected:
+    virtual void onNodeCreated(const QtNodes::NodeId nodeId) override;
+    virtual void onNodeDeleted(const QtNodes::NodeId nodeId);
     // rename captions that are duplicates
     void makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *model);
     // rename out ports that are duplicates

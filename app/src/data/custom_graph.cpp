@@ -2,9 +2,26 @@
 
 #include "ui/models/fdf_block_model.hpp"
 
+namespace {
+
+template<typename MapType>
+void removeByValue(MapType &map, const typename MapType::mapped_type &valueToRemove)
+{
+    for (auto it = map.begin(); it != map.end();) {
+        if (it->second == valueToRemove)
+            it = map.erase(it);
+        else
+            ++it;
+    }
+}
+
+} // namespace
+
 CustomGraph::CustomGraph(std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registry)
     : DirectedAcyclicGraphModel(registry)
-{}
+{
+    connect(this, &CustomGraph::nodeDeleted, this, &CustomGraph::onNodeDeleted);
+}
 
 void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
 {
@@ -14,6 +31,12 @@ void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
         return;
     makeCaptionUnique(nodeId, model);
     makeOutPortsUnique(nodeId, model);
+}
+
+void CustomGraph::onNodeDeleted(const QtNodes::NodeId nodeId)
+{
+    removeByValue(m_usedNodeCaptions, nodeId);
+    removeByValue(m_usedOutPortCaptions, nodeId);
 }
 
 void CustomGraph::makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *model)

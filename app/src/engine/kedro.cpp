@@ -112,9 +112,9 @@ bool Kedro::execute(CustomGraph *graph, const QString &name)
     // Temp dir will auto delete when out of scope
     auto workspace = initNewWorkspace(name);
     QDir kedroProject(workspace->path() + QDir::separator() + name);
-    if (!generateCatalogYml(kedroProject))
-        return false;
     if (!generateParametersYml(kedroProject))
+        return false;
+    if (!generateCatalogYml(kedroProject))
         return false;
     if (!generatePipelinePy(kedroProject, graph))
         return false;
@@ -238,17 +238,20 @@ void Kedro::verifySetup()
     qInfo() << "Kedro is ready to execute!";
 }
 
+bool Kedro::generateParametersYml(const QDir &kedroProject)
+{
+    // TODO: rework system for a parameters.yml file
+    // every graph will need their own parameters.yml which store vars about blocks
+    // or add properties to the blocks that are used to generate the parameters yml
+    QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
+    qDebug() << "Generated parameters to: " << conf.absolutePath();
+    return true;
+}
+
 bool Kedro::generateCatalogYml(const QDir &kedroProject)
 {
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
     qDebug() << "Generated catalog to: " << conf.absolutePath();
-    return true;
-}
-
-bool Kedro::generateParametersYml(const QDir &kedroProject)
-{
-    QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
-    qDebug() << "Generated parameters to: " << conf.absolutePath();
     return true;
 }
 
