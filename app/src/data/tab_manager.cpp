@@ -27,6 +27,13 @@ TabComponents::TabComponents(QWidget *parent)
         });
 }
 
+TabComponents::~TabComponents()
+{
+    m_view->deleteLater();
+    m_scene->deleteLater();
+    m_graph->deleteLater();
+}
+
 TabManager::TabManager(QObject *parent)
     : QObject(parent)
 {}
@@ -38,15 +45,15 @@ void TabManager::setBlockManager(std::shared_ptr<BlockManager> blockManager)
     m_blockManager = blockManager;
 }
 
-std::optional<TabComponents> TabManager::getCurrentTab() const
+std::shared_ptr<TabComponents> TabManager::getCurrentTab() const
 {
     return getTab(m_currentView);
 }
 
-std::optional<TabComponents> TabManager::getTab(QWidget *view) const
+std::shared_ptr<TabComponents> TabManager::getTab(QWidget *view) const
 {
     if (m_tabs.count(view) < 1)
-        return std::nullopt;
+        return std::shared_ptr<TabComponents>();
     return m_tabs.at(view);
 }
 
@@ -78,13 +85,13 @@ QString TabManager::currentTabName() const
     return QString();
 }
 
-bool TabManager::addTab(const TabComponents &tab)
+bool TabManager::addTab(std::shared_ptr<TabComponents> tab)
 {
-    if (m_tabs.count(tab.getView()) > 0)
+    if (!tab || m_tabs.count(tab->getView()) > 0)
         return false;
-    m_tabs[tab.getView()] = std::move(tab);
-    emit tabCreated(tab.getView(), tab.getScene()->getFile().baseName());
-    setCurrentView(tab.getView());
+    m_tabs[tab->getView()] = tab;
+    emit tabCreated(tab->getView(), tab->getScene()->getFile().baseName());
+    setCurrentView(tab->getView());
     return true;
 }
 
@@ -112,13 +119,12 @@ QFileInfo TabManager::getFileInfo(ViewWidget *view) const
 {
     if (m_tabs.count(view) < 1)
         return QFileInfo();
-    return m_tabs.at(view).getScene()->getFile();
+    return m_tabs.at(view)->getScene()->getFile();
 }
 
 void TabManager::newTab()
 {
-    TabComponents tab(m_tabParent);
-    addTab(tab);
+    addTab(std::make_shared<TabComponents>(m_tabParent));
 }
 
 bool TabManager::save()
@@ -150,8 +156,8 @@ bool TabManager::saveAs()
 bool TabManager::open()
 {
     // open in a new tab
-    TabComponents tab(m_tabParent);
-    auto scene = tab.getScene();
+    auto tab = std::make_shared<TabComponents>(m_tabParent);
+    auto scene = tab->getScene();
     if (!scene || !scene->load() || openIfExists(scene))
         return false;
     return addTab(tab);
@@ -160,8 +166,8 @@ bool TabManager::open()
 bool TabManager::openFrom(const QString &filePath)
 {
     // open in a new tab
-    TabComponents tab(m_tabParent);
-    auto scene = tab.getScene();
+    auto tab = std::make_shared<TabComponents>(m_tabParent);
+    auto scene = tab->getScene();
     if (!scene || !scene->load(filePath) || openIfExists(scene))
         return false;
     return addTab(tab);
@@ -173,7 +179,7 @@ bool TabManager::openIfExists(QtNodes::DagGraphicsScene *scene)
     if (!scene)
         return false;
     for (auto tab : m_tabs)
-        if (tab.second.getScene()->getFile() == scene->getFile()) { // file exists, open that tab
+        if (tab.second->getScene()->getFile() == scene->getFile()) { // file exists, open that tab
             setCurrentView(tab.first);
             return true;
         }

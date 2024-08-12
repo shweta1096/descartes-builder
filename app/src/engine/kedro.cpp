@@ -38,14 +38,6 @@ QString quote(const QString &string)
     return '\"' + string + '\"';
 }
 
-enum CatalogType { Pickle, Csv, H5 };
-
-std::unordered_map<CatalogType, QString> catalogString = {
-    {CatalogType::Pickle, "pickle.PickleDataSet"},
-    {CatalogType::Csv, "pandas.CSVDataSet"},
-    {CatalogType::H5, "kedro_umbrella.library.H5Dataset"},
-};
-
 } // namespace
 
 namespace {

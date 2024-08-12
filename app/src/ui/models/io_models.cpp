@@ -2,6 +2,23 @@
 
 #include <QLineEdit>
 
+namespace {
+
+std::unordered_map<DataSourceModel::CatalogType, QString> CATALOG_STRING = {
+    {DataSourceModel::CatalogType::Pickle, "pickle.PickleDataSet"},
+    {DataSourceModel::CatalogType::Csv, "pandas.CSVDataSet"},
+    {DataSourceModel::CatalogType::H5, "kedro_umbrella.library.H5Dataset"},
+};
+
+std::unordered_map<QString, DataSourceModel::CatalogType> CATALOG_EXTENSIONS = {
+    {"csv", DataSourceModel::CatalogType::Csv},
+    {"pickle", DataSourceModel::CatalogType::Pickle},
+    {"mat", DataSourceModel::CatalogType::H5},
+    {"jld2", DataSourceModel::CatalogType::H5},
+};
+
+} // namespace
+
 DataSourceModel::DataSourceModel()
     : FdfBlockModel(FdfType::Data, io_names::DATA_SOURCE)
 {
@@ -44,6 +61,16 @@ void DataSourceModel::load(QJsonObject const &p)
         m_widget->setText(data);
     }
     emit contentUpdated();
+}
+
+void DataSourceModel::setFile(const QFileInfo &file)
+{
+    if (file == m_file)
+        return;
+    if (!file.exists())
+        return;
+    // move file to workspace
+    // m_file = ; // assign to path to workspace
 }
 
 void DataSourceModel::onWidgetEdited(const QString &name)

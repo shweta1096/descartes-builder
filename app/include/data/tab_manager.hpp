@@ -17,7 +17,7 @@ class TabComponents
 {
 public:
     TabComponents(QWidget *parent = nullptr);
-
+    ~TabComponents();
     CustomGraph *getGraph() const { return m_graph; }
     QtNodes::DagGraphicsScene *getScene() const { return m_scene; }
     QtNodes::GraphicsView *getView() const { return m_view; }
@@ -36,15 +36,15 @@ public:
 
     TabManager(QObject *parent = nullptr);
     void setBlockManager(std::shared_ptr<BlockManager> blockManager);
-    std::optional<TabComponents> getCurrentTab() const;
-    std::optional<TabComponents> getTab(QWidget *view) const;
+    std::shared_ptr<TabComponents> getCurrentTab() const;
+    std::shared_ptr<TabComponents> getTab(QWidget *view) const;
     size_t size() const { return m_tabs.size(); }
     QWidget *currentWidget() const { return m_currentView; }
     CustomGraph *currentGraph() const;
     QtNodes::DagGraphicsScene *currentScene() const;
     QtNodes::GraphicsView *currentView() const;
     QString currentTabName() const;
-    bool addTab(const TabComponents &tab);
+    bool addTab(std::shared_ptr<TabComponents> tab);
     void removeTab(const TabComponents &tab);
     void removeTab(ViewWidget *view);
     void setTabParent(QWidget *parent) { m_tabParent = parent; }
@@ -68,7 +68,7 @@ private:
     bool openIfExists(QtNodes::DagGraphicsScene *scene);
 
     std::shared_ptr<BlockManager> m_blockManager;
-    std::unordered_map<ViewWidget *, TabComponents> m_tabs;
+    std::unordered_map<ViewWidget *, std::shared_ptr<TabComponents>> m_tabs;
     ViewWidget *m_currentView;
     QWidget *m_tabParent;
 };
