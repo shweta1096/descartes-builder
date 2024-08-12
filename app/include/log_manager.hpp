@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QtMessageHandler>
 
 #include <QtUtility/data/qsingleton.hpp>
 
@@ -12,6 +13,7 @@ class LogManager : public QSingleton<LogManager>
     friend class QSingleton<LogManager>;
 
 public:
+    ~LogManager() override;
     void init();
     void registerLogPanel(LogPanel *panel);
 
@@ -22,6 +24,7 @@ public slots:
     void appendMessage(const QString &message, const QtMsgType &type = QtInfoMsg);
 
 private:
+    QtMessageHandler m_originalHandler;
     QVector<LogPanel *> m_logPanels;
     struct LogMessage
     {

@@ -74,6 +74,11 @@ void logHandler(QtMsgType type, const QMessageLogContext &context, const QString
 
 } // namespace
 
+LogManager::~LogManager()
+{
+    qInstallMessageHandler(m_originalHandler);
+}
+
 void LogManager::init()
 {
     // this must be queued connection to trigger appendMessage on a GUI thread
@@ -86,7 +91,7 @@ void LogManager::init()
         "[%{time yyyy-MM-dd HH:mm:ss.zzz}] "
         "[%{if-debug}debug%{endif}%{if-info}info%{endif}%{if-warning}warning%{endif}%{if-critical}"
         "error%{endif}%{if-fatal}fatal%{endif}] %{file}:%{line}<%{function}>: %{message}");
-    qInstallMessageHandler(logHandler);
+    m_originalHandler = qInstallMessageHandler(logHandler);
 }
 
 void LogManager::registerLogPanel(LogPanel *panel)

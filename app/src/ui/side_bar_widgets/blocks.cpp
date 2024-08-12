@@ -50,6 +50,23 @@ void Blocks::setNodeId(QtNodes::NodeId id)
     emit nodeIdChanged(id);
 }
 
+void Blocks::onLibraryItemClicked(QTreeWidgetItem *item)
+{
+    if (!(item->flags() & (Qt::ItemIsSelectable))) {
+        return;
+    }
+    auto view = m_tabManager->getCurrentTab()->getView();
+    auto pos = view->mapToScene(view->rect().center()).toPoint();
+    auto scene = m_tabManager->getCurrentTab()->getScene();
+    while (auto exisitingItem = scene->itemAt(pos, QTransform())) {
+        // sometime will add to a previous location due to itemAt only return 1 item at the pos even though another item may also be there
+        if (exisitingItem->pos() != pos)
+            break;
+        pos += QPoint(ADD_BLOCK_SPACING, ADD_BLOCK_SPACING);
+    }
+    scene->createNodeAt(item->text(0), pos);
+}
+
 void Blocks::initUi()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -117,21 +134,7 @@ void Blocks::initLibrary()
 
     treeView->expandAll();
 
-    connect(treeView, &QTreeWidget::itemClicked, [this](QTreeWidgetItem *item, int) {
-        if (!(item->flags() & (Qt::ItemIsSelectable))) {
-            return;
-        }
-        auto view = m_tabManager->getCurrentTab()->getView();
-        auto pos = view->mapToScene(view->rect().center()).toPoint();
-        auto scene = m_tabManager->getCurrentTab()->getScene();
-        while (auto exisitingItem = scene->itemAt(pos, QTransform())) {
-            // sometime will add to a previous location due to itemAt only return 1 item at the pos even though another item may also be there
-            if (exisitingItem->pos() != pos)
-                break;
-            pos += QPoint(ADD_BLOCK_SPACING, ADD_BLOCK_SPACING);
-        }
-        scene->createNodeAt(item->text(0), pos);
-    });
+    connect(treeView, &QTreeWidget::itemClicked, this, &Blocks::onLibraryItemClicked);
 
     // setup filtering
     connect(searchBox, &QLineEdit::textChanged, [treeView](const QString &text) {

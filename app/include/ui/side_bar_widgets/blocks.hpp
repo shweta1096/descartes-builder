@@ -4,6 +4,7 @@
 
 class QLabel;
 class QSplitter;
+class QTreeWidgetItem;
 class BlockManager;
 class TabManager;
 
@@ -35,6 +36,7 @@ public slots:
 
 private slots:
     void updateFields();
+    void onLibraryItemClicked(QTreeWidgetItem *item);
 
 private:
     void initUi();

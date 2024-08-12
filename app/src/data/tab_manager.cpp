@@ -11,12 +11,19 @@
 using QtNodes::DagGraphicsScene;
 using QtNodes::GraphicsView;
 
-TabComponents::TabComponents(QWidget *parent)
+TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
     : m_graph(new CustomGraph(BlockManager::getRegistry()))
     , m_scene(new DagGraphicsScene(*m_graph, parent))
     , m_view(new GraphicsView(m_scene))
+    , m_dir(std::make_shared<QTemporaryDir>())
 {
     m_graph->setParent(parent);
+    if (fileInfo)
+        m_localFile = fileInfo.value();
+    qDebug() << m_localFile;
+    if (!m_dir->isValid())
+        qCritical() << "Temp dir failed to init";
+    qDebug() << m_dir->path();
     // Qt bug for MacOS throws warnings when using touch pad with graphics view
     // touch pad seems to trigger touch events, so touch events are disabled to supress the bug
     m_view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
@@ -37,13 +44,6 @@ TabComponents::~TabComponents()
 TabManager::TabManager(QObject *parent)
     : QObject(parent)
 {}
-
-void TabManager::setBlockManager(std::shared_ptr<BlockManager> blockManager)
-{
-    if (m_blockManager == blockManager)
-        return;
-    m_blockManager = blockManager;
-}
 
 std::shared_ptr<TabComponents> TabManager::getCurrentTab() const
 {
@@ -122,6 +122,16 @@ QFileInfo TabManager::getFileInfo(ViewWidget *view) const
     return m_tabs.at(view)->getScene()->getFile();
 }
 
+void TabManager::clear()
+{
+    auto it = m_tabs.begin();
+    while (it != m_tabs.end()) {
+        auto view = it->first;
+        it = m_tabs.erase(it);
+        emit tabDeleted(view);
+    }
+}
+
 void TabManager::newTab()
 {
     addTab(std::make_shared<TabComponents>(m_tabParent));
@@ -158,7 +168,7 @@ bool TabManager::open()
     // open in a new tab
     auto tab = std::make_shared<TabComponents>(m_tabParent);
     auto scene = tab->getScene();
-    if (!scene || !scene->load() || openIfExists(scene))
+    if (!scene || !scene->load() || openIfExists(scene->getFile()))
         return false;
     return addTab(tab);
 }
@@ -166,20 +176,20 @@ bool TabManager::open()
 bool TabManager::openFrom(const QString &filePath)
 {
     // open in a new tab
-    auto tab = std::make_shared<TabComponents>(m_tabParent);
+    QFileInfo file(filePath);
+    auto tab = std::make_shared<TabComponents>(m_tabParent, file);
     auto scene = tab->getScene();
-    if (!scene || !scene->load(filePath) || openIfExists(scene))
+    if (!scene || !scene->load(filePath) || openIfExists(file))
         return false;
     return addTab(tab);
 }
 
-bool TabManager::openIfExists(QtNodes::DagGraphicsScene *scene)
+bool TabManager::openIfExists(const QFileInfo &file)
 {
-    QFileInfo a;
-    if (!scene)
+    if (!file.exists())
         return false;
     for (auto tab : m_tabs)
-        if (tab.second->getScene()->getFile() == scene->getFile()) { // file exists, open that tab
+        if (tab.second->getFileInfo() == file) { // file exists, open that tab
             setCurrentView(tab.first);
             return true;
         }

@@ -52,6 +52,7 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
+    m_tabManager->clear();
     qInfo() << "Program has finished.";
 }
 
@@ -63,7 +64,6 @@ bool MainWindow::callExecute()
 void MainWindow::initManagers()
 {
     m_blockManager->setTabManager(m_tabManager);
-    m_tabManager->setBlockManager(m_blockManager);
 }
 
 void MainWindow::initScene()
