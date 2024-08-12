@@ -8,10 +8,14 @@ class FuncOutModel;
 
 class CustomGraph : public QtNodes::DirectedAcyclicGraphModel
 {
+    Q_OBJECT
 public:
     CustomGraph(std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registry);
     std::vector<DataSourceModel *> getDataSourceModels() const;
     std::vector<FuncOutModel *> getFuncOutModels() const;
+
+signals:
+    void dataSourceModelImportClicked(const QtNodes::NodeId nodeId);
 
 protected:
     virtual void onNodeCreated(const QtNodes::NodeId nodeId) override;

@@ -6,7 +6,8 @@
 
 #include <QtUtility/data/constexpr_qstring.hpp>
 
-class QLineEdit;
+class QWidget;
+class QLabel;
 
 namespace io_names {
 using ConstLatin1String = QtUtility::data::ConstLatin1String;
@@ -26,17 +27,21 @@ public:
     QJsonObject save() const override;
     void load(QJsonObject const &p) override;
     QFileInfo file() const { return m_file; }
-    QString fileName() const { return m_fileName; }
     std::optional<CatalogType> fileType() const { return m_fileType; }
     void setFile(const QFileInfo &file);
+    static QString fileFilter();
+
+signals:
+    void importClicked();
 
 private slots:
-    void onWidgetEdited(const QString &name);
+    void updatePortCaption(const QString &name);
 
 private:
-    QLineEdit *m_widget;
+    QWidget *m_widget;
+    QLabel *m_label;
+
     QFileInfo m_file;
-    QString m_fileName;
     std::optional<CatalogType> m_fileType;
 };
 

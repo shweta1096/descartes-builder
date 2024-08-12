@@ -49,9 +49,13 @@ void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
     makeCaptionUnique(nodeId, model);
     makeOutPortsUnique(nodeId, model);
 
-    if (model->name() == io_names::DATA_SOURCE)
+    if (model->name() == io_names::DATA_SOURCE) {
         m_dataSourceNodes.insert(nodeId);
-    else if (model->name() == io_names::FUNC_OUT)
+        auto dataSourceModel = dynamic_cast<DataSourceModel *>(model);
+        connect(dataSourceModel, &DataSourceModel::importClicked, this, [nodeId, this]() {
+            emit dataSourceModelImportClicked(nodeId);
+        });
+    } else if (model->name() == io_names::FUNC_OUT)
         m_funcOutNodes.insert(nodeId);
 }
 

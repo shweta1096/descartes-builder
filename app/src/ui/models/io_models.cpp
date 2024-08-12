@@ -1,6 +1,8 @@
 #include "ui/models/io_models.hpp"
 
-#include <QLineEdit>
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 namespace {
 
@@ -28,13 +30,19 @@ DataSourceModel::DataSourceModel()
 QWidget *DataSourceModel::embeddedWidget()
 {
     if (!m_widget) {
-        m_widget = new QLineEdit();
+        m_widget = new QWidget();
 
-        m_widget->setMaximumSize(m_widget->sizeHint());
+        auto layout = new QVBoxLayout(m_widget);
+        layout->setSpacing(0);
+        layout->setContentsMargins(0, 0, 0, 0);
 
-        connect(m_widget, &QLineEdit::textChanged, this, &DataSourceModel::onWidgetEdited);
+        m_label = new QLabel(portCaption(PortType::Out, 0));
+        layout->addWidget(m_label);
 
-        m_widget->setText(portCaption(PortType::Out, 0));
+        auto button = new QPushButton("Import");
+        layout->addWidget(button);
+
+        connect(button, &QPushButton::clicked, this, &DataSourceModel::importClicked);
     }
 
     return m_widget;
@@ -43,7 +51,7 @@ QWidget *DataSourceModel::embeddedWidget()
 QJsonObject DataSourceModel::save() const
 {
     QJsonObject modelJson = NodeDelegateModel::save();
-    modelJson["data-name"] = m_fileName;
+    modelJson["data-name"] = m_file.fileName();
     return modelJson;
 }
 
@@ -55,10 +63,10 @@ void DataSourceModel::load(QJsonObject const &p)
         return;
 
     QString data = value.toString();
-    m_fileName = data;
+    m_file.setFile(data);
     setPortCaption(PortType::Out, 0, data);
     if (m_widget) {
-        m_widget->setText(data);
+        m_label->setText(data);
     }
     emit contentUpdated();
 }
@@ -69,17 +77,25 @@ void DataSourceModel::setFile(const QFileInfo &file)
         return;
     if (!file.exists())
         return;
-    // move file to workspace
-    // m_file = ; // assign to path to workspace
+    m_file = file;
+    m_label->setText(m_file.fileName());
+    updatePortCaption(m_file.baseName());
+    emit contentUpdated();
 }
 
-void DataSourceModel::onWidgetEdited(const QString &name)
+QString DataSourceModel::fileFilter()
+{
+    QStringList extensions;
+    for (auto &pair : CATALOG_EXTENSIONS)
+        extensions << "*." + pair.first;
+    return extensions.join(' ');
+}
+
+void DataSourceModel::updatePortCaption(const QString &name)
 {
     if (name == portCaption(PortType::Out, 0))
         return;
-    m_fileName = name;
     setPortCaption(PortType::Out, 0, name);
-    emit contentUpdated();
 }
 
 FuncOutModel::FuncOutModel()

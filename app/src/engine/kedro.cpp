@@ -246,7 +246,7 @@ bool Kedro::generateCatalogYml(const QDir &kedroProject, CustomGraph *graph)
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
     auto dataSources = graph->getDataSourceModels();
     for (auto data : dataSources)
-        qDebug() << data->fileName();
+        qDebug() << data->file().fileName();
     qDebug() << "Generated catalog to: " << conf.absolutePath();
     return true;
 }
