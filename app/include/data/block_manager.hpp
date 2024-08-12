@@ -26,7 +26,7 @@ public slots:
     void onSelectionChanged();
 
 private slots:
-    void onNewTabCreated(QWidget *view);
+    void onTabCreated(QWidget *view);
 
 private:
     static std::shared_ptr<QtNodes::NodeDelegateModelRegistry> m_registry;

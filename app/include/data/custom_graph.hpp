@@ -3,11 +3,15 @@
 #include <QtNodes/DirectedAcyclicGraphModel>
 
 class FdfBlockModel;
+class DataSourceModel;
+class FuncOutModel;
 
 class CustomGraph : public QtNodes::DirectedAcyclicGraphModel
 {
 public:
     CustomGraph(std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registry);
+    std::vector<DataSourceModel *> getDataSourceModels() const;
+    std::vector<FuncOutModel *> getFuncOutModels() const;
 
 protected:
     virtual void onNodeCreated(const QtNodes::NodeId nodeId) override;
@@ -21,4 +25,6 @@ protected:
     std::unordered_map<QString, QtNodes::NodeId> m_usedNodeCaptions;
     // tracks out port names for uniqueness
     std::unordered_map<QString, QtNodes::NodeId> m_usedOutPortCaptions;
+    std::unordered_set<QtNodes::NodeId> m_dataSourceNodes;
+    std::unordered_set<QtNodes::NodeId> m_funcOutNodes;
 };

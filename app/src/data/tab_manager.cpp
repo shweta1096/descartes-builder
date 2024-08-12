@@ -27,11 +27,6 @@ TabComponents::TabComponents(QWidget *parent)
         });
 }
 
-QFileInfo TabComponents::getFile() const
-{
-    return m_scene->getFile();
-}
-
 TabManager::TabManager(QObject *parent)
     : QObject(parent)
 {}
@@ -88,8 +83,8 @@ bool TabManager::addTab(const TabComponents &tab)
     if (m_tabs.count(tab.getView()) > 0)
         return false;
     m_tabs[tab.getView()] = std::move(tab);
-    emit newTabCreated(tab.getView(), tab.getScene()->getFile().baseName());
-    emit currentChanged(tab.getView());
+    emit tabCreated(tab.getView(), tab.getScene()->getFile().baseName());
+    setCurrentView(tab.getView());
     return true;
 }
 
@@ -101,6 +96,23 @@ void TabManager::removeTab(const TabComponents &tab)
 void TabManager::removeTab(ViewWidget *view)
 {
     m_tabs.erase(view);
+    emit tabDeleted(view);
+}
+
+void TabManager::setCurrentView(ViewWidget *view)
+{
+    if (m_currentView == view)
+        return;
+    // qDebug() << "Current view changed to: " << m_tabs.at(view).getScene()->getFile().baseName();
+    m_currentView = view;
+    emit currentChanged(view);
+}
+
+QFileInfo TabManager::getFileInfo(ViewWidget *view) const
+{
+    if (m_tabs.count(view) < 1)
+        return QFileInfo();
+    return m_tabs.at(view).getScene()->getFile();
 }
 
 void TabManager::newTab()
@@ -161,8 +173,8 @@ bool TabManager::openIfExists(QtNodes::DagGraphicsScene *scene)
     if (!scene)
         return false;
     for (auto tab : m_tabs)
-        if (tab.second.getFile() == scene->getFile()) { // file exists, open that tab
-            // setCurrentWidget(tab.first);
+        if (tab.second.getScene()->getFile() == scene->getFile()) { // file exists, open that tab
+            setCurrentView(tab.first);
             return true;
         }
     return false;

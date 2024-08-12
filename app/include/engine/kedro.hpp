@@ -18,10 +18,11 @@ public:
 
 private:
     QString serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const;
+    // setups a python venv and install kedro-umbrella to AppDataLocation
     void firstTimeSetup();
     void verifySetup();
     bool generateParametersYml(const QDir &kedroProject);
-    bool generateCatalogYml(const QDir &kedroProject);
+    bool generateCatalogYml(const QDir &kedroProject, CustomGraph *graph);
     bool generatePipelinePy(const QDir &kedroProject, CustomGraph *graph);
 
     const bool m_WINDOWS;

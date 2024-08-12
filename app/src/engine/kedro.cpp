@@ -13,6 +13,7 @@
 #include "data/constants.hpp"
 #include "data/custom_graph.hpp"
 #include "ui/models/fdf_block_model.hpp"
+#include "ui/models/io_models.hpp"
 
 #include <iostream>
 
@@ -114,7 +115,7 @@ bool Kedro::execute(CustomGraph *graph, const QString &name)
     QDir kedroProject(workspace->path() + QDir::separator() + name);
     if (!generateParametersYml(kedroProject))
         return false;
-    if (!generateCatalogYml(kedroProject))
+    if (!generateCatalogYml(kedroProject, graph))
         return false;
     if (!generatePipelinePy(kedroProject, graph))
         return false;
@@ -248,9 +249,12 @@ bool Kedro::generateParametersYml(const QDir &kedroProject)
     return true;
 }
 
-bool Kedro::generateCatalogYml(const QDir &kedroProject)
+bool Kedro::generateCatalogYml(const QDir &kedroProject, CustomGraph *graph)
 {
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
+    auto dataSources = graph->getDataSourceModels();
+    for (auto data : dataSources)
+        qDebug() << data->fileName();
     qDebug() << "Generated catalog to: " << conf.absolutePath();
     return true;
 }

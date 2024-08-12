@@ -33,17 +33,14 @@ void BlockManager::setTabManager(std::shared_ptr<TabManager> tabManager)
                    &TabManager::currentChanged,
                    this,
                    &BlockManager::onSelectionChanged);
-        disconnect(m_tabManager.get(),
-                   &TabManager::newTabCreated,
-                   this,
-                   &BlockManager::onNewTabCreated);
+        disconnect(m_tabManager.get(), &TabManager::tabCreated, this, &BlockManager::onTabCreated);
     }
     m_tabManager = tabManager;
     connect(m_tabManager.get(),
             &TabManager::currentChanged,
             this,
             &BlockManager::onSelectionChanged);
-    connect(m_tabManager.get(), &TabManager::newTabCreated, this, &BlockManager::onNewTabCreated);
+    connect(m_tabManager.get(), &TabManager::tabCreated, this, &BlockManager::onTabCreated);
 }
 
 QJsonObject BlockManager::getJson(QtNodes::NodeId id)
@@ -54,7 +51,7 @@ QJsonObject BlockManager::getJson(QtNodes::NodeId id)
     return graph->saveNode(id);
 }
 
-void BlockManager::onNewTabCreated(QWidget *view)
+void BlockManager::onTabCreated(QWidget *view)
 {
     if (auto tab = m_tabManager->getTab(view))
         connect(tab->getScene(),

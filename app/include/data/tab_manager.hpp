@@ -21,7 +21,6 @@ public:
     CustomGraph *getGraph() const { return m_graph; }
     QtNodes::DagGraphicsScene *getScene() const { return m_scene; }
     QtNodes::GraphicsView *getView() const { return m_view; }
-    QFileInfo getFile() const;
 
 private:
     CustomGraph *m_graph;
@@ -49,10 +48,12 @@ public:
     void removeTab(const TabComponents &tab);
     void removeTab(ViewWidget *view);
     void setTabParent(QWidget *parent) { m_tabParent = parent; }
-    void setCurrentView(ViewWidget *view) { m_currentView = view; }
+    void setCurrentView(ViewWidget *view);
+    QFileInfo getFileInfo(ViewWidget *view) const;
 
 signals:
-    void newTabCreated(ViewWidget *view, QString filename);
+    void tabCreated(ViewWidget *view, QString filename);
+    void tabDeleted(ViewWidget *view);
     void currentChanged(ViewWidget *view);
     void tabFileNameChanged(ViewWidget *view, QString fileName);
 

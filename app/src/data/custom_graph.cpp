@@ -1,6 +1,7 @@
 #include "data/custom_graph.hpp"
 
 #include "ui/models/fdf_block_model.hpp"
+#include "ui/models/io_models.hpp"
 
 namespace {
 
@@ -23,6 +24,22 @@ CustomGraph::CustomGraph(std::shared_ptr<QtNodes::NodeDelegateModelRegistry> reg
     connect(this, &CustomGraph::nodeDeleted, this, &CustomGraph::onNodeDeleted);
 }
 
+std::vector<DataSourceModel *> CustomGraph::getDataSourceModels() const
+{
+    std::vector<DataSourceModel *> result;
+    for (auto &id : m_dataSourceNodes)
+        result.push_back(delegateModel<DataSourceModel>(id));
+    return result;
+}
+
+std::vector<FuncOutModel *> CustomGraph::getFuncOutModels() const
+{
+    std::vector<FuncOutModel *> result;
+    for (auto &id : m_funcOutNodes)
+        result.push_back(delegateModel<FuncOutModel>(id));
+    return result;
+}
+
 void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
 {
     DirectedAcyclicGraphModel::onNodeCreated(nodeId);
@@ -31,12 +48,25 @@ void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
         return;
     makeCaptionUnique(nodeId, model);
     makeOutPortsUnique(nodeId, model);
+
+    if (model->name() == io_names::DATA_SOURCE)
+        m_dataSourceNodes.insert(nodeId);
+    else if (model->name() == io_names::FUNC_OUT)
+        m_funcOutNodes.insert(nodeId);
 }
 
 void CustomGraph::onNodeDeleted(const QtNodes::NodeId nodeId)
 {
     removeByValue(m_usedNodeCaptions, nodeId);
     removeByValue(m_usedOutPortCaptions, nodeId);
+
+    auto model = delegateModel<FdfBlockModel>(nodeId);
+    if (!model)
+        return;
+    if (model->name() == io_names::DATA_SOURCE)
+        m_dataSourceNodes.erase(nodeId);
+    else if (model->name() == io_names::FUNC_OUT)
+        m_funcOutNodes.erase(nodeId);
 }
 
 void CustomGraph::makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *model)

@@ -3,7 +3,7 @@
 #include <QLineEdit>
 
 DataSourceModel::DataSourceModel()
-    : FdfBlockModel(FdfType::Data, "data_source")
+    : FdfBlockModel(FdfType::Data, io_names::DATA_SOURCE)
 {
     addPort<DataNode>(PortType::Out);
 }
@@ -26,7 +26,7 @@ QWidget *DataSourceModel::embeddedWidget()
 QJsonObject DataSourceModel::save() const
 {
     QJsonObject modelJson = NodeDelegateModel::save();
-    modelJson["data-name"] = portCaption(PortType::Out, 0);
+    modelJson["data-name"] = m_fileName;
     return modelJson;
 }
 
@@ -38,23 +38,25 @@ void DataSourceModel::load(QJsonObject const &p)
         return;
 
     QString data = value.toString();
+    m_fileName = data;
     setPortCaption(PortType::Out, 0, data);
     if (m_widget) {
         m_widget->setText(data);
-        emit contentUpdated();
     }
+    emit contentUpdated();
 }
 
 void DataSourceModel::onWidgetEdited(const QString &name)
 {
     if (name == portCaption(PortType::Out, 0))
         return;
+    m_fileName = name;
     setPortCaption(PortType::Out, 0, name);
     emit contentUpdated();
 }
 
 FuncOutModel::FuncOutModel()
-    : FdfBlockModel(FdfType::Output, "func_out")
+    : FdfBlockModel(FdfType::Output, io_names::FUNC_OUT)
 {
     addPort<FunctionNode>(PortType::In);
 }
