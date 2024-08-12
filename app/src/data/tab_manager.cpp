@@ -111,12 +111,9 @@ bool TabManager::save()
     auto tab = getCurrentTab();
     if (!tab)
         return false;
-    auto scene = tab->getScene();
-    if (!scene || !scene->save())
-        return false;
-    qInfo() << "File saved to: " << scene->getFile().absoluteFilePath();
-    emit tabFileNameChanged(tab->getView(), scene->getFile().baseName());
-    return true;
+    auto result = tab->save();
+    emit tabFileNameChanged(tab->getView(), tab->getFileInfo().baseName());
+    return result;
 }
 
 bool TabManager::saveAs()
@@ -124,20 +121,16 @@ bool TabManager::saveAs()
     auto tab = getCurrentTab();
     if (!tab)
         return false;
-    auto scene = tab->getScene();
-    if (!scene || !scene->saveAs())
-        return false;
-    qInfo() << "File saved as: " << scene->getFile().absoluteFilePath();
-    emit tabFileNameChanged(tab->getView(), scene->getFile().baseName());
-    return true;
+    auto result = tab->saveAs();
+    emit tabFileNameChanged(tab->getView(), tab->getFileInfo().baseName());
+    return result;
 }
 
 bool TabManager::open()
 {
     // open in a new tab
     auto tab = std::make_shared<TabComponents>(m_tabParent);
-    auto scene = tab->getScene();
-    if (!scene || !scene->load() || openIfExists(scene->getFile()))
+    if (!tab->open() || openIfExists(tab->getFileInfo()))
         return false;
     return addTab(tab);
 }
@@ -147,9 +140,6 @@ bool TabManager::openFrom(const QString &filePath)
     // open in a new tab
     QFileInfo file(filePath);
     auto tab = std::make_shared<TabComponents>(m_tabParent, file);
-    auto scene = tab->getScene();
-    if (!scene || !scene->load(filePath) || openIfExists(file))
-        return false;
     return addTab(tab);
 }
 

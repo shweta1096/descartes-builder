@@ -21,8 +21,11 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
     , m_dir(std::make_shared<QTemporaryDir>())
 {
     m_graph->setParent(parent);
-    if (fileInfo)
+    if (fileInfo) {
         m_localFile = fileInfo.value();
+        // change to the path of the temp dir
+        m_scene->load(m_localFile.absoluteFilePath());
+    }
     qDebug() << m_localFile;
     if (!m_dir->isValid())
         qCritical() << "Temp dir failed to init";
@@ -45,6 +48,36 @@ TabComponents::~TabComponents()
     m_view->deleteLater();
     m_scene->deleteLater();
     m_graph->deleteLater();
+}
+
+bool TabComponents::save()
+{
+    // save scene to temp dir
+    if (!m_scene || !m_scene->save())
+        return false;
+    qInfo() << "File saved to: " << m_scene->getFile().absoluteFilePath();
+    // compress temp dir and save to file dialog result
+    return true;
+}
+
+bool TabComponents::saveAs()
+{
+    // save scene to temp dir
+    if (!m_scene || !m_scene->saveAs())
+        return false;
+    qInfo() << "File saved as: " << m_scene->getFile().absoluteFilePath();
+    // compress temp dir and save to file dialog result
+    return true;
+}
+
+bool TabComponents::open()
+{
+    // uncompress to temp dir
+    // set scene file to temp dir .dag
+    // open .dag
+    if (!m_scene || !m_scene->load())
+        return false;
+    return true;
 }
 
 void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)

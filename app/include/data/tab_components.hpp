@@ -25,6 +25,9 @@ public:
     std::shared_ptr<QTemporaryDir> getTempDir() { return m_dir; }
     QFileInfo getFileInfo() { return m_localFile; }
     void setFileInfo(const QFileInfo &fileInfo) { m_localFile = fileInfo; }
+    bool save();
+    bool saveAs();
+    bool open();
 
 private slots:
     void onDataSourceImportClicked(const QtNodes::NodeId nodeId);
