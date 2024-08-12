@@ -31,6 +31,8 @@ QWidget *DataSourceModel::embeddedWidget()
 {
     if (!m_widget) {
         m_widget = new QWidget();
+        m_widget->setProperty("bg", "transparent");
+        m_widget->setStyleSheet("*[bg='transparent']{ background: transparent; }");
 
         auto layout = new QVBoxLayout(m_widget);
         layout->setSpacing(0);

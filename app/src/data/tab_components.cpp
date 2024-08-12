@@ -55,6 +55,8 @@ void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)
                                      QStandardPaths::writableLocation(
                                          QStandardPaths::DocumentsLocation),
                                      tr("data (*%1)").arg(DataSourceModel::fileFilter())));
+    if (originalFile.absolutePath().isEmpty())
+        return; // cancelled
     QFileInfo newFile(m_dir->filePath(originalFile.fileName()));
     // move to temp dir
     QFile::copy(originalFile.absoluteFilePath(), newFile.absoluteFilePath());
