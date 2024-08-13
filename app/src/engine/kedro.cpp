@@ -46,8 +46,9 @@ QStringList getPortList(const FdfBlockModel &block, const PortType &type)
 {
     QStringList result;
     for (PortIndex i = 0; i < block.nPorts(type); ++i) {
-        auto port = block.portData(type, i);
-        result.append(QString("\"%1\"").arg(port->type().name.replace(' ', '_')));
+        // if an in port is not connected it is null, the 'if' can be removed after the validity check handles it
+        if (auto port = block.portData(type, i))
+            result.append(QString("\"%1\"").arg(port->type().name.replace(' ', '_')));
     }
     return result;
 }
@@ -140,6 +141,8 @@ bool Kedro::validityCheck(std::shared_ptr<TabComponents> tab)
         qWarning() << "The blocks in the graph are not connected";
         return false;
     }
+    // TODO: add check that every node input is connected
+    // TODO: add check that every node is "ready" e.g. data source has imported something
     qInfo() << "Passed validity checks!";
     return true;
 }
@@ -149,6 +152,7 @@ QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
     auto name = tab->getFileInfo().baseName();
     // kedro dir inside of temp dir, to avoid cases where file name conflicts with existing folder
     QDir kedroDir(tab->getTempDir()->filePath("kedro"));
+    kedroDir.mkpath(".");
     QProcess workspaceProcess;
     workspaceProcess.setWorkingDirectory(kedroDir.absolutePath());
     QString command = QString("bash -c \"echo %1 | %2 -m kedro new -s %3\"")
@@ -161,7 +165,6 @@ QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
         return QDir();
     }
     return QDir(kedroDir.absolutePath() + QDir::separator() + name);
-    ;
 }
 
 QString Kedro::serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const

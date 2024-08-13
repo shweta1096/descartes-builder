@@ -41,6 +41,7 @@ private:
     QWidget *m_widget;
     QLabel *m_label;
 
+    // not the actual file path, using it for relative path
     QFileInfo m_file;
     std::optional<CatalogType> m_fileType;
 };
