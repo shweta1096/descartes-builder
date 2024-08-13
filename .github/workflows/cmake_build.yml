@@ -19,7 +19,7 @@ jobs:
         build_type:
           - Release
         qt_version:
-          - "6.3.0"
+          - "6.7.1"
         include:
           - os: ubuntu-latest
             compiler: gcc

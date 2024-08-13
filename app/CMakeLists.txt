@@ -23,9 +23,9 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL)
 
-add_subdirectory(external/quazip)
 add_subdirectory(external/qtnodes)
 add_subdirectory(external/qtutility)
+add_subdirectory(external/quazip)
 
 include_directories(include)
 
