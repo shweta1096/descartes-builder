@@ -108,7 +108,7 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
     auto kedroProject = initWorkspace(tab);
     if (!generateParametersYml(kedroProject))
         return false;
-    if (!generateCatalogYml(kedroProject, tab->getGraph()))
+    if (!generateCatalogYml(kedroProject, tab))
         return false;
     if (!generatePipelinePy(kedroProject, tab->getGraph()))
         return false;
@@ -242,15 +242,32 @@ bool Kedro::generateParametersYml(const QDir &kedroProject)
     return true;
 }
 
-bool Kedro::generateCatalogYml(const QDir &kedroProject, CustomGraph *graph)
+bool Kedro::generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComponents> tab)
 {
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
-    auto dataSources = graph->getDataSourceModels();
-    // move each data to raw dir
-    for (auto data : dataSources)
-        qDebug() << data->file().fileName();
+    auto dataSources = tab->getGraph()->getDataSourceModels();
+    QDir rawDataDir(kedroProject.absoluteFilePath(constants::kedro::RAW_DATA_PATH));
+    QStringList catalogEntries;
+    for (auto data : dataSources) {
+        auto fileName = data->file().fileName();
+        // copy data to raw data dir
+        QFile::copy(tab->getDataDir().absoluteFilePath(fileName),
+                    rawDataDir.absoluteFilePath(fileName));
+        catalogEntries << constants::kedro::CATALOG_YML_ENTRY.arg(data->file().baseName(),
+                                                                  data->fileTypeString(),
+                                                                  constants::kedro::RAW_DATA_PATH
+                                                                      + fileName);
+    }
     //generate catalog.yml
-    qDebug() << "Generated catalog to: " << conf.absolutePath();
+    QFile catalogYml(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH + "catalog.yml"));
+    if (!catalogYml.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qCritical() << "Cannot open pipeline.py:" << catalogYml.errorString();
+        return false;
+    }
+    QTextStream out(&catalogYml);
+    out << catalogEntries.join("\n");
+    catalogYml.close();
+    qDebug() << "Coped data files and generated catalog to: " << conf.absolutePath();
     return true;
 }
 

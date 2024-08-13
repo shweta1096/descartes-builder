@@ -85,11 +85,10 @@ constexpr ConstLatin1String RAW_DATA_PATH = "data/01_raw/";
 
 // templates for gnerating files
 constexpr ConstLatin1String CATALOG_YML_ENTRY =
-    R"(
-%1:
+    R"(%1:
   type: %2
   filepath: %3
-    )";
+  )";
 
 // %1 is the list of all pipeline objects
 constexpr ConstLatin1String PIPELINE_PY =

@@ -28,6 +28,7 @@ public:
     void load(QJsonObject const &p) override;
     QFileInfo file() const { return m_file; }
     std::optional<CatalogType> fileType() const { return m_fileType; }
+    QString fileTypeString() const;
     void setFile(const QFileInfo &file);
     static QString fileFilter();
 

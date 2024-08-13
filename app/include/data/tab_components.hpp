@@ -23,6 +23,7 @@ public:
     QtNodes::DagGraphicsScene *getScene() const { return m_scene; }
     QtNodes::GraphicsView *getView() const { return m_view; }
     std::shared_ptr<QTemporaryDir> getTempDir() { return m_dir; }
+    QDir getDataDir() { return m_dataDir; }
     QFileInfo getFileInfo() { return m_localFile; }
     void setFileInfo(const QFileInfo &fileInfo) { m_localFile = fileInfo; }
     bool save();

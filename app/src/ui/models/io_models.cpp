@@ -64,22 +64,23 @@ void DataSourceModel::load(QJsonObject const &p)
     if (value.isUndefined())
         return;
 
-    QString data = value.toString();
-    m_file.setFile(data);
-    updatePortCaption(m_file.baseName());
-    if (m_widget) {
-        m_label->setText(data);
-    }
-    emit contentUpdated();
+    setFile(QFileInfo(value.toString()));
+}
+
+QString DataSourceModel::fileTypeString() const
+{
+    if (m_fileType && CATALOG_STRING.count(m_fileType.value()) > 0)
+        return CATALOG_STRING.at(m_fileType.value());
+    return "NONE";
 }
 
 void DataSourceModel::setFile(const QFileInfo &file)
 {
     if (file == m_file)
         return;
-    if (!file.exists())
-        return;
     m_file = file;
+    if (CATALOG_EXTENSIONS.count(m_file.suffix()) > 0)
+        m_fileType = CATALOG_EXTENSIONS.at(m_file.suffix());
     m_label->setText(m_file.fileName());
     updatePortCaption(m_file.baseName());
     emit contentUpdated();

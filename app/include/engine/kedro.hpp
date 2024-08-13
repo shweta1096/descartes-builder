@@ -22,7 +22,7 @@ private:
     void firstTimeSetup();
     void verifySetup();
     bool generateParametersYml(const QDir &kedroProject);
-    bool generateCatalogYml(const QDir &kedroProject, CustomGraph *graph);
+    bool generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComponents> tab);
     bool generatePipelinePy(const QDir &kedroProject, CustomGraph *graph);
 
     const bool m_WINDOWS;
