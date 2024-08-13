@@ -25,9 +25,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL)
 
 add_subdirectory(external/qtnodes)
 add_subdirectory(external/qtutility)
-add_subdirectory(external/zlib)
-set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/zlib)
-set(ZLIB_LIBRARY zlibstatic)
 add_subdirectory(external/quazip)
 
 include_directories(include)
