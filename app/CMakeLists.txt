@@ -20,7 +20,7 @@ add_definitions("-DQT_MESSAGELOGCONTEXT")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets Core5Compat)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL)
 
 add_subdirectory(external/qtnodes)
