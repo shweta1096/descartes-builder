@@ -98,6 +98,7 @@ Kedro::~Kedro() {}
 
 bool Kedro::execute(std::shared_ptr<TabComponents> tab)
 {
+    qDebug() << "Kedro is executing...";
     if (!validityCheck(tab))
         return false;
     if (!m_setup) {
@@ -125,14 +126,14 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
     auto zip = QtUtility::file::getUniqueFile(
         QFileInfo(m_runtimeCache.filePath(tab->getFileInfo().baseName() + ".zip")));
     if (JlCompress::compressDir(zip.absoluteFilePath(), kedroProject.absolutePath()))
-        qDebug() << "Kedro execution cached to: " << zip.absoluteFilePath();
+        qDebug() << "Kedro execution completed, result is cached to: " << zip.absoluteFilePath();
     return true;
 }
 
 bool Kedro::validityCheck(std::shared_ptr<TabComponents> tab)
 {
     auto graph = tab->getGraph();
-    qInfo() << "Checking validity...";
+    qInfo() << "Checking graph validity...";
     if (graph->isEmpty()) {
         qWarning() << "There is no blocks in the graph to execute";
         return false;
@@ -238,7 +239,7 @@ bool Kedro::generateParametersYml(const QDir &kedroProject)
     // every graph will need their own parameters.yml which store vars about blocks
     // or add properties to the blocks that are used to generate the parameters yml
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
-    qDebug() << "Generated parameters to: " << conf.absolutePath();
+    // qDebug() << "Generated parameters to: " << conf.absolutePath();
     return true;
 }
 
@@ -267,7 +268,6 @@ bool Kedro::generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComp
     QTextStream out(&catalogYml);
     out << catalogEntries.join("\n");
     catalogYml.close();
-    qDebug() << "Coped data files and generated catalog to: " << conf.absolutePath();
     return true;
 }
 
@@ -290,6 +290,5 @@ bool Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
     QTextStream out(&pipelinePy);
     out << data;
     pipelinePy.close();
-    qDebug() << "Generated pipeline to: " << source.absolutePath();
     return true;
 }

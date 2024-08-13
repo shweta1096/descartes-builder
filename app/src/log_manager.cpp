@@ -87,10 +87,17 @@ void LogManager::init()
             this,
             &LogManager::appendMessage,
             Qt::QueuedConnection);
+#ifdef QT_DEBUG
     qSetMessagePattern(
         "[%{time yyyy-MM-dd HH:mm:ss.zzz}] "
         "[%{if-debug}debug%{endif}%{if-info}info%{endif}%{if-warning}warning%{endif}%{if-critical}"
         "error%{endif}%{if-fatal}fatal%{endif}] %{file}:%{line}<%{function}>: %{message}");
+#else
+    qSetMessagePattern(
+        "[%{time HH:mm:ss.zzz}] "
+        "[%{if-debug}debug%{endif}%{if-info}info%{endif}%{if-warning}warning%{endif}%{if-critical}"
+        "error%{endif}%{if-fatal}fatal%{endif}]: %{message}");
+#endif
     m_originalHandler = qInstallMessageHandler(logHandler);
 }
 
