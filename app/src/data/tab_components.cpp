@@ -26,14 +26,9 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
     , m_scene(new DagGraphicsScene(*m_graph, parent))
     , m_view(new GraphicsView(m_scene))
     , m_dir(std::make_shared<QTemporaryDir>())
-    , m_dataDir(m_dir->filePath("data/"))
+    , m_dataDir(m_dir->filePath("data"))
 {
     m_graph->setParent(parent);
-    if (fileInfo) {
-        m_localFile = fileInfo.value();
-        // change to the path of the temp dir
-        m_scene->load(m_localFile.absoluteFilePath());
-    }
     if (!m_dir->isValid())
         qCritical() << "Temp dir failed to init";
     m_dataDir.mkpath(".");
@@ -49,6 +44,10 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
             &CustomGraph::dataSourceModelImportClicked,
             this,
             &TabComponents::onDataSourceImportClicked);
+    if (fileInfo) {
+        m_localFile = fileInfo.value();
+        openExisting();
+    }
 }
 
 TabComponents::~TabComponents()
@@ -96,6 +95,11 @@ bool TabComponents::open()
                                      tr("DesCartes Builder File (*%1)").arg(FILE_EXTENSION)));
     if (!m_localFile.exists() || m_localFile.suffix() != FILE_EXTENSION)
         return false; // dialog cancelled
+    return openExisting();
+}
+
+bool TabComponents::openExisting()
+{
     JlCompress::extractDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath());
     if (!m_dataDir.exists(m_localFile.baseName() + SCENE_EXTENSION))
         return false;

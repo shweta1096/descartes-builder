@@ -14,7 +14,7 @@ public:
     ~Kedro();
     virtual bool execute(std::shared_ptr<TabComponents> tab) override;
     virtual bool validityCheck(std::shared_ptr<TabComponents> tab) override;
-    std::unique_ptr<QTemporaryDir> initNewWorkspace(const QString &name);
+    QDir initWorkspace(std::shared_ptr<TabComponents> tab);
 
 private:
     QString serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const;

@@ -33,6 +33,8 @@ private slots:
     void onDataSourceImportClicked(const QtNodes::NodeId nodeId);
 
 private:
+    bool openExisting();
+
     CustomGraph *m_graph;
     QtNodes::DagGraphicsScene *m_scene;
     QtNodes::GraphicsView *m_view;

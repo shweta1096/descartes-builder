@@ -97,7 +97,6 @@ Kedro::~Kedro() {}
 
 bool Kedro::execute(std::shared_ptr<TabComponents> tab)
 {
-    auto name = tab->getFileInfo().baseName();
     if (!validityCheck(tab))
         return false;
     if (!m_setup) {
@@ -105,8 +104,7 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
         return false;
     }
     // Temp dir will auto delete when out of scope
-    auto workspace = initNewWorkspace(name);
-    QDir kedroProject(workspace->path() + QDir::separator() + name);
+    auto kedroProject = initWorkspace(tab);
     if (!generateParametersYml(kedroProject))
         return false;
     if (!generateCatalogYml(kedroProject, tab->getGraph()))
@@ -123,8 +121,9 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
     }
 
     // compress dir to zip and cache to runtime dir
-    auto zip = QtUtility::file::getUniqueFile(QFileInfo(m_runtimeCache.filePath(name + ".zip")));
-    if (JlCompress::compressDir(zip.absoluteFilePath(), workspace->path()))
+    auto zip = QtUtility::file::getUniqueFile(
+        QFileInfo(m_runtimeCache.filePath(tab->getFileInfo().baseName() + ".zip")));
+    if (JlCompress::compressDir(zip.absoluteFilePath(), kedroProject.absolutePath()))
         qDebug() << "Kedro execution cached to: " << zip.absoluteFilePath();
     return true;
 }
@@ -145,13 +144,13 @@ bool Kedro::validityCheck(std::shared_ptr<TabComponents> tab)
     return true;
 }
 
-std::unique_ptr<QTemporaryDir> Kedro::initNewWorkspace(const QString &name)
+QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
 {
-    std::unique_ptr<QTemporaryDir> dir = std::make_unique<QTemporaryDir>();
-    if (!dir->isValid())
-        qCritical() << "Temporary dir is invalid";
+    auto name = tab->getFileInfo().baseName();
+    // kedro dir inside of temp dir, to avoid cases where file name conflicts with existing folder
+    QDir kedroDir(tab->getTempDir()->filePath("kedro"));
     QProcess workspaceProcess;
-    workspaceProcess.setWorkingDirectory(dir->path());
+    workspaceProcess.setWorkingDirectory(kedroDir.absolutePath());
     QString command = QString("bash -c \"echo %1 | %2 -m kedro new -s %3\"")
                           .arg(singleQuote(name),
                                singleQuote(m_VENV_PYTHON),
@@ -159,9 +158,10 @@ std::unique_ptr<QTemporaryDir> Kedro::initNewWorkspace(const QString &name)
     workspaceProcess.startCommand(command);
     if (!workspaceProcess.waitForFinished()) {
         qCritical() << "Failed to create workspace " << name;
-        return std::unique_ptr<QTemporaryDir>();
+        return QDir();
     }
-    return dir;
+    return QDir(kedroDir.absolutePath() + QDir::separator() + name);
+    ;
 }
 
 QString Kedro::serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const

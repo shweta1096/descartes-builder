@@ -162,7 +162,7 @@ void MainWindow::initMenuBar()
             for (int i = 0; i < 6; ++i) // mac only due to bundle dir
                 dir.cdUp();
             dir.cd("examples");
-            m_tabManager->openFrom(dir.absoluteFilePath("pipe-deformation.dag"));
+            m_tabManager->openFrom(dir.absoluteFilePath("pipe-deformation.dcb"));
         });
         openExample->setShortcut(
             QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_E));
