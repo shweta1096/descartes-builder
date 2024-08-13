@@ -7,6 +7,8 @@
 #include <QtNodes/DagGraphicsScene>
 #include <QtNodes/GraphicsView>
 
+#include <quazip/JlCompress.h>
+
 #include "data/block_manager.hpp"
 #include "data/custom_graph.hpp"
 #include "ui/models/io_models.hpp"
@@ -14,11 +16,17 @@
 using QtNodes::DagGraphicsScene;
 using QtNodes::GraphicsView;
 
+namespace {
+const QString SCENE_EXTENSION = ".dag";
+const QString FILE_EXTENSION = "dcb";
+} // namespace
+
 TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
     : m_graph(new CustomGraph(BlockManager::getRegistry()))
     , m_scene(new DagGraphicsScene(*m_graph, parent))
     , m_view(new GraphicsView(m_scene))
     , m_dir(std::make_shared<QTemporaryDir>())
+    , m_dataDir(m_dir->filePath("data/"))
 {
     m_graph->setParent(parent);
     if (fileInfo) {
@@ -26,9 +34,9 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
         // change to the path of the temp dir
         m_scene->load(m_localFile.absoluteFilePath());
     }
-    qDebug() << m_localFile;
     if (!m_dir->isValid())
         qCritical() << "Temp dir failed to init";
+    m_dataDir.mkpath(".");
     // Qt bug for MacOS throws warnings when using touch pad with graphics view
     // touch pad seems to trigger touch events, so touch events are disabled to supress the bug
     m_view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
@@ -52,32 +60,46 @@ TabComponents::~TabComponents()
 
 bool TabComponents::save()
 {
-    // save scene to temp dir
-    if (!m_scene || !m_scene->save())
+    if (m_localFile.filePath().isEmpty() || m_localFile.suffix().isEmpty())
+        return saveAs();
+    if (!m_scene->save(m_dataDir.absoluteFilePath(m_localFile.baseName() + SCENE_EXTENSION)))
         return false;
-    qInfo() << "File saved to: " << m_scene->getFile().absoluteFilePath();
-    // compress temp dir and save to file dialog result
+    if (!JlCompress::compressDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath()))
+        return false;
+    qInfo() << "File saved to: " << m_localFile.absoluteFilePath();
     return true;
 }
 
 bool TabComponents::saveAs()
 {
-    // save scene to temp dir
-    if (!m_scene || !m_scene->saveAs())
-        return false;
-    qInfo() << "File saved as: " << m_scene->getFile().absoluteFilePath();
-    // compress temp dir and save to file dialog result
-    return true;
+    QFileInfo newFile(
+        QFileDialog::getSaveFileName(nullptr,
+                                     tr("Save DCB File"),
+                                     QStandardPaths::writableLocation(
+                                         QStandardPaths::DocumentsLocation),
+                                     tr("DesCartes Builder File (*%1)").arg(FILE_EXTENSION)));
+    if (newFile.filePath().isEmpty())
+        return false; // dialog cancelled
+    if (newFile.suffix().compare(FILE_EXTENSION, Qt::CaseInsensitive) != 0)
+        newFile.setFile(newFile.dir(), newFile.baseName() + '.' + FILE_EXTENSION);
+    m_localFile.setFile(newFile.absoluteFilePath());
+    return save();
 }
 
 bool TabComponents::open()
 {
-    // uncompress to temp dir
-    // set scene file to temp dir .dag
-    // open .dag
-    if (!m_scene || !m_scene->load())
+    m_localFile.setFile(
+        QFileDialog::getOpenFileName(nullptr,
+                                     tr("Open DCB File"),
+                                     QStandardPaths::writableLocation(
+                                         QStandardPaths::DocumentsLocation),
+                                     tr("DesCartes Builder File (*%1)").arg(FILE_EXTENSION)));
+    if (!m_localFile.exists() || m_localFile.suffix() != FILE_EXTENSION)
+        return false; // dialog cancelled
+    JlCompress::extractDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath());
+    if (!m_dataDir.exists(m_localFile.baseName() + SCENE_EXTENSION))
         return false;
-    return true;
+    return m_scene->load(m_dataDir.absoluteFilePath(m_localFile.baseName() + SCENE_EXTENSION));
 }
 
 void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)
@@ -88,13 +110,14 @@ void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)
                                      QStandardPaths::writableLocation(
                                          QStandardPaths::DocumentsLocation),
                                      tr("data (*%1)").arg(DataSourceModel::fileFilter())));
-    if (originalFile.absolutePath().isEmpty())
+    if (originalFile.filePath().isEmpty() || originalFile.suffix().isEmpty())
         return; // cancelled
-    QFileInfo newFile(m_dir->filePath(originalFile.fileName()));
+    qDebug() << "copy to: " << m_dataDir.absoluteFilePath(originalFile.fileName());
+    QFileInfo newFile(m_dataDir.absoluteFilePath(originalFile.fileName()));
     // move to temp dir
     QFile::copy(originalFile.absoluteFilePath(), newFile.absoluteFilePath());
     auto dataSource = m_graph->delegateModel<DataSourceModel>(nodeId);
-    QFileInfo oldFile(m_dir->filePath(dataSource->file().fileName()));
+    QFileInfo oldFile(m_dataDir.absoluteFilePath(dataSource->file().fileName()));
     if (oldFile.exists())
         QFile::remove(oldFile.absoluteFilePath());
     dataSource->setFile(newFile);

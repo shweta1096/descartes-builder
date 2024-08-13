@@ -12,6 +12,7 @@
 
 #include "data/constants.hpp"
 #include "data/custom_graph.hpp"
+#include "data/tab_components.hpp"
 #include "ui/models/fdf_block_model.hpp"
 #include "ui/models/io_models.hpp"
 
@@ -94,9 +95,10 @@ Kedro::Kedro()
 
 Kedro::~Kedro() {}
 
-bool Kedro::execute(CustomGraph *graph, const QString &name)
+bool Kedro::execute(std::shared_ptr<TabComponents> tab)
 {
-    if (!validityCheck(graph))
+    auto name = tab->getFileInfo().baseName();
+    if (!validityCheck(tab))
         return false;
     if (!m_setup) {
         qCritical() << "Kedro is not setup yet, please setup kedro before executing";
@@ -107,9 +109,9 @@ bool Kedro::execute(CustomGraph *graph, const QString &name)
     QDir kedroProject(workspace->path() + QDir::separator() + name);
     if (!generateParametersYml(kedroProject))
         return false;
-    if (!generateCatalogYml(kedroProject, graph))
+    if (!generateCatalogYml(kedroProject, tab->getGraph()))
         return false;
-    if (!generatePipelinePy(kedroProject, graph))
+    if (!generatePipelinePy(kedroProject, tab->getGraph()))
         return false;
 
     // call kedro run
@@ -127,8 +129,9 @@ bool Kedro::execute(CustomGraph *graph, const QString &name)
     return true;
 }
 
-bool Kedro::validityCheck(CustomGraph *graph)
+bool Kedro::validityCheck(std::shared_ptr<TabComponents> tab)
 {
+    auto graph = tab->getGraph();
     qInfo() << "Checking validity...";
     if (graph->isEmpty()) {
         qWarning() << "There is no blocks in the graph to execute";
@@ -140,11 +143,6 @@ bool Kedro::validityCheck(CustomGraph *graph)
     }
     qInfo() << "Passed validity checks!";
     return true;
-}
-
-QVariant Kedro::getNodeOutput(CustomGraph *graph, QtNodes::NodeId id)
-{
-    return graph->nodeData(id, QtNodes::NodeRole::InternalData);
 }
 
 std::unique_ptr<QTemporaryDir> Kedro::initNewWorkspace(const QString &name)
@@ -245,8 +243,10 @@ bool Kedro::generateCatalogYml(const QDir &kedroProject, CustomGraph *graph)
 {
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
     auto dataSources = graph->getDataSourceModels();
+    // move each data to raw dir
     for (auto data : dataSources)
         qDebug() << data->file().fileName();
+    //generate catalog.yml
     qDebug() << "Generated catalog to: " << conf.absolutePath();
     return true;
 }

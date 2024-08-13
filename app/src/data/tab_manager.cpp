@@ -50,7 +50,7 @@ GraphicsView *TabManager::currentView() const
 QString TabManager::currentTabName() const
 {
     if (auto tab = getCurrentTab())
-        return tab->getScene()->getFile().baseName();
+        return tab->getFileInfo().baseName();
     return QString();
 }
 
@@ -79,7 +79,7 @@ void TabManager::setCurrentView(ViewWidget *view)
 {
     if (m_currentView == view)
         return;
-    // qDebug() << "Current view changed to: " << m_tabs.at(view).getScene()->getFile().baseName();
+    // qDebug() << "Current view changed to: " << m_tabs.at(view)->getFileInfo().baseName();
     m_currentView = view;
     emit currentChanged(view);
 }
@@ -88,7 +88,7 @@ QFileInfo TabManager::getFileInfo(ViewWidget *view) const
 {
     if (m_tabs.count(view) < 1)
         return QFileInfo();
-    return m_tabs.at(view)->getScene()->getFile();
+    return m_tabs.at(view)->getFileInfo();
 }
 
 void TabManager::clear()

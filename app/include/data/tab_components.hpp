@@ -36,8 +36,9 @@ private:
     CustomGraph *m_graph;
     QtNodes::DagGraphicsScene *m_scene;
     QtNodes::GraphicsView *m_view;
-    // dir with .dag and imported files
     std::shared_ptr<QTemporaryDir> m_dir;
+    // dir with .dag and imported files
+    QDir m_dataDir;
     // zipped local file to output to
     QFileInfo m_localFile;
 };

@@ -5,15 +5,15 @@
 #include <QTemporaryDir>
 
 class QProcess;
+class CustomGraph;
 
 class Kedro : public AbstractEngine
 {
 public:
     Kedro();
     ~Kedro();
-    virtual bool execute(CustomGraph *graph, const QString &name) override;
-    virtual bool validityCheck(CustomGraph *graph) override;
-    virtual QVariant getNodeOutput(CustomGraph *graph, QtNodes::NodeId id) override;
+    virtual bool execute(std::shared_ptr<TabComponents> tab) override;
+    virtual bool validityCheck(std::shared_ptr<TabComponents> tab) override;
     std::unique_ptr<QTemporaryDir> initNewWorkspace(const QString &name);
 
 private:

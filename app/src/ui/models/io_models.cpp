@@ -66,7 +66,7 @@ void DataSourceModel::load(QJsonObject const &p)
 
     QString data = value.toString();
     m_file.setFile(data);
-    setPortCaption(PortType::Out, 0, data);
+    updatePortCaption(m_file.baseName());
     if (m_widget) {
         m_label->setText(data);
     }
