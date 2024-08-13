@@ -25,6 +25,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL)
 
 add_subdirectory(external/qtnodes)
 add_subdirectory(external/qtutility)
+add_subdirectory(external/zlib)
 add_subdirectory(external/quazip)
 
 include_directories(include)
