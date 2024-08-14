@@ -6,17 +6,17 @@
 
 namespace {
 
-std::unordered_map<DataSourceModel::CatalogType, QString> CATALOG_STRING = {
-    {DataSourceModel::CatalogType::Pickle, "pickle.PickleDataSet"},
-    {DataSourceModel::CatalogType::Csv, "pandas.CSVDataSet"},
-    {DataSourceModel::CatalogType::H5, "kedro_umbrella.library.H5Dataset"},
+std::unordered_map<CatalogType, QString> CATALOG_STRING = {
+    {CatalogType::Pickle, "pickle.PickleDataSet"},
+    {CatalogType::Csv, "pandas.CSVDataSet"},
+    {CatalogType::H5, "kedro_umbrella.library.H5Dataset"},
 };
 
-std::unordered_map<QString, DataSourceModel::CatalogType> CATALOG_EXTENSIONS = {
-    {"csv", DataSourceModel::CatalogType::Csv},
-    {"pickle", DataSourceModel::CatalogType::Pickle},
-    {"mat", DataSourceModel::CatalogType::H5},
-    {"jld2", DataSourceModel::CatalogType::H5},
+std::unordered_map<QString, CatalogType> CATALOG_EXTENSIONS = {
+    {"csv", CatalogType::Csv},
+    {"pickle", CatalogType::Pickle},
+    {"mat", CatalogType::H5},
+    {"jld2", CatalogType::H5},
 };
 
 } // namespace
@@ -103,6 +103,27 @@ void DataSourceModel::updatePortCaption(const QString &name)
 
 FuncOutModel::FuncOutModel()
     : FdfBlockModel(FdfType::Output, io_names::FUNC_OUT)
+    , m_fileType(CatalogType::Pickle)
 {
     addPort<FunctionNode>(PortType::In);
+}
+
+QString FuncOutModel::fileTypeString() const
+{
+    if (CATALOG_STRING.count(m_fileType) > 0)
+        return CATALOG_STRING.at(m_fileType);
+    return "NONE";
+}
+
+QString FuncOutModel::getFileName() const
+{
+    return portCaption(PortType::In, 0);
+}
+
+QString FuncOutModel::getFileExtenstion() const
+{
+    for (auto &pair : CATALOG_EXTENSIONS)
+        if (pair.second == m_fileType)
+            return pair.first;
+    return QString();
 }

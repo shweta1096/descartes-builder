@@ -123,12 +123,14 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
     if (!run.waitForFinished()) {
         qCritical() << "Failed to run kedro";
     }
+    auto output = QString::fromUtf8(run.readAllStandardOutput());
 
     // compress dir to zip and cache to runtime dir
     auto zip = QtUtility::file::getUniqueFile(
         QFileInfo(m_runtimeCache.filePath(tab->getFileInfo().baseName() + ".zip")));
     if (JlCompress::compressDir(zip.absoluteFilePath(), kedroProject.absolutePath()))
-        qDebug() << "Kedro execution completed, result is cached to: " << zip.absoluteFilePath();
+        qDebug() << "Kedro executed, result is cached to: " << zip.absoluteFilePath();
+    emit executed(output);
     return true;
 }
 
@@ -269,10 +271,21 @@ bool Kedro::generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComp
         // copy data to raw data dir
         QFile::copy(tab->getDataDir().absoluteFilePath(fileName),
                     rawDataDir.absoluteFilePath(fileName));
+        // add external data to catalog.yml
         catalogEntries << constants::kedro::CATALOG_YML_ENTRY.arg(data->file().baseName(),
                                                                   data->fileTypeString(),
                                                                   constants::kedro::RAW_DATA_PATH
                                                                       + fileName);
+    }
+    // add outputs to catalog.yml
+    auto funcOuts = tab->getGraph()->getFuncOutModels();
+    for (auto funcOut : funcOuts) {
+        auto name = funcOut->getFileName();
+        catalogEntries << constants::kedro::CATALOG_YML_ENTRY
+                              .arg(name,
+                                   funcOut->fileTypeString(),
+                                   constants::kedro::MODELS_PATH + name + '.'
+                                       + funcOut->getFileExtenstion());
     }
     //generate catalog.yml
     QFile catalogYml(conf.absoluteFilePath("catalog.yml"));

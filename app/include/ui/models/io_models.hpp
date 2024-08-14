@@ -15,12 +15,12 @@ constexpr ConstLatin1String DATA_SOURCE = "data_source";
 constexpr ConstLatin1String FUNC_OUT = "func_out";
 } // namespace io_names
 
+enum CatalogType { Pickle, Csv, H5 };
+
 class DataSourceModel : public FdfBlockModel
 {
     Q_OBJECT
 public:
-    enum CatalogType { Pickle, Csv, H5 };
-
     DataSourceModel();
     void setInData(std::shared_ptr<NodeData>, PortIndex const) override {};
     QWidget *embeddedWidget() override;
@@ -52,4 +52,12 @@ class FuncOutModel : public FdfBlockModel
     Q_OBJECT
 public:
     FuncOutModel();
+    CatalogType getFileType() const { return m_fileType; }
+    QString fileTypeString() const;
+    void setFileType(const CatalogType &fileType) { m_fileType = fileType; }
+    QString getFileName() const;
+    QString getFileExtenstion() const;
+
+private:
+    CatalogType m_fileType;
 };

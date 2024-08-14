@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QObject>
 #include <QString>
 #include <QStringList>
 
@@ -7,8 +8,9 @@
 
 class TabComponents;
 
-class AbstractEngine
+class AbstractEngine : public QObject
 {
+    Q_OBJECT
 public:
     virtual ~AbstractEngine() {}
     virtual bool execute(std::shared_ptr<TabComponents> tab) = 0;
@@ -16,6 +18,9 @@ public:
 
     virtual bool validityCheck(std::shared_ptr<TabComponents> tab) = 0;
     QStringList getValidityWarnings() const { return m_validityWarnings; }
+
+signals:
+    void executed(const QString& output);
 
 protected:
     void setExecutionError(const QString &error) { m_executionError = error; }

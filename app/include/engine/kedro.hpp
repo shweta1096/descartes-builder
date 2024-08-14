@@ -9,6 +9,7 @@ class CustomGraph;
 
 class Kedro : public AbstractEngine
 {
+    Q_OBJECT
 public:
     Kedro();
     ~Kedro();

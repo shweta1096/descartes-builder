@@ -82,6 +82,7 @@ constexpr ConstLatin1String CONF_PATH = "conf/base/";
 // %1 is the kedro project name
 constexpr ConstLatin1String SOURCE_PATH = "src/%1/";
 constexpr ConstLatin1String RAW_DATA_PATH = "data/01_raw/";
+constexpr ConstLatin1String MODELS_PATH = "data/06_models/";
 
 // templates for gnerating files
 constexpr ConstLatin1String CATALOG_YML_ENTRY =
