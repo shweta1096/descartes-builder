@@ -85,10 +85,12 @@ private:
     };
 
     FdfType m_type;
-    QString m_name; // name in the library
+    // name is used for identification in QtNodes library
+    QString m_name;
     NodeShape m_shape;
     QString m_functionName;
-    QString m_caption; // appears in the scene
+    // caption is the label of the block, we regard this as the "name" for kedro
+    QString m_caption;
     // first is for structuring, second is actual data linked to connected block
     std::vector<std::pair<std::unique_ptr<NodeData>, std::weak_ptr<NodeData>>> m_inPorts;
     // first is for data, second represents whether it's in use
