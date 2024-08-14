@@ -25,6 +25,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL)
 
 add_subdirectory(external/qtnodes)
 add_subdirectory(external/qtutility)
+add_subdirectory(external/zlib)
 add_subdirectory(external/quazip)
 
 include_directories(include)
@@ -39,7 +40,7 @@ qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp
 target_link_libraries(
   ${PROJECT_NAME}
   PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::OpenGL QtNodes
-          QtUtility QuaZip::QuaZip)
+          QtUtility zlibstatic QuaZip::QuaZip)
 
 target_compile_options(
   ${PROJECT_NAME}
@@ -88,7 +89,7 @@ target_include_directories(${PROJECT_NAME}_lib
 target_link_libraries(
   ${PROJECT_NAME}_lib
   PUBLIC Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::OpenGL QtNodes
-         QtUtility QuaZip::QuaZip)
+         QtUtility zlibstatic QuaZip::QuaZip)
 
 if(BUILD_TESTS)
   set(gtest_force_shared_crt
