@@ -5,7 +5,7 @@ project(
   VERSION 0.1
   LANGUAGES CXX)
 
-option(BUILD_TESTS "Build the tests" OFF)
+option(BUILD_TESTS "Build the tests" ON)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)

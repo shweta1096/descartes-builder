@@ -202,7 +202,6 @@ void Kedro::firstTimeSetup()
     // install kedro-umbrella
     QString venvPip = "venv/bin/pip";
 #ifdef Q_OS_WIN
-    m_venvPython = "venv\\Scripts\\python.exe";
     venvPip = "venv\\Scripts\\pip.exe";
 #endif
     args.clear();
