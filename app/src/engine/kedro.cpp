@@ -117,8 +117,14 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
         return false;
 
     // call kedro run
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("COLUMNS", "200");
+    env.insert("LINES", "25");
+
     QProcess run;
     run.setWorkingDirectory(kedroProject.absolutePath());
+    run.setProcessEnvironment(env);
     run.startCommand(QString("%1 -m kedro run").arg(quote(m_VENV_PYTHON)));
     if (!run.waitForFinished()) {
         qCritical() << "Failed to run kedro";
@@ -131,6 +137,7 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
     if (JlCompress::compressDir(zip.absoluteFilePath(), kedroProject.absolutePath()))
         qDebug() << "Kedro executed, result is cached to: " << zip.absoluteFilePath();
     emit executed(output);
+    qDebug().noquote() << output;
     return true;
 }
 
@@ -280,7 +287,7 @@ bool Kedro::generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComp
     // add outputs to catalog.yml
     auto funcOuts = tab->getGraph()->getFuncOutModels();
     for (auto funcOut : funcOuts) {
-        auto name = funcOut->getFileName();
+        auto name = funcOut->getFileName().replace(' ', '_');
         catalogEntries << constants::kedro::CATALOG_YML_ENTRY
                               .arg(name,
                                    funcOut->fileTypeString(),
