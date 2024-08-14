@@ -10,6 +10,3 @@ url = https://github.com/nicholasng99/qtutility.git
 [submodule "app/external/quazip"]
 path = app/external/quazip
 url = https://github.com/stachenov/quazip.git
-[submodule "app/external/zlib"]
-	path = app/external/zlib
-	url = https://github.com/madler/zlib.git
