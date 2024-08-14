@@ -48,7 +48,7 @@ QStringList getPortList(const FdfBlockModel &block, const PortType &type)
     for (PortIndex i = 0; i < block.nPorts(type); ++i) {
         // if an in port is not connected it is null, the 'if' can be removed after the validity check handles it
         if (auto port = block.portData(type, i))
-            result.append(QString("\"%1\"").arg(port->type().name.replace(' ', '_')));
+            result.append(quote(port->type().name.replace(' ', '_')));
     }
     return result;
 }
@@ -58,8 +58,10 @@ QString toString(const FdfBlockModel &block)
     QString result = block.typeAsString() + '(';
     if (!block.functionName().isEmpty())
         result += QString("func=%1,").arg(block.functionName());
-    result += QString("name=\"%1\"").arg(block.caption().replace(' ', '_'));
+    result += QString("name=%1").arg(quote(block.caption().replace(' ', '_')));
     QStringList inputs = getPortList(block, PortType::In);
+    if (block.hasParameters())
+        inputs << quote(QString("params:%1").arg(block.caption().replace(' ', '_')));
     if (inputs.size() == 1)
         result += QString(",inputs=%1").arg(inputs.at(0));
     else if (inputs.size() > 1)
