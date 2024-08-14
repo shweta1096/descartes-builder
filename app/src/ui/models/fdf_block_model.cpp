@@ -219,6 +219,11 @@ std::shared_ptr<NodeData> FdfBlockModel::inData(PortIndex const index)
     return m_inPorts.at(index).second.lock();
 }
 
+std::unordered_map<QString, QString> FdfBlockModel::getParameters() const
+{
+    return std::unordered_map<QString, QString>();
+}
+
 void FdfBlockModel::updateStyle()
 {
     auto style = nodeStyle();

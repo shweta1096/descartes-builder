@@ -31,6 +31,7 @@ public:
     NodeShape shape() const override { return m_shape; }
     QString functionName() const { return m_functionName; }
     QString caption() const override { return m_caption; }
+    virtual bool hasParameters() const { return getParameters().size() > 0; }
     unsigned int nPorts(PortType const portType) const override;
     NodeDataType dataType(PortType const portType, PortIndex const portIndex) const override;
     std::shared_ptr<NodeData> outData(PortIndex const index) override;
@@ -45,6 +46,7 @@ public:
     bool setPortDefaultCaption(PortType type, PortIndex index, const QString &caption);
     bool resetPortCaption(PortType portType, PortIndex portIndex);
     virtual std::shared_ptr<NodeData> inData(PortIndex const index);
+    virtual std::unordered_map<QString, QString> getParameters() const;
 
 public slots:
     virtual void outputConnectionCreated(ConnectionId const &conn) override;

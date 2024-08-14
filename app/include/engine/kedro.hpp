@@ -21,7 +21,7 @@ private:
     // setups a python venv and install kedro-umbrella to AppDataLocation
     void firstTimeSetup();
     void verifySetup();
-    bool generateParametersYml(const QDir &kedroProject);
+    bool generateParametersYml(const QDir &kedroProject, CustomGraph *graph);
     bool generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComponents> tab);
     bool generatePipelinePy(const QDir &kedroProject, CustomGraph *graph);
 

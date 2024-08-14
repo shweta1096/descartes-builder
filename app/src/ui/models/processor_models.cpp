@@ -14,6 +14,16 @@ ProcessorSplitDataModel::ProcessorSplitDataModel()
     addPort<DataNode>(PortType::Out, "Y_test");
 }
 
+std::unordered_map<QString, QString> ProcessorSplitDataModel::getParameters() const
+{
+    std::unordered_map<QString, QString> result;
+    if (m_randomState)
+        result[RANDOM_STATE] = QString::number(m_randomState.value());
+    if (m_splitTime)
+        result[SPLIT_TIME] = QString::number(m_splitTime.value());
+    return result;
+}
+
 ReduceModel::ReduceModel()
     : FdfBlockModel(FdfType::Processor, "reduce", processor_function::PROCESSOR)
 {

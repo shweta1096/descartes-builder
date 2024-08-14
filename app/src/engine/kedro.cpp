@@ -107,7 +107,7 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
     }
     // Temp dir will auto delete when out of scope
     auto kedroProject = initWorkspace(tab);
-    if (!generateParametersYml(kedroProject))
+    if (!generateParametersYml(kedroProject, tab->getGraph()))
         return false;
     if (!generateCatalogYml(kedroProject, tab))
         return false;
@@ -232,13 +232,28 @@ void Kedro::verifySetup()
     qInfo() << "Kedro is ready to execute!";
 }
 
-bool Kedro::generateParametersYml(const QDir &kedroProject)
+bool Kedro::generateParametersYml(const QDir &kedroProject, CustomGraph *graph)
 {
-    // TODO: rework system for a parameters.yml file
-    // every graph will need their own parameters.yml which store vars about blocks
-    // or add properties to the blocks that are used to generate the parameters yml
+    QStringList parameters;
+    for (const auto &id : graph->allNodeIds())
+        if (auto block = graph->delegateModel<FdfBlockModel>(id)) {
+            if (!block->hasParameters())
+                continue;
+            parameters << block->caption().replace(' ', '_') + ':';
+            for (auto &pair : block->getParameters())
+                parameters << QString("  %1: %2").arg(pair.first, pair.second);
+            parameters << "\n";
+        }
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
-    // qDebug() << "Generated parameters to: " << conf.absolutePath();
+    //generate parameters.yml
+    QFile parametersYml(conf.absoluteFilePath("parameters.yml"));
+    if (!parametersYml.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qCritical() << "Cannot open parameters.yml:" << parametersYml.errorString();
+        return false;
+    }
+    QTextStream out(&parametersYml);
+    out << parameters.join("\n");
+    parametersYml.close();
     return true;
 }
 
@@ -259,9 +274,9 @@ bool Kedro::generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComp
                                                                       + fileName);
     }
     //generate catalog.yml
-    QFile catalogYml(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH + "catalog.yml"));
+    QFile catalogYml(conf.absoluteFilePath("catalog.yml"));
     if (!catalogYml.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qCritical() << "Cannot open pipeline.py:" << catalogYml.errorString();
+        qCritical() << "Cannot open catalog.yml:" << catalogYml.errorString();
         return false;
     }
     QTextStream out(&catalogYml);
