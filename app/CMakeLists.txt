@@ -33,13 +33,20 @@ file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
 file(GLOB_RECURSE PROJECT_HEADERS "include/*.hpp")
 file(GLOB_RECURSE PROJECT_RESOURCES "resources/*.qrc")
 
-qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp
-                  ${PROJECT_SOURCES} ${PROJECT_HEADERS} ${PROJECT_RESOURCES})
+add_library(${PROJECT_NAME}_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
+                                       ${PROJECT_RESOURCES})
+
+target_include_directories(${PROJECT_NAME}_lib
+                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(
-  ${PROJECT_NAME}
-  PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::OpenGL QtNodes
-          QtUtility QuaZip::QuaZip)
+  ${PROJECT_NAME}_lib
+  PUBLIC Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::OpenGL QtNodes
+         QtUtility QuaZip::QuaZip)
+
+qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
 
 target_compile_options(
   ${PROJECT_NAME}
@@ -77,18 +84,6 @@ endif()
 # $<IF:$<CONFIG:Debug>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release>/engine/kedro-umbrella
 # ) add_dependencies(DescartesBuilder setup_engine) install(DIRECTORY
 # ${CMAKE_SOURCE_DIR}/external/kedro-umbrella DESTINATION engine)
-
-# make library for test to link to
-add_library(${PROJECT_NAME}_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-                                       ${PROJECT_RESOURCES})
-
-target_include_directories(${PROJECT_NAME}_lib
-                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-target_link_libraries(
-  ${PROJECT_NAME}_lib
-  PUBLIC Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::OpenGL QtNodes
-         QtUtility QuaZip::QuaZip)
 
 if(BUILD_TESTS)
   set(gtest_force_shared_crt
