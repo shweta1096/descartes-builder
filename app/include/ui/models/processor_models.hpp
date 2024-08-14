@@ -42,4 +42,12 @@ class LoadMatModel : public FdfBlockModel
     Q_OBJECT
 public:
     LoadMatModel();
+    virtual std::unordered_map<QString, QString> getParameters() const override;
+    QString getDataPath() const { return m_dataPath; }
+    void setDataPath(const QString &dataPath) { m_dataPath = dataPath; }
+
+private:
+    inline static const QString DATA_PATH = "data_path";
+
+    QString m_dataPath;
 };

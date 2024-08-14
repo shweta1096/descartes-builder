@@ -244,7 +244,6 @@ bool Kedro::generateParametersYml(const QDir &kedroProject, CustomGraph *graph)
             parameters << block->caption().replace(' ', '_') + ':';
             for (auto &pair : block->getParameters())
                 parameters << QString("  %1: %2").arg(pair.first, pair.second);
-            parameters << "\n";
         }
     QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
     //generate parameters.yml

@@ -12,6 +12,9 @@ ProcessorSplitDataModel::ProcessorSplitDataModel()
     addPort<DataNode>(PortType::Out, "X_test");
     addPort<DataNode>(PortType::Out, "Y_train");
     addPort<DataNode>(PortType::Out, "Y_test");
+
+    // hardcode parameter value until editor is implemented
+    setRandomState(0);
 }
 
 std::unordered_map<QString, QString> ProcessorSplitDataModel::getParameters() const
@@ -47,4 +50,11 @@ LoadMatModel::LoadMatModel()
     addPort<DataNode>(PortType::In, "parameters");
     addPort<DataNode>(PortType::Out, "x");
     addPort<DataNode>(PortType::Out, "y");
+}
+
+std::unordered_map<QString, QString> LoadMatModel::getParameters() const
+{
+    std::unordered_map<QString, QString> result;
+    result[DATA_PATH] = '\"' + m_dataPath + '\"';
+    return result;
 }
