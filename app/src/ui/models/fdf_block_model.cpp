@@ -1,12 +1,17 @@
 #include "ui/models/fdf_block_model.hpp"
 
+#include "data/constants.hpp"
+
 FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &functionName)
     : NodeDelegateModel()
     , m_type(type)
     , m_name(name)
     , m_functionName(functionName)
-    , m_caption(QString("%1(%2)").arg(typeAsString(), name))
-{}
+    , m_caption(name)
+{
+    updateStyle();
+    updateShape();
+}
 
 unsigned int FdfBlockModel::nPorts(PortType const portType) const
 {
@@ -69,12 +74,14 @@ QString FdfBlockModel::portCaption(PortType portType, PortIndex portIndex) const
     return QString();
 }
 
-std::shared_ptr<NodeData> FdfBlockModel::portData(PortType const type, PortIndex const index)
+std::shared_ptr<NodeData> FdfBlockModel::portData(PortType const type, PortIndex const index) const
 {
+    if (!indexCheck(type, index))
+        return std::shared_ptr<NodeData>();
     if (type == PortType::In)
-        return inData(index);
+        return m_inPorts.at(index).second.lock();
     if (type == PortType::Out)
-        return outData(index);
+        return m_outPorts.at(index).first;
     return std::shared_ptr<NodeData>();
 }
 
@@ -137,34 +144,72 @@ bool FdfBlockModel::setPortCaption(PortType type, PortIndex index, const QString
 {
     if (!indexCheck(type, index))
         return false;
-    if (type == PortType::In)
+    switch (type) {
+    case PortType::In:
         if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
             namedNode->setName(caption);
-            return true;
-        }
-    if (type == PortType::Out)
+        } else
+            return false;
+        break;
+    case PortType::Out:
         if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
             namedNode->setName(caption);
-            return true;
-        }
-    return false;
+        } else
+            return false;
+        break;
+    default:
+        return false;
+    }
+    propagateUpdate();
+    return true;
+}
+
+bool FdfBlockModel::setPortDefaultCaption(PortType type, PortIndex index, const QString &caption)
+{
+    if (!indexCheck(type, index))
+        return false;
+    switch (type) {
+    case PortType::In:
+        if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
+            namedNode->setDefaultName(caption);
+        } else
+            return false;
+        break;
+    case PortType::Out:
+        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
+            namedNode->setDefaultName(caption);
+        } else
+            return false;
+        break;
+    default:
+        return false;
+    }
+    propagateUpdate();
+    return true;
 }
 
 bool FdfBlockModel::resetPortCaption(PortType type, PortIndex index)
 {
     if (!indexCheck(type, index))
         return false;
-    if (type == PortType::In)
+    switch (type) {
+    case PortType::In:
         if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(index).first.get())) {
             namedNode->reset();
-            return true;
-        }
-    if (type == PortType::Out)
+        } else
+            return false;
+        break;
+    case PortType::Out:
         if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
             namedNode->reset();
-            return true;
-        }
-    return false;
+        } else
+            return false;
+        break;
+    default:
+        return false;
+    }
+    propagateUpdate();
+    return true;
 }
 
 std::shared_ptr<NodeData> FdfBlockModel::inData(PortIndex const index)
@@ -174,20 +219,51 @@ std::shared_ptr<NodeData> FdfBlockModel::inData(PortIndex const index)
     return m_inPorts.at(index).second.lock();
 }
 
-PortIndex FdfBlockModel::addInPort(std::unique_ptr<NodeData> port)
+std::unordered_map<QString, QString> FdfBlockModel::getParameters() const
 {
-    if (!port)
-        return QtNodes::InvalidPortIndex;
-    PortIndex i = m_inPorts.size();
-    m_inPorts.push_back({std::move(port), std::weak_ptr<NodeData>()});
-    return i;
+    return std::unordered_map<QString, QString>();
 }
 
-PortIndex FdfBlockModel::addOutPort(std::shared_ptr<NodeData> port)
+void FdfBlockModel::updateStyle()
 {
-    if (!port)
-        return QtNodes::InvalidPortIndex;
-    PortIndex i = m_outPorts.size();
-    m_outPorts.push_back({port, false});
-    return i;
+    auto style = nodeStyle();
+    switch (m_type) {
+    case FdfType::Coder:
+        style.GradientColor1 = constants::COLOR_CODER;
+        break;
+    case FdfType::Processor:
+        style.GradientColor1 = constants::COLOR_PROCESSOR;
+        break;
+    case FdfType::Trainer:
+        style.GradientColor1 = constants::COLOR_TRAINER;
+        break;
+    case FdfType::Data:
+    case FdfType::Output:
+    default:
+        return;
+    }
+    style.GradientColor0 = style.GradientColor1.lighter(110);
+    style.GradientColor2 = style.GradientColor1.darker(110);
+    style.GradientColor3 = style.GradientColor1.darker(150);
+    setNodeStyle(style);
+}
+
+void FdfBlockModel::updateShape()
+{
+    switch (m_type) {
+    case FdfType::Coder:
+        m_shape = NodeShape::Trapezoid;
+        break;
+    case FdfType::Processor:
+        m_shape = NodeShape::Rectangle;
+        break;
+    case FdfType::Trainer:
+        m_shape = NodeShape::Pentagon;
+        break;
+    case FdfType::Data:
+    case FdfType::Output:
+    default:
+        m_shape = NodeShape::RoundedRectangle;
+        break;
+    }
 }

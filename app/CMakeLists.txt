@@ -14,14 +14,18 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 
 add_definitions("-DQT_MESSAGELOGCONTEXT")
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL Core5Compat)
 
 add_subdirectory(external/qtnodes)
 add_subdirectory(external/qtutility)
+add_subdirectory(external/quazip)
 
 include_directories(include)
 
@@ -29,15 +33,23 @@ file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
 file(GLOB_RECURSE PROJECT_HEADERS "include/*.hpp")
 file(GLOB_RECURSE PROJECT_RESOURCES "resources/*.qrc")
 
-qt_add_executable(DescartesBuilder MANUAL_FINALIZATION main.cpp
-                  ${PROJECT_SOURCES} ${PROJECT_HEADERS} ${PROJECT_RESOURCES})
+add_library(${PROJECT_NAME}_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
+                                       ${PROJECT_RESOURCES})
+
+target_include_directories(${PROJECT_NAME}_lib
+                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(
-  DescartesBuilder PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-                           Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
+  ${PROJECT_NAME}_lib
+  PUBLIC Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::OpenGL QtNodes
+         QtUtility QuaZip::QuaZip)
+
+qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION main.cpp)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
 
 target_compile_options(
-  DescartesBuilder
+  ${PROJECT_NAME}
   PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/W4
           /wd4127
           /EHsc
@@ -49,7 +61,7 @@ target_compile_options(
           -Werror>)
 
 set_target_properties(
-  DescartesBuilder
+  ${PROJECT_NAME}
   PROPERTIES ${BUNDLE_ID_OPTION} MACOSX_BUNDLE_BUNDLE_VERSION
              ${PROJECT_VERSION} MACOSX_BUNDLE_SHORT_VERSION_STRING
              ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR} MACOSX_BUNDLE
@@ -58,25 +70,20 @@ set_target_properties(
 
 include(GNUInstallDirs)
 install(
-  TARGETS DescartesBuilder
+  TARGETS ${PROJECT_NAME}
   BUNDLE DESTINATION .
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 if(QT_VERSION_MAJOR EQUAL 6)
-  qt_finalize_executable(DescartesBuilder)
+  qt_finalize_executable(${PROJECT_NAME})
 endif()
 
-# make library for test to link to
-add_library(DescartesBuilder_lib SHARED ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-                                        ${PROJECT_RESOURCES})
-
-target_include_directories(DescartesBuilder_lib
-                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-target_link_libraries(
-  DescartesBuilder_lib PUBLIC Qt${QT_VERSION_MAJOR}::Widgets
-                              Qt${QT_VERSION_MAJOR}::OpenGL QtNodes QtUtility)
+# copy engine lib to binary dir add_custom_target( setup_engine ALL COMMAND
+# ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/external/kedro-umbrella
+# $<IF:$<CONFIG:Debug>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug,${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release>/engine/kedro-umbrella
+# ) add_dependencies(DescartesBuilder setup_engine) install(DIRECTORY
+# ${CMAKE_SOURCE_DIR}/external/kedro-umbrella DESTINATION engine)
 
 if(BUILD_TESTS)
   set(gtest_force_shared_crt
@@ -92,7 +99,23 @@ if(BUILD_TESTS)
 
   add_executable(unitTests ${TEST_SOURCES})
 
-  target_link_libraries(unitTests PRIVATE gtest DescartesBuilder_lib)
+  target_link_libraries(unitTests PRIVATE gtest ${PROJECT_NAME}_lib)
 
   add_test(NAME unitTests COMMAND unitTests)
 endif()
+
+# Pack
+include(CPack)
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Function + Data Flow Digital Twin Builder")
+set(CPACK_PACKAGE_VENDOR "CNRS@CREATE")
+set(CPACK_PACKAGE_CONTACT "nicholas.ng@cnrsatcreate.sg")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+
+# Set installation directories
+set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR};${PROJECT_NAME};ALL;/")
+
+# Define the generator to use (e.g., ZIP, TGZ, DEB, RPM, etc.)
+set(CPACK_GENERATOR "ZIP;TGZ;DEB;RPM")

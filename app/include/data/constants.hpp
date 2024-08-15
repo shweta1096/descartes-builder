@@ -29,7 +29,7 @@ constexpr ConstLatin1String CONNECTION_STYLE =
                 "SelectedHaloColor": "deepskyblue",
                 "HoveredColor": "deepskyblue",
 
-                "LineWidth": 3.0,
+                "LineWidth": 2.0,
                 "ConstructionLineWidth": 2.0,
                 "PointDiameter": 10.0,
 
@@ -37,42 +37,75 @@ constexpr ConstLatin1String CONNECTION_STYLE =
             }
         }
         )";
-const ConstLatin1String GRAPHICS_VIEW_STYLE =
+constexpr ConstLatin1String GRAPHICS_VIEW_STYLE =
     R"(
         {
             "GraphicsViewStyle": {
-                "BackgroundColor": [53, 53, 53],
-                "FineGridColor": [60, 60, 60],
-                "CoarseGridColor": [25, 25, 25]
+                "BackgroundColor": "white",
+                "FineGridColor": "lightGray",
+                "CoarseGridColor": "gray"
             }
         }
     )";
-const ConstLatin1String NODE_STYLE =
+constexpr ConstLatin1String NODE_STYLE =
     R"(
         {
             "NodeStyle": {
-                "NormalBoundaryColor": [255, 255, 255],
+                "NormalBoundaryColor": "black",
                 "SelectedBoundaryColor": [255, 165, 0],
-                "GradientColor0": "gray",
-                "GradientColor1": [80, 80, 80],
-                "GradientColor2": [64, 64, 64],
-                "GradientColor3": [58, 58, 58],
+                "GradientColor0": "white",
+                "GradientColor1": "lightGray",
+                "GradientColor2": [130, 130, 130],
+                "GradientColor3": [90, 90, 90],
                 "ShadowColor": [20, 20, 20],
-                "FontColor" : "white",
-                "FontColorFaded" : "gray",
+                "FontColor" : "black",
+                "FontColorFaded" : [100, 100, 100],
                 "ConnectionPointColor": [169, 169, 169],
-                "FilledConnectionPointColor": "cyan",
+                "FilledConnectionPointColor": "yellow",
                 "ErrorColor": "red",
                 "WarningColor": [128, 128, 0],
 
                 "PenWidth": 1.0,
                 "HoveredPenWidth": 1.5,
 
-                "ConnectionPointDiameter": 8.0,
+                "ConnectionPointDiameter": 5.0,
 
                 "Opacity": 0.8
             }
         }
     )";
+
+namespace kedro {
+
+// relative paths from kedro project dir
+constexpr ConstLatin1String CONF_PATH = "conf/base/";
+// %1 is the kedro project name
+constexpr ConstLatin1String SOURCE_PATH = "src/%1/";
+constexpr ConstLatin1String RAW_DATA_PATH = "data/01_raw/";
+constexpr ConstLatin1String MODELS_PATH = "data/06_models/";
+
+// templates for gnerating files
+constexpr ConstLatin1String CATALOG_YML_ENTRY =
+    R"(%1:
+  type: %2
+  filepath: %3
+  )";
+
+// %1 is the list of all pipeline objects
+constexpr ConstLatin1String PIPELINE_PY =
+    R"(
+from kedro.pipeline import Pipeline, node, pipeline
+from kedro_umbrella import coder, processor, trainer
+from kedro_umbrella.library import *
+from .nodes import *
+
+def create_pipeline(**kwargs) -> Pipeline:
+    return pipeline(
+        [
+%1
+        ]
+    )
+    )";
+} // namespace kedro
 
 } // namespace constants

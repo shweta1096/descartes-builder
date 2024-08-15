@@ -1,23 +1,50 @@
 #include "ui/models/io_models.hpp"
 
-#include <QLineEdit>
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
+
+namespace {
+
+std::unordered_map<CatalogType, QString> CATALOG_STRING = {
+    {CatalogType::Pickle, "pickle.PickleDataSet"},
+    {CatalogType::Csv, "pandas.CSVDataSet"},
+    {CatalogType::H5, "kedro_umbrella.library.H5Dataset"},
+};
+
+std::unordered_map<QString, CatalogType> CATALOG_EXTENSIONS = {
+    {"csv", CatalogType::Csv},
+    {"pickle", CatalogType::Pickle},
+    {"mat", CatalogType::H5},
+    {"jld2", CatalogType::H5},
+};
+
+} // namespace
 
 DataSourceModel::DataSourceModel()
-    : FdfBlockModel(FdfType::Data, "data_source")
+    : FdfBlockModel(FdfType::Data, io_names::DATA_SOURCE)
 {
-    addOutPort(std::make_shared<DataNode>());
+    addPort<DataNode>(PortType::Out);
 }
 
 QWidget *DataSourceModel::embeddedWidget()
 {
     if (!m_widget) {
-        m_widget = new QLineEdit();
+        m_widget = new QWidget();
+        m_widget->setProperty("bg", "transparent");
+        m_widget->setStyleSheet("*[bg='transparent']{ background: transparent; }");
 
-        m_widget->setMaximumSize(m_widget->sizeHint());
+        auto layout = new QVBoxLayout(m_widget);
+        layout->setSpacing(0);
+        layout->setContentsMargins(0, 0, 0, 0);
 
-        connect(m_widget, &QLineEdit::textChanged, this, &DataSourceModel::onWidgetEdited);
+        m_label = new QLabel(portCaption(PortType::Out, 0));
+        layout->addWidget(m_label);
 
-        m_widget->setText(portCaption(PortType::Out, 0));
+        auto button = new QPushButton("Import");
+        layout->addWidget(button);
+
+        connect(button, &QPushButton::clicked, this, &DataSourceModel::importClicked);
     }
 
     return m_widget;
@@ -26,7 +53,7 @@ QWidget *DataSourceModel::embeddedWidget()
 QJsonObject DataSourceModel::save() const
 {
     QJsonObject modelJson = NodeDelegateModel::save();
-    modelJson["data-name"] = portCaption(PortType::Out, 0);
+    modelJson["data-name"] = m_file.fileName();
     return modelJson;
 }
 
@@ -37,23 +64,66 @@ void DataSourceModel::load(QJsonObject const &p)
     if (value.isUndefined())
         return;
 
-    QString data = value.toString();
-    setPortCaption(PortType::Out, 0, data);
-    if (m_widget)
-        m_widget->setText(data);
+    setFile(QFileInfo(value.toString()));
 }
 
-void DataSourceModel::onWidgetEdited(const QString &name)
+QString DataSourceModel::fileTypeString() const
+{
+    if (m_fileType && CATALOG_STRING.count(m_fileType.value()) > 0)
+        return CATALOG_STRING.at(m_fileType.value());
+    return "NONE";
+}
+
+void DataSourceModel::setFile(const QFileInfo &file)
+{
+    if (file == m_file)
+        return;
+    m_file = file;
+    if (CATALOG_EXTENSIONS.count(m_file.suffix()) > 0)
+        m_fileType = CATALOG_EXTENSIONS.at(m_file.suffix());
+    m_label->setText(m_file.fileName());
+    updatePortCaption(m_file.baseName());
+    emit contentUpdated();
+}
+
+QString DataSourceModel::fileFilter()
+{
+    QStringList extensions;
+    for (auto &pair : CATALOG_EXTENSIONS)
+        extensions << "*." + pair.first;
+    return extensions.join(' ');
+}
+
+void DataSourceModel::updatePortCaption(const QString &name)
 {
     if (name == portCaption(PortType::Out, 0))
         return;
     setPortCaption(PortType::Out, 0, name);
-    propagateUpdate();
-    emit contentUpdated();
 }
 
 FuncOutModel::FuncOutModel()
-    : FdfBlockModel(FdfType::Output, "func_out")
+    : FdfBlockModel(FdfType::Output, io_names::FUNC_OUT)
+    , m_fileType(CatalogType::Pickle)
 {
-    addInPort(std::make_unique<FunctionNode>());
+    addPort<FunctionNode>(PortType::In);
+}
+
+QString FuncOutModel::fileTypeString() const
+{
+    if (CATALOG_STRING.count(m_fileType) > 0)
+        return CATALOG_STRING.at(m_fileType);
+    return "NONE";
+}
+
+QString FuncOutModel::getFileName() const
+{
+    return portCaption(PortType::In, 0);
+}
+
+QString FuncOutModel::getFileExtenstion() const
+{
+    for (auto &pair : CATALOG_EXTENSIONS)
+        if (pair.second == m_fileType)
+            return pair.first;
+    return QString();
 }

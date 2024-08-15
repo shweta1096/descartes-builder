@@ -28,9 +28,9 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(std::shared_ptr<TabManager> tabMa
             this,
             &GraphicsSceneTabWidget::onCurrentChanged);
     connect(m_tabManager.get(),
-            &TabManager::newTabCreated,
+            &TabManager::tabCreated,
             this,
-            &GraphicsSceneTabWidget::onNewTabCreated);
+            &GraphicsSceneTabWidget::onTabCreated);
     connect(m_tabManager.get(),
             &TabManager::currentChanged,
             this,
@@ -89,8 +89,9 @@ void GraphicsSceneTabWidget::onCurrentChanged(const int &index)
     m_tabManager->setCurrentView(view);
 }
 
-void GraphicsSceneTabWidget::onNewTabCreated(QWidget *widget, const QString &fileName)
+void GraphicsSceneTabWidget::onTabCreated(QWidget *widget)
 {
+    auto fileName = m_tabManager->getFileInfo(widget).baseName();
     int index = addTab(widget, fileName.isEmpty() ? "blank" : fileName);
     setCurrentIndex(index);
 }

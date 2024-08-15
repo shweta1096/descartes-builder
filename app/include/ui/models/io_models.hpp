@@ -2,7 +2,20 @@
 
 #include "fdf_block_model.hpp"
 
-class QLineEdit;
+#include <QFileInfo>
+
+#include <QtUtility/data/constexpr_qstring.hpp>
+
+class QWidget;
+class QLabel;
+
+namespace io_names {
+using ConstLatin1String = QtUtility::data::ConstLatin1String;
+constexpr ConstLatin1String DATA_SOURCE = "data_source";
+constexpr ConstLatin1String FUNC_OUT = "func_out";
+} // namespace io_names
+
+enum CatalogType { Pickle, Csv, H5 };
 
 class DataSourceModel : public FdfBlockModel
 {
@@ -13,12 +26,25 @@ public:
     QWidget *embeddedWidget() override;
     QJsonObject save() const override;
     void load(QJsonObject const &p) override;
+    QFileInfo file() const { return m_file; }
+    std::optional<CatalogType> fileType() const { return m_fileType; }
+    QString fileTypeString() const;
+    void setFile(const QFileInfo &file);
+    static QString fileFilter();
+
+signals:
+    void importClicked();
 
 private slots:
-    void onWidgetEdited(const QString &name);
+    void updatePortCaption(const QString &name);
 
 private:
-    QLineEdit *m_widget;
+    QWidget *m_widget;
+    QLabel *m_label;
+
+    // not the actual file path, using it for relative path
+    QFileInfo m_file;
+    std::optional<CatalogType> m_fileType;
 };
 
 class FuncOutModel : public FdfBlockModel
@@ -26,4 +52,12 @@ class FuncOutModel : public FdfBlockModel
     Q_OBJECT
 public:
     FuncOutModel();
+    CatalogType getFileType() const { return m_fileType; }
+    QString fileTypeString() const;
+    void setFileType(const CatalogType &fileType) { m_fileType = fileType; }
+    QString getFileName() const;
+    QString getFileExtenstion() const;
+
+private:
+    CatalogType m_fileType;
 };

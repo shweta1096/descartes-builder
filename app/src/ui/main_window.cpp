@@ -2,6 +2,7 @@
 
 #include <QActionGroup>
 #include <QApplication>
+#include <QDir>
 #include <QDockWidget>
 #include <QLabel>
 #include <QMenuBar>
@@ -34,9 +35,10 @@ using QtNodes::NodeStyle;
 MainWindow::MainWindow()
     : m_engine(EngineStarter::init())
     , m_tabManager(std::make_shared<TabManager>())
-    , m_blockManager(std::make_shared<BlockManager>(m_tabManager))
+    , m_blockManager(std::make_shared<BlockManager>())
     , m_temp(new Temp(this))
 {
+    initManagers();
     initScene();
     initMenuBar();
     initPrimarySideBar();
@@ -50,12 +52,18 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
+    m_tabManager->clear();
     qInfo() << "Program has finished.";
 }
 
 bool MainWindow::callExecute()
 {
-    return m_engine->execute(m_tabManager->currentGraph());
+    return m_engine->execute(m_tabManager->getCurrentTab());
+}
+
+void MainWindow::initManagers()
+{
+    m_blockManager->setTabManager(m_tabManager);
 }
 
 void MainWindow::initScene()
@@ -144,17 +152,27 @@ void MainWindow::initMenuBar()
         auto infoAction = tempMenu->addAction("print info");
         auto debugAction = tempMenu->addAction("print debug");
         auto errorAction = tempMenu->addAction("print error");
+        auto openExample = tempMenu->addAction("Open Example");
         connect(pythonAction, &QAction::triggered, m_temp, &Temp::runPython);
         connect(infoAction, &QAction::triggered, m_temp, &Temp::printInfo);
         connect(debugAction, &QAction::triggered, m_temp, &Temp::printDebug);
         connect(errorAction, &QAction::triggered, m_temp, &Temp::printError);
+        connect(openExample, &QAction::triggered, m_tabManager.get(), [this]() {
+            QDir dir(QApplication::applicationDirPath());
+            for (int i = 0; i < 6; ++i) // mac only due to bundle dir
+                dir.cdUp();
+            dir.cd("examples");
+            m_tabManager->openFrom(dir.absoluteFilePath("pipe-deformation.dcb"));
+        });
+        openExample->setShortcut(
+            QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_E));
     }
 }
 
 void MainWindow::initPrimarySideBar()
 {
     // init widgets
-    auto blockWidget = new Blocks(m_blockManager);
+    auto blockWidget = new Blocks(m_blockManager, m_tabManager);
     connect(m_blockManager.get(), &BlockManager::nodeSelected, blockWidget, &Blocks::onNodeSelected);
 
     // prevent log panel from taking the corner

@@ -16,6 +16,8 @@ static std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registerDataModels()
     ret->registerModel<FuncOutModel>("IO");
     ret->registerModel<ProcessorSplitDataModel>("Processor");
     ret->registerModel<ReduceModel>("Processor");
+    ret->registerModel<ScoreModel>("Processor");
+    ret->registerModel<LoadMatModel>("Processor");
     ret->registerModel<TransformDataModel>("Coder");
     ret->registerModel<BasicTrainerModel>("Trainer");
 

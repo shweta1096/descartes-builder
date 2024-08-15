@@ -19,6 +19,7 @@ private slots:
     bool callExecute();
 
 private:
+    void initManagers();
     // Ui inits
     void initScene();
     void initMenuBar();

@@ -2,21 +2,23 @@ name: build descartes-builder
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: ["main"]
 
 jobs:
   build:
+    if: github.event.pull_request.draft == false
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        build_type: 
+        build_type:
           - Release
-        qt_version: 
+        qt_version:
           - "6.3.0"
         include:
           - os: ubuntu-latest
@@ -27,34 +29,49 @@ jobs:
             compiler: msvc
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: ${{ matrix.qt_version }}
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ matrix.qt_version }}
+          modules: 'qt5compat'
 
-    - name: Setup (Ubuntu)
-      if: startsWith (matrix.os, 'ubuntu')
-      run: sudo apt-get install libxkbcommon-dev libgl1-mesa-dev
+      - name: Setup (Ubuntu)
+        if: startsWith (matrix.os, 'ubuntu')
+        run: sudo apt-get install libxkbcommon-dev libgl1-mesa-dev
 
-    - name: Setup VS tools (Windows)
-      if: startsWith (matrix.os, 'windows')
-      uses: egor-tensin/vs-shell@v2
-      with:
-        arch: x64
+      - name: Setup VS tools (Windows)
+        if: startsWith (matrix.os, 'windows')
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
 
-    - name: Configure CMake
-      run: >
-        cmake -B build
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -S ${{ github.workspace }}/app
+      - name: Install zlib (Windows)
+        if: startsWith (matrix.os, 'windows')
+        run: powershell -Command "(Invoke-WebRequest -Uri https://git.io/JnHTY -OutFile install_zlib.bat)"; ./install_zlib.bat; del install_zlib.bat
 
-    - name: Build
-      run: cmake --build build --config ${{ matrix.build_type }}
+      - name: Configure CMake
+        run: >
+          cmake -B build
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -S ${{ github.workspace }}/app
 
-    # - name: Test
-    #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
-    #   run: ctest --build-config ${{ matrix.build_type }}
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }}
+
+      # - name: Test
+      #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      #   run: ctest --build-config ${{ matrix.build_type }}
+
+      - name: Upload binary artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v3
+        with:
+          name: DescartesBuilder-${{ matrix.os }}
+          path: ${{ github.workspace }}/build/bin
