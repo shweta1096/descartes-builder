@@ -18,7 +18,6 @@ BasicTrainerModel::BasicTrainerModel()
 {
     addPort<DataNode>(PortType::In, "X");
     addPort<DataNode>(PortType::In, "Y");
-    addPort<DataNode>(PortType::In, "parameters");
     addPort<FunctionNode>(PortType::Out, "predict");
 
     // hardcode parameter value until editor is implemented

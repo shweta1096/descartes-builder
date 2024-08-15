@@ -7,7 +7,6 @@ ProcessorSplitDataModel::ProcessorSplitDataModel()
 {
     addPort<DataNode>(PortType::In, "X");
     addPort<DataNode>(PortType::In, "Y");
-    addPort<DataNode>(PortType::In, "parameters");
     addPort<DataNode>(PortType::Out, "X_train");
     addPort<DataNode>(PortType::Out, "X_test");
     addPort<DataNode>(PortType::Out, "Y_train");
@@ -47,7 +46,6 @@ ScoreModel::ScoreModel()
 LoadMatModel::LoadMatModel()
     : FdfBlockModel(FdfType::Processor, "load_mat", processor_function::LOAD_MAT)
 {
-    addPort<DataNode>(PortType::In, "parameters");
     addPort<DataNode>(PortType::Out, "x");
     addPort<DataNode>(PortType::Out, "y");
 }
