@@ -204,7 +204,7 @@ void Kedro::firstTimeSetup()
     // setup venv
     QStringList args;
     args << "-m" << "venv" << "venv";
-    m_process->start("python", args);
+    m_process->start("python3", args);
     if (!m_process->waitForFinished()) {
         qWarning() << "Failed to create virtual environment:" << m_process->errorString();
         return;
