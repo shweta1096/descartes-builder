@@ -28,8 +28,8 @@ using QtNodes::NodeStyle;
 #include "data/tab_manager.hpp"
 #include "engine/engine_starter.hpp"
 #include "temp.hpp"
+#include "ui/bottom_panel.hpp"
 #include "ui/graphics_scene_tab_widget.hpp"
-#include "ui/log_panel.hpp"
 #include "ui/side_bar_widgets/blocks.hpp"
 
 MainWindow::MainWindow()
@@ -225,9 +225,7 @@ void MainWindow::initPrimarySideBar()
 
 void MainWindow::initLogPanel()
 {
-    auto dockWidget = new QDockWidget("Log Panel");
-    dockWidget->setTitleBarWidget(new QLabel("Log Panel"));
-    dockWidget->setWidget(new LogPanel());
-    dockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
-    addDockWidget(Qt::BottomDockWidgetArea, dockWidget);
+    auto bottomPanel = new BottomPanel();
+    addDockWidget(Qt::BottomDockWidgetArea, bottomPanel);
+    connect(m_engine.get(), &AbstractEngine::executed, bottomPanel, &BottomPanel::appendOutputPanel);
 }

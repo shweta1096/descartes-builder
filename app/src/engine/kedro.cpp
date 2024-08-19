@@ -137,7 +137,6 @@ bool Kedro::execute(std::shared_ptr<TabComponents> tab)
     if (JlCompress::compressDir(zip.absoluteFilePath(), kedroProject.absolutePath()))
         qDebug() << "Kedro executed, result is cached to: " << zip.absoluteFilePath();
     emit executed(output);
-    qDebug().noquote() << output;
     return true;
 }
 
