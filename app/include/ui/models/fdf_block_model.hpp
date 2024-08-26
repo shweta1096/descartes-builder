@@ -38,6 +38,9 @@ public:
     virtual void setInData(std::shared_ptr<NodeData> data, PortIndex const index) override;
     virtual QWidget *embeddedWidget() override;
     QString portCaption(PortType portType, PortIndex portIndex) const override;
+    QString defaultPortCaption(PortType portType, PortIndex portIndex) const;
+    QJsonObject save() const override;
+    void load(QJsonObject const &p) override;
 
     virtual std::shared_ptr<NodeData> portData(PortType const type, PortIndex const index) const;
     virtual std::vector<std::shared_ptr<NodeData>> connectedPortData(PortType const type) const;
@@ -47,10 +50,24 @@ public:
     bool resetPortCaption(PortType portType, PortIndex portIndex);
     virtual std::shared_ptr<NodeData> inData(PortIndex const index);
     virtual std::unordered_map<QString, QString> getParameters() const;
+    virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const;
+    virtual QStringList getParameterOptions(const QString &key) const;
+    virtual void setParameter(const QString &key, const QString &value);
+    uint nPorts(const PortType &portType, const QString &typeId) const;
+    virtual uint minModifiablePorts(const PortType &portType, const QString &typeId) const;
+    virtual bool portNumberModifiable(const PortType &portType) const { return false; };
+
+signals:
+    void captionUpdated(const QString &caption);
+    void outPortCaptionUpdated(const PortIndex &index, const QString &caption);
+    void outPortInserted(const PortIndex &index);
+    void outPortDeleted(const PortIndex &index);
 
 public slots:
     virtual void outputConnectionCreated(ConnectionId const &conn) override;
     virtual void outputConnectionDeleted(ConnectionId const &conn) override;
+    virtual void setInputPortNumber(uint num);
+    virtual void setOutputPortNumber(uint num);
 
 protected:
     bool indexCheck(PortType type, PortIndex index) const;
@@ -59,6 +76,8 @@ protected:
     void addPort(PortType type, const QString &name = QString())
     {
         static_assert(std::is_base_of<NodeData, T>::value, "T must derive from NodeData");
+        int index = type == PortType::In ? m_inPorts.size() : m_outPorts.size();
+        emit portsAboutToBeInserted(type, index, index);
         if (type == PortType::In) {
             auto port = name.isEmpty() ? std::make_unique<T>() : std::make_unique<T>(name);
             m_inPorts.push_back({std::move(port), std::weak_ptr<NodeData>()});
@@ -70,9 +89,56 @@ protected:
             return;
         }
         emit portsInserted();
+        if (type == PortType::Out)
+            emit outPortInserted(index);
+        emit contentUpdated();
+    }
+    template<typename T>
+    void removePort(PortType type)
+    {
+        static_assert(std::is_base_of<NodeData, T>::value, "T must derive from NodeData");
+        int index = (type == PortType::In ? m_inPorts.size() : m_outPorts.size()) - 1;
+        emit portsAboutToBeDeleted(type, index, index);
+        if (type == PortType::In) {
+            removePort<T, InPortType>(m_inPorts);
+        } else if (type == PortType::Out) {
+            removePort<T, OutPortType>(m_outPorts);
+        } else {
+            qCritical() << "Unhandled type";
+            return;
+        }
+        emit portsDeleted();
+        if (type == PortType::Out)
+            emit outPortDeleted(index);
+        emit contentUpdated();
+    }
+    template<typename NodeData, typename PortType>
+    void removePort(PortType& ports)
+    {
+        for (int i = ports.size() - 1; i >= 0; --i)
+            // check whether we are removing port of type T (Data, Function etc.), we might have both types together in "ports"
+            if (dynamic_cast<NodeData *>(ports[i].first.get())) {
+                ports.erase(ports.begin() + i);
+                break;
+            }
+    }
+    template<typename T>
+    void setPortNumber(PortType type, uint num)
+    {
+        static_assert(std::is_base_of<NodeData, T>::value, "T must derive from NodeData");
+        uint current = nPorts(type, constants::DATA_PORT_ID);
+        if (current > num)
+            for (int i = 0; i < current - num; ++i)
+                removePort<T>(type);
+        else if (current < num)
+            for (int i = 0; i < num - current; ++i)
+                addPort<T>(type);
     }
 
 private:
+    using InPortType = std::vector<std::pair<std::unique_ptr<NodeData>, std::weak_ptr<NodeData>>>;
+    using OutPortType = std::vector<std::pair<std::shared_ptr<NodeData>, bool>>;
+
     void updateStyle();
     void updateShape();
 
@@ -92,7 +158,7 @@ private:
     // caption is the label of the block, we regard this as the "name" for kedro
     QString m_caption;
     // first is for structuring, second is actual data linked to connected block
-    std::vector<std::pair<std::unique_ptr<NodeData>, std::weak_ptr<NodeData>>> m_inPorts;
+    InPortType m_inPorts;
     // first is for data, second represents whether it's in use
-    std::vector<std::pair<std::shared_ptr<NodeData>, bool>> m_outPorts;
+    OutPortType m_outPorts;
 };

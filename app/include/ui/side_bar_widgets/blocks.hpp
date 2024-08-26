@@ -2,11 +2,17 @@
 
 #include <QWidget>
 
+#include <unordered_set>
+
 class QLabel;
-class QSplitter;
 class QTreeWidgetItem;
+class QLineEdit;
+class QSpinBox;
+class QStackedWidget;
+class QFormLayout;
 class BlockManager;
 class TabManager;
+class FdfBlockModel;
 
 namespace QtUtility {
 namespace widgets {
@@ -37,18 +43,29 @@ public slots:
 private slots:
     void updateFields();
     void onLibraryItemClicked(QTreeWidgetItem *item);
+    void onNodeUpdated(QtNodes::NodeId id);
 
 private:
     void initUi();
     void initEditor();
     void initLibrary();
+    void blockEditorSignals(bool value);
+    void enableEditorWidgets(bool value);
+    QWidget *generateParameterWidget(FdfBlockModel *block);
 
     std::shared_ptr<BlockManager> m_blockManager;
     std::shared_ptr<TabManager> m_tabManager;
     QtNodes::NodeId m_nodeId;
 
-    QSplitter *m_splitter;
     QtUtility::widgets::QCollapsibleWidget *m_blockEditor;
-    QLabel *m_viewerLabel;
+    std::unordered_set<QWidget *> m_blockableEditorWidgets;
+    std::unordered_set<QWidget *> m_editableEditorWidgets;
+    QFormLayout *m_editorLayout;
+    QLineEdit *m_idEdit;
+    QLineEdit *m_captionEdit;
+    QLineEdit *m_functionNameEdit;
+    QSpinBox *m_inputPortEdit;
+    QSpinBox *m_outputPortEdit;
+    QStackedWidget *m_parametersWidget;
     QtUtility::widgets::QCollapsibleWidget *m_library;
 };

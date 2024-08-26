@@ -18,6 +18,7 @@ constexpr QColor COLOR_PROCESSOR(169, 196, 236);
 constexpr QColor COLOR_TRAINER(205, 162, 190);
 
 constexpr uint SIDE_BAR_MINIMUM_WIDTH = 250;
+constexpr uint INT_SPIN_BOX_MAX_WIDTH = 55;
 
 constexpr ConstLatin1String CONNECTION_STYLE =
     R"(
@@ -74,6 +75,12 @@ constexpr ConstLatin1String NODE_STYLE =
             }
         }
     )";
+
+constexpr ConstLatin1String DATA_PORT_ID = "DataNode";
+constexpr ConstLatin1String FUNCTION_PORT_ID = "FunctionNode";
+
+constexpr uint MAX_DATA_INPUT_PORTS = 20;
+constexpr uint MAX_DATA_OUTPUT_PORTS = 20;
 
 namespace kedro {
 

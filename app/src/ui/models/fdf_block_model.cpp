@@ -7,7 +7,7 @@ FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &f
     , m_type(type)
     , m_name(name)
     , m_functionName(functionName)
-    , m_caption(name)
+    , m_caption(typeAsString())
 {
     updateStyle();
     updateShape();
@@ -74,6 +74,58 @@ QString FdfBlockModel::portCaption(PortType portType, PortIndex portIndex) const
     return QString();
 }
 
+QString FdfBlockModel::defaultPortCaption(PortType portType, PortIndex portIndex) const
+{
+    if (!indexCheck(portType, portIndex))
+        return QString();
+    if (portType == PortType::In) {
+        if (auto referencedNamedNode = std::dynamic_pointer_cast<NamedNode>(
+                m_inPorts.at(portIndex).second.lock()))
+            // if there's a referenced port, use that caption
+            return referencedNamedNode->defaultName();
+        else if (auto namedNode = dynamic_cast<NamedNode *>(m_inPorts.at(portIndex).first.get()))
+            namedNode->defaultName(); // otherwise use the default
+    }
+    if (portType == PortType::Out)
+        if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(portIndex).first))
+            return namedNode->defaultName();
+    return QString();
+}
+
+QJsonObject FdfBlockModel::save() const
+{
+    QJsonObject modelJson = NodeDelegateModel::save();
+    QJsonObject parameters;
+    modelJson["name"] = m_name;
+    if (!m_functionName.isEmpty())
+        modelJson["function_name"] = m_functionName;
+    modelJson["caption"] = m_caption;
+    for (auto parameter : getParameters())
+        parameters[parameter.first] = parameter.second;
+    modelJson["parameters"] = parameters;
+    return modelJson;
+}
+
+void FdfBlockModel::load(QJsonObject const &p)
+{
+    NodeDelegateModel::load(p);
+    QJsonValue value = p["name"];
+    if (!value.isUndefined())
+        m_name = value.toString();
+    value = p["function_name"];
+    if (!value.isUndefined())
+        m_functionName = value.toString();
+    value = p["caption"];
+    if (!value.isUndefined())
+        m_caption = value.toString();
+    value = p["parameters"];
+    if (!value.isUndefined()) {
+        QJsonObject parameters = value.toObject();
+        for (auto key : parameters.keys())
+            setParameter(key, parameters.value(key).toString());
+    }
+}
+
 std::shared_ptr<NodeData> FdfBlockModel::portData(PortType const type, PortIndex const index) const
 {
     if (!indexCheck(type, index))
@@ -118,6 +170,16 @@ void FdfBlockModel::outputConnectionDeleted(ConnectionId const &conn)
     m_outPorts.at(index).second = false;
 }
 
+void FdfBlockModel::setInputPortNumber(uint num)
+{
+    qDebug() << "Input port number cannot be modified";
+}
+
+void FdfBlockModel::setOutputPortNumber(uint num)
+{
+    qDebug() << "Output port number cannot be modified";
+}
+
 bool FdfBlockModel::indexCheck(PortType type, PortIndex index) const
 {
     if (type == PortType::In)
@@ -137,7 +199,9 @@ void FdfBlockModel::setCaption(const QString &caption)
 {
     if (m_caption == caption)
         return;
-    m_caption = caption;
+    m_caption = QString(caption);
+    emit contentUpdated();
+    emit captionUpdated(m_caption);
 }
 
 bool FdfBlockModel::setPortCaption(PortType type, PortIndex index, const QString &caption)
@@ -177,7 +241,10 @@ bool FdfBlockModel::setPortDefaultCaption(PortType type, PortIndex index, const 
         break;
     case PortType::Out:
         if (auto namedNode = std::dynamic_pointer_cast<NamedNode>(m_outPorts.at(index).first)) {
-            namedNode->setDefaultName(caption);
+            if (namedNode->defaultName() != caption) {
+                namedNode->setDefaultName(caption);
+                emit outPortCaptionUpdated(index, caption);
+            }
         } else
             return false;
         break;
@@ -222,6 +289,37 @@ std::shared_ptr<NodeData> FdfBlockModel::inData(PortIndex const index)
 std::unordered_map<QString, QString> FdfBlockModel::getParameters() const
 {
     return std::unordered_map<QString, QString>();
+}
+
+std::unordered_map<QString, QMetaType::Type> FdfBlockModel::getParameterSchema() const
+{
+    return std::unordered_map<QString, QMetaType::Type>();
+}
+
+QStringList FdfBlockModel::getParameterOptions(const QString &key) const
+{
+    return QStringList();
+}
+
+void FdfBlockModel::setParameter(const QString &key, const QString &value) {}
+
+unsigned int FdfBlockModel::nPorts(const PortType &portType, const QString &typeId) const
+{
+    uint result = 0;
+    if (portType == PortType::In)
+        for (auto &pair : m_inPorts)
+            if (pair.first.get()->type().id == typeId)
+                ++result;
+    if (portType == PortType::Out)
+        for (auto &pair : m_outPorts)
+            if (pair.first.get()->type().id == typeId)
+                ++result;
+    return result;
+}
+
+unsigned int FdfBlockModel::minModifiablePorts(const PortType &portType, const QString &typeId) const
+{
+    return 0;
 }
 
 void FdfBlockModel::updateStyle()

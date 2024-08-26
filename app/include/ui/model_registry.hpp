@@ -14,11 +14,11 @@ static std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registerDataModels()
     auto ret = std::make_shared<QtNodes::NodeDelegateModelRegistry>();
     ret->registerModel<DataSourceModel>("IO");
     ret->registerModel<FuncOutModel>("IO");
-    ret->registerModel<ProcessorSplitDataModel>("Processor");
-    ret->registerModel<ReduceModel>("Processor");
+    ret->registerModel<DataOutModel>("IO");
+    ret->registerModel<SplitDataModel>("Processor");
+    ret->registerModel<ExternalProcessorModel>("Processor");
     ret->registerModel<ScoreModel>("Processor");
-    ret->registerModel<LoadMatModel>("Processor");
-    ret->registerModel<TransformDataModel>("Coder");
+    ret->registerModel<CoderModel>("Coder");
     ret->registerModel<BasicTrainerModel>("Trainer");
 
     return ret;

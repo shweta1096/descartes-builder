@@ -2,14 +2,29 @@
 
 #include "fdf_block_model.hpp"
 
-class ProcessorSplitDataModel : public FdfBlockModel
+class ProcessorModel : public FdfBlockModel
 {
     Q_OBJECT
 public:
-    ProcessorSplitDataModel();
+    ProcessorModel(const QString &name, const QString &functionName);
+    virtual bool portNumberModifiable(const PortType &portType) const override;
+    virtual uint minModifiablePorts(const PortType &portType, const QString &typeId) const override;
+
+public slots:
+    virtual void setInputPortNumber(uint num) override;
+    virtual void setOutputPortNumber(uint num) override;
+};
+
+class SplitDataModel : public ProcessorModel
+{
+    Q_OBJECT
+public:
+    SplitDataModel();
     // need to be true even if parameters is empty
     virtual bool hasParameters() const override { return true; }
     virtual std::unordered_map<QString, QString> getParameters() const override;
+    virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
+    virtual void setParameter(const QString &key, const QString &value) override;
     std::optional<int> getRandomState() const { return m_randomState; }
     std::optional<int> getSplitTime() const { return m_splitTime; }
     void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
@@ -23,31 +38,16 @@ private:
     std::optional<int> m_splitTime;
 };
 
-class ReduceModel : public FdfBlockModel
+class ExternalProcessorModel : public ProcessorModel
 {
     Q_OBJECT
 public:
-    ReduceModel();
+    ExternalProcessorModel();
 };
 
-class ScoreModel : public FdfBlockModel
+class ScoreModel : public ProcessorModel
 {
     Q_OBJECT
 public:
     ScoreModel();
-};
-
-class LoadMatModel : public FdfBlockModel
-{
-    Q_OBJECT
-public:
-    LoadMatModel();
-    virtual std::unordered_map<QString, QString> getParameters() const override;
-    QString getDataPath() const { return m_dataPath; }
-    void setDataPath(const QString &dataPath) { m_dataPath = dataPath; }
-
-private:
-    inline static const QString DATA_PATH = "data_path";
-
-    QString m_dataPath;
 };

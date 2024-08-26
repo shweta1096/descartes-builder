@@ -2,8 +2,38 @@
 
 #include "ui/models/function_names.hpp"
 
-ProcessorSplitDataModel::ProcessorSplitDataModel()
-    : FdfBlockModel(FdfType::Processor, "split_data", processor_function::SPLIT_DATA)
+ProcessorModel::ProcessorModel(const QString &name, const QString &functionName)
+    : FdfBlockModel(FdfType::Processor, name, functionName)
+{}
+
+bool ProcessorModel::portNumberModifiable(const PortType &portType) const
+{
+    return true;
+}
+
+uint ProcessorModel::minModifiablePorts(const PortType &portType, const QString &typeId) const
+{
+    if (portType == PortType::In)
+        if (typeId == constants::DATA_PORT_ID)
+            return 1;
+    if (portType == PortType::Out)
+        if (typeId == constants::DATA_PORT_ID)
+            return 1;
+    return 0;
+}
+
+void ProcessorModel::setInputPortNumber(uint num)
+{
+    setPortNumber<DataNode>(PortType::In, num);
+}
+
+void ProcessorModel::setOutputPortNumber(uint num)
+{
+    setPortNumber<DataNode>(PortType::Out, num);
+}
+
+SplitDataModel::SplitDataModel()
+    : ProcessorModel("split_data", processor_function::SPLIT_DATA)
 {
     addPort<DataNode>(PortType::In, "X");
     addPort<DataNode>(PortType::In, "Y");
@@ -16,7 +46,7 @@ ProcessorSplitDataModel::ProcessorSplitDataModel()
     setRandomState(0);
 }
 
-std::unordered_map<QString, QString> ProcessorSplitDataModel::getParameters() const
+std::unordered_map<QString, QString> SplitDataModel::getParameters() const
 {
     std::unordered_map<QString, QString> result;
     if (m_randomState)
@@ -26,8 +56,25 @@ std::unordered_map<QString, QString> ProcessorSplitDataModel::getParameters() co
     return result;
 }
 
-ReduceModel::ReduceModel()
-    : FdfBlockModel(FdfType::Processor, "reduce", processor_function::PROCESSOR)
+std::unordered_map<QString, QMetaType::Type> SplitDataModel::getParameterSchema() const
+{
+    std::unordered_map<QString, QMetaType::Type> schema;
+    schema[RANDOM_STATE] = QMetaType::Int;
+    schema[SPLIT_TIME] = QMetaType::Int;
+    return schema;
+}
+
+void SplitDataModel::setParameter(const QString &key, const QString &value)
+{
+    if (key == RANDOM_STATE) {
+        setRandomState(value.toInt());
+    } else if (key == SPLIT_TIME) {
+        setSplitTime(value.toInt());
+    }
+}
+
+ExternalProcessorModel::ExternalProcessorModel()
+    : ProcessorModel("reduce", processor_function::PROCESSOR)
 {
     addPort<FunctionNode>(PortType::In);
     addPort<DataNode>(PortType::In);
@@ -35,24 +82,10 @@ ReduceModel::ReduceModel()
 }
 
 ScoreModel::ScoreModel()
-    : FdfBlockModel(FdfType::Processor, "score", processor_function::SCORE)
+    : ProcessorModel("score", processor_function::SCORE)
 {
     addPort<DataNode>(PortType::In, "Y_test");
     addPort<DataNode>(PortType::In, "Y_pred");
     addPort<DataNode>(PortType::Out, "nrmse");
     addPort<DataNode>(PortType::Out, "r2");
-}
-
-LoadMatModel::LoadMatModel()
-    : FdfBlockModel(FdfType::Processor, "load_mat", processor_function::LOAD_MAT)
-{
-    addPort<DataNode>(PortType::Out, "x");
-    addPort<DataNode>(PortType::Out, "y");
-}
-
-std::unordered_map<QString, QString> LoadMatModel::getParameters() const
-{
-    std::unordered_map<QString, QString> result;
-    result[DATA_PATH] = '\"' + m_dataPath + '\"';
-    return result;
 }

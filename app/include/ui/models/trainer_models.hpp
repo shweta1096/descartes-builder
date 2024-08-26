@@ -2,7 +2,19 @@
 
 #include "fdf_block_model.hpp"
 
-class BasicTrainerModel : public FdfBlockModel
+class TrainerModel : public FdfBlockModel
+{
+    Q_OBJECT
+public:
+    TrainerModel(const QString &name, const QString &functionName);
+    virtual bool portNumberModifiable(const PortType &portType) const override;
+    virtual uint minModifiablePorts(const PortType &portType, const QString &typeId) const override;
+
+public slots:
+    virtual void setInputPortNumber(uint num) override;
+};
+
+class BasicTrainerModel : public TrainerModel
 {
     Q_OBJECT
 public:
@@ -17,12 +29,15 @@ public:
 
     BasicTrainerModel();
     virtual std::unordered_map<QString, QString> getParameters() const override;
+    virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
+    virtual QStringList getParameterOptions(const QString &key) const override;
+    virtual void setParameter(const QString &key, const QString &value) override;
     Model getModel() const { return m_model; }
     std::optional<int> getRandomState() const { return m_randomState; }
-    std::optional<std::pair<int, int>> getHiddenLayerSizes() const { return m_hiddenLayerSizes; }
-    void setModel(const Model &model) { m_model = model; }
+    std::optional<std::vector<int>> getHiddenLayerSizes() const { return m_hiddenLayerSizes; }
+    void setModel(const Model &model);
     void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
-    void setHiddenLayerSizes(const std::optional<std::pair<int, int>> &hiddenLayerSizes)
+    void setHiddenLayerSizes(const std::optional<std::vector<int>> &hiddenLayerSizes)
     {
         m_hiddenLayerSizes = hiddenLayerSizes;
     }
@@ -35,5 +50,5 @@ private:
     Model m_model;
     std::optional<int> m_randomState;
     // only for mlp2
-    std::optional<std::pair<int, int>> m_hiddenLayerSizes;
+    std::optional<std::vector<int>> m_hiddenLayerSizes;
 };

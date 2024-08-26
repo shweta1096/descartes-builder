@@ -23,6 +23,8 @@ std::unordered_map<QString, CatalogType> CATALOG_EXTENSIONS = {
 
 DataSourceModel::DataSourceModel()
     : FdfBlockModel(FdfType::Data, io_names::DATA_SOURCE)
+    , m_widget(nullptr)
+    , m_label(nullptr)
 {
     addPort<DataNode>(PortType::Out);
 }
@@ -52,13 +54,14 @@ QWidget *DataSourceModel::embeddedWidget()
 
 QJsonObject DataSourceModel::save() const
 {
-    QJsonObject modelJson = NodeDelegateModel::save();
+    QJsonObject modelJson = FdfBlockModel::save();
     modelJson["data-name"] = m_file.fileName();
     return modelJson;
 }
 
 void DataSourceModel::load(QJsonObject const &p)
 {
+    FdfBlockModel::load(p);
     QJsonValue value = p["data-name"];
 
     if (value.isUndefined())
@@ -81,7 +84,8 @@ void DataSourceModel::setFile(const QFileInfo &file)
     m_file = file;
     if (CATALOG_EXTENSIONS.count(m_file.suffix()) > 0)
         m_fileType = CATALOG_EXTENSIONS.at(m_file.suffix());
-    m_label->setText(m_file.fileName());
+    if (m_label)
+        m_label->setText(m_file.fileName());
     updatePortCaption(m_file.baseName());
     emit contentUpdated();
 }
@@ -121,6 +125,33 @@ QString FuncOutModel::getFileName() const
 }
 
 QString FuncOutModel::getFileExtenstion() const
+{
+    for (auto &pair : CATALOG_EXTENSIONS)
+        if (pair.second == m_fileType)
+            return pair.first;
+    return QString();
+}
+
+DataOutModel::DataOutModel()
+    : FdfBlockModel(FdfType::Output, io_names::DATA_OUT)
+    , m_fileType(CatalogType::Pickle)
+{
+    addPort<DataNode>(PortType::In);
+}
+
+QString DataOutModel::fileTypeString() const
+{
+    if (CATALOG_STRING.count(m_fileType) > 0)
+        return CATALOG_STRING.at(m_fileType);
+    return "NONE";
+}
+
+QString DataOutModel::getFileName() const
+{
+    return portCaption(PortType::In, 0);
+}
+
+QString DataOutModel::getFileExtenstion() const
 {
     for (auto &pair : CATALOG_EXTENSIONS)
         if (pair.second == m_fileType)

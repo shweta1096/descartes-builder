@@ -43,7 +43,7 @@ void BlockManager::setTabManager(std::shared_ptr<TabManager> tabManager)
     connect(m_tabManager.get(), &TabManager::tabCreated, this, &BlockManager::onTabCreated);
 }
 
-QJsonObject BlockManager::getJson(QtNodes::NodeId id)
+QJsonObject BlockManager::getJson(QtNodes::NodeId id) const
 {
     auto graph = m_tabManager->currentGraph();
     if (!graph || id == QtNodes::InvalidNodeId)
@@ -51,13 +51,43 @@ QJsonObject BlockManager::getJson(QtNodes::NodeId id)
     return graph->saveNode(id);
 }
 
+FdfBlockModel *BlockManager::getBlock(QtNodes::NodeId id) const
+{
+    auto graph = m_tabManager->currentGraph();
+    if (!graph || id == QtNodes::InvalidNodeId)
+        return nullptr;
+    return graph->delegateModel<FdfBlockModel>(id);
+}
+
+QPointF BlockManager::getBlockPosition(QtNodes::NodeId id) const
+{
+    auto graph = m_tabManager->currentGraph();
+    if (!graph || id == QtNodes::InvalidNodeId)
+        return QPointF();
+    return graph->nodeData(id, QtNodes::NodeRole::Position).value<QPointF>();
+}
+
+void BlockManager::setBlockPosition(QtNodes::NodeId id, QPointF point)
+{
+    auto graph = m_tabManager->currentGraph();
+    if (!graph || id == QtNodes::InvalidNodeId)
+        return;
+    graph->setNodeData(id, QtNodes::NodeRole::Position, point);
+}
+
 void BlockManager::onTabCreated(QWidget *view)
 {
-    if (auto tab = m_tabManager->getTab(view))
+    if (auto tab = m_tabManager->getTab(view)) {
         connect(tab->getScene(),
                 &DagGraphicsScene::selectionChanged,
                 this,
                 &BlockManager::onSelectionChanged);
+        connect(tab->getGraph(),
+                &CustomGraph::nodePositionUpdated,
+                this,
+                &BlockManager::nodeUpdated);
+        connect(tab->getGraph(), &CustomGraph::nodeUpdated, this, &BlockManager::nodeUpdated);
+    }
 }
 
 void BlockManager::onSelectionChanged()

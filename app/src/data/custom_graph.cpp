@@ -8,12 +8,22 @@ namespace {
 template<typename MapType>
 void removeByValue(MapType &map, const typename MapType::mapped_type &valueToRemove)
 {
-    for (auto it = map.begin(); it != map.end();) {
+    for (auto it = map.begin(); it != map.end();)
         if (it->second == valueToRemove)
             it = map.erase(it);
         else
             ++it;
-    }
+}
+
+template<typename MapType>
+void removeByPairFirst(MapType &map,
+                       const typename MapType::mapped_type::first_type &firstValueToRemove)
+{
+    for (auto it = map.begin(); it != map.end();)
+        if (it->second.first == firstValueToRemove)
+            it = map.erase(it);
+        else
+            ++it;
 }
 
 } // namespace
@@ -40,68 +50,131 @@ std::vector<FuncOutModel *> CustomGraph::getFuncOutModels() const
     return result;
 }
 
+void CustomGraph::initBlockConnections(const QtNodes::NodeId nodeId, FdfBlockModel *block)
+{
+    connect(block, &FdfBlockModel::captionUpdated, this, [this, block, nodeId]() {
+        makeCaptionUnique(nodeId, block);
+    });
+    connect(block,
+            &FdfBlockModel::outPortCaptionUpdated,
+            this,
+            [this, block, nodeId](const PortIndex &index) {
+                makeOutPortsUnique(nodeId, block, index);
+            });
+    connect(block, &FdfBlockModel::outPortInserted, this, [nodeId, this](const PortIndex index) {
+        onOutPortInserted(nodeId, index);
+    });
+    connect(block, &FdfBlockModel::outPortDeleted, this, [nodeId, this](const PortIndex index) {
+        onOutPortDeleted(nodeId, index);
+    });
+}
+
 void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
 {
     DirectedAcyclicGraphModel::onNodeCreated(nodeId);
-    auto model = delegateModel<FdfBlockModel>(nodeId);
-    if (!model)
+    auto block = delegateModel<FdfBlockModel>(nodeId);
+    if (!block)
         return;
-    makeCaptionUnique(nodeId, model);
-    makeOutPortsUnique(nodeId, model);
+    initBlockConnections(nodeId, block);
+    makeCaptionUnique(nodeId, block);
+    makeOutPortsUnique(nodeId, block);
 
-    if (model->name() == io_names::DATA_SOURCE) {
+    if (block->name() == io_names::DATA_SOURCE) {
         m_dataSourceNodes.insert(nodeId);
-        auto dataSourceModel = dynamic_cast<DataSourceModel *>(model);
+        auto dataSourceModel = dynamic_cast<DataSourceModel *>(block);
         connect(dataSourceModel, &DataSourceModel::importClicked, this, [nodeId, this]() {
             emit dataSourceModelImportClicked(nodeId);
         });
-    } else if (model->name() == io_names::FUNC_OUT)
+    } else if (block->name() == io_names::FUNC_OUT)
         m_funcOutNodes.insert(nodeId);
 }
 
 void CustomGraph::onNodeDeleted(const QtNodes::NodeId nodeId)
 {
     removeByValue(m_usedNodeCaptions, nodeId);
-    removeByValue(m_usedOutPortCaptions, nodeId);
+    removeByPairFirst(m_usedOutPortCaptions, nodeId);
 
-    auto model = delegateModel<FdfBlockModel>(nodeId);
-    if (!model)
+    auto block = delegateModel<FdfBlockModel>(nodeId);
+    if (!block)
         return;
-    if (model->name() == io_names::DATA_SOURCE)
+    if (block->name() == io_names::DATA_SOURCE)
         m_dataSourceNodes.erase(nodeId);
-    else if (model->name() == io_names::FUNC_OUT)
+    else if (block->name() == io_names::FUNC_OUT)
         m_funcOutNodes.erase(nodeId);
+    m_trackedNodes.erase(nodeId);
 }
 
-void CustomGraph::makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *model)
+void CustomGraph::onOutPortInserted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex oldIndex)
 {
-    QString uniqueCaption = model->caption();
-    uint counter = 1;
-    while (m_usedNodeCaptions.count(uniqueCaption) > 0
-           && m_usedNodeCaptions.at(uniqueCaption) != nodeId) {
-        uniqueCaption = QString("%1 %2").arg(model->caption(), QString::number(++counter));
-    }
-    m_usedNodeCaptions[uniqueCaption] = nodeId;
-    m_usedNodeCaptions.insert({uniqueCaption, nodeId});
-    if (model->caption() != uniqueCaption)
-        model->setCaption(uniqueCaption);
+    auto block = delegateModel<FdfBlockModel>(nodeId);
+    if (!block)
+        return;
+    makeOutPortsUnique(nodeId, block, oldIndex);
 }
 
-void CustomGraph::makeOutPortsUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *model)
+void CustomGraph::onOutPortDeleted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex oldIndex)
+{
+    removeByValue(m_usedOutPortCaptions, std::make_pair(nodeId, oldIndex));
+    auto block = delegateModel<FdfBlockModel>(nodeId);
+    if (!block)
+        return;
+    if (block->nPorts(PortType::Out) > oldIndex)
+        // shift index of ports after the deleted one
+        for (int i = oldIndex; i < block->nPorts(PortType::Out); ++i) {
+            auto caption = block->portCaption(PortType::Out, i);
+            --m_usedOutPortCaptions.at(caption).second;
+        }
+}
+
+void CustomGraph::makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *block)
+{
+    QString uniqueCaption = block->caption();
+    uint counter = 1;
+    if (m_trackedNodes.count(nodeId) > 0) { // if node is already tracked
+        if (m_usedNodeCaptions.count(uniqueCaption) > 0
+            && m_usedNodeCaptions.at(uniqueCaption) == nodeId)
+            return;
+        // if caption is different, remove old caption
+        removeByValue(m_usedNodeCaptions, nodeId);
+    }
+    while (m_usedNodeCaptions.count(uniqueCaption) > 0)
+        uniqueCaption = QString("%1 %2").arg(block->caption(), QString::number(++counter));
+    m_usedNodeCaptions[uniqueCaption] = nodeId;
+    m_trackedNodes.insert(nodeId);
+    if (block->caption() != uniqueCaption)
+        block->setCaption(uniqueCaption);
+}
+
+void CustomGraph::makeOutPortsUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *block)
 {
     auto portType = QtNodes::PortType::Out;
-    for (uint i = 0; i < model->nPorts(portType); ++i) {
-        const auto ORIGINAL_NAME = model->portCaption(portType, i);
-        auto uniqueName = model->portCaption(portType, i);
-        uint counter = 1;
-        while (m_usedOutPortCaptions.count(uniqueName) > 0
-               && m_usedOutPortCaptions.at(uniqueName) != nodeId) {
-            uniqueName = QString("%1 %2").arg(ORIGINAL_NAME, QString::number(++counter));
-        }
-        m_usedOutPortCaptions[uniqueName] = nodeId;
-        if (ORIGINAL_NAME != uniqueName) {
-            model->setPortDefaultCaption(portType, i, uniqueName);
-            model->resetPortCaption(portType, i);
-        }
+    for (uint i = 0; i < block->nPorts(portType); ++i) {
+        makeOutPortsUnique(nodeId, block, i);
+    }
+}
+
+void CustomGraph::makeOutPortsUnique(const QtNodes::NodeId &nodeId,
+                                     FdfBlockModel *block,
+                                     const PortIndex &index)
+{
+    auto portType = QtNodes::PortType::Out;
+    const auto ORIGINAL_NAME = block->defaultPortCaption(portType, index);
+    uint counter = 1;
+
+    if (m_trackedNodes.count(nodeId) > 0) {
+        if (m_usedOutPortCaptions.count(ORIGINAL_NAME) > 0
+            && m_usedOutPortCaptions.at(ORIGINAL_NAME) == std::make_pair(nodeId, index))
+            return;
+        // if caption is different, remove old caption
+        removeByValue(m_usedOutPortCaptions, std::make_pair(nodeId, index));
+    }
+    auto uniqueName = ORIGINAL_NAME;
+    while (m_usedOutPortCaptions.count(uniqueName) > 0) {
+        uniqueName = QString("%1 %2").arg(ORIGINAL_NAME, QString::number(++counter));
+    }
+    m_usedOutPortCaptions[uniqueName] = std::make_pair(nodeId, index);
+    if (ORIGINAL_NAME != uniqueName) {
+        block->setPortDefaultCaption(portType, index, uniqueName);
+        block->resetPortCaption(portType, index);
     }
 }

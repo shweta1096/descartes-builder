@@ -13,6 +13,7 @@ namespace io_names {
 using ConstLatin1String = QtUtility::data::ConstLatin1String;
 constexpr ConstLatin1String DATA_SOURCE = "data_source";
 constexpr ConstLatin1String FUNC_OUT = "func_out";
+constexpr ConstLatin1String DATA_OUT = "data_out";
 } // namespace io_names
 
 enum CatalogType { Pickle, Csv, H5 };
@@ -52,6 +53,21 @@ class FuncOutModel : public FdfBlockModel
     Q_OBJECT
 public:
     FuncOutModel();
+    CatalogType getFileType() const { return m_fileType; }
+    QString fileTypeString() const;
+    void setFileType(const CatalogType &fileType) { m_fileType = fileType; }
+    QString getFileName() const;
+    QString getFileExtenstion() const;
+
+private:
+    CatalogType m_fileType;
+};
+
+class DataOutModel : public FdfBlockModel
+{
+    Q_OBJECT
+public:
+    DataOutModel();
     CatalogType getFileType() const { return m_fileType; }
     QString fileTypeString() const;
     void setFileType(const CatalogType &fileType) { m_fileType = fileType; }

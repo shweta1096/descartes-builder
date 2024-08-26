@@ -1,5 +1,7 @@
 #include "ui/side_bar_widgets/blocks.hpp"
 
+#include <QComboBox>
+#include <QFormLayout>
 #include <QGraphicsItem>
 #include <QHeaderView>
 #include <QJsonDocument>
@@ -8,7 +10,8 @@
 #include <QLayout>
 #include <QLineEdit>
 #include <QMenu>
-#include <QSplitter>
+#include <QSpinBox>
+#include <QStackedWidget>
 #include <QTreeWidget>
 #include <QWidgetAction>
 
@@ -19,13 +22,17 @@
 #include <QtUtility/widgets/qcollapsible_widget.hpp>
 
 #include "data/block_manager.hpp"
+#include "data/constants.hpp"
 #include "data/tab_manager.hpp"
+#include "ui/models/fdf_block_model.hpp"
 
 using QCollapsibleWidget = QtUtility::widgets::QCollapsibleWidget;
 
 namespace {
 constexpr uint ADD_BLOCK_SPACING = 20;
-}
+constexpr uint FUNCTION_ROW = 1;
+constexpr uint PARAMETER_ROW = 5;
+} // namespace
 
 Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
                std::shared_ptr<TabManager> tabManager,
@@ -34,9 +41,13 @@ Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
     , m_blockManager(blockManager)
     , m_tabManager(tabManager)
     , m_nodeId(QtNodes::InvalidNodeId)
-    , m_splitter(new QSplitter(Qt::Vertical))
     , m_blockEditor(new QCollapsibleWidget("Editor"))
-    , m_viewerLabel(new QLabel())
+    , m_idEdit(new QLineEdit)
+    , m_captionEdit(new QLineEdit)
+    , m_functionNameEdit(new QLineEdit)
+    , m_inputPortEdit(new QSpinBox)
+    , m_outputPortEdit(new QSpinBox)
+    , m_parametersWidget(new QStackedWidget)
     , m_library(new QCollapsibleWidget("Library"))
 {
     initUi();
@@ -48,6 +59,50 @@ void Blocks::setNodeId(QtNodes::NodeId id)
         return;
     m_nodeId = id;
     emit nodeIdChanged(id);
+}
+
+void Blocks::onNodeSelected(QtNodes::NodeId id)
+{
+    setNodeId(id);
+}
+
+void Blocks::updateFields()
+{
+    blockEditorSignals(true);
+    auto block = m_blockManager->getBlock(m_nodeId);
+    auto blockSelected = block;
+    enableEditorWidgets(blockSelected);
+    if (auto widget = m_parametersWidget->currentWidget()) {
+        m_parametersWidget->removeWidget(widget);
+        widget->deleteLater();
+    }
+    if (!blockSelected) {
+        m_idEdit->clear();
+        m_captionEdit->clear();
+        m_functionNameEdit->clear();
+        m_inputPortEdit->clear();
+        m_outputPortEdit->clear();
+    } else {
+        // fill the fields
+        m_idEdit->setText(QString::number(m_nodeId));
+        m_functionNameEdit->setText(block->functionName());
+        m_captionEdit->setText(block->caption());
+        m_inputPortEdit->setMinimum(
+            block->minModifiablePorts(PortType::In, constants::DATA_PORT_ID));
+        m_inputPortEdit->setValue(block->nPorts(PortType::In, constants::DATA_PORT_ID));
+        m_inputPortEdit->setEnabled(block->portNumberModifiable(PortType::In));
+        m_outputPortEdit->setMinimum(
+            block->minModifiablePorts(PortType::Out, constants::DATA_PORT_ID));
+        m_outputPortEdit->setValue(block->nPorts(PortType::Out, constants::DATA_PORT_ID));
+        m_outputPortEdit->setEnabled(block->portNumberModifiable(PortType::Out));
+
+        if (auto parameterWidget = generateParameterWidget(block))
+            m_parametersWidget->addWidget(parameterWidget);
+    }
+    m_editorLayout->setRowVisible(FUNCTION_ROW, block && !block->functionName().isEmpty());
+    m_editorLayout->setRowVisible(PARAMETER_ROW, m_parametersWidget->currentWidget());
+
+    blockEditorSignals(false);
 }
 
 void Blocks::onLibraryItemClicked(QTreeWidgetItem *item)
@@ -67,41 +122,79 @@ void Blocks::onLibraryItemClicked(QTreeWidgetItem *item)
     scene->createNodeAt(item->text(0), pos);
 }
 
+void Blocks::onNodeUpdated(QtNodes::NodeId id)
+{
+    if (id != m_nodeId)
+        return;
+    updateFields();
+}
+
 void Blocks::initUi()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setAlignment(Qt::AlignTop);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(m_splitter);
 
     initEditor();
     initLibrary();
-    m_splitter->addWidget(m_blockEditor);
-    m_splitter->addWidget(m_library);
-    m_splitter->setStretchFactor(1, 1);
-    m_splitter->setChildrenCollapsible(false);
-
-    connect(m_blockEditor, &QCollapsibleWidget::contentSizeChanged, this, [this]() {
-        m_splitter->setSizes({1, 1});
-    });
+    layout->addWidget(m_blockEditor);
+    layout->addWidget(m_library);
 }
 
 void Blocks::initEditor()
 {
-    auto layout = new QVBoxLayout();
-    layout->setAlignment(Qt::AlignTop);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(m_viewerLabel);
+    auto formWidget = new QWidget();
+    m_editorLayout = new QFormLayout(formWidget);
+    m_editorLayout->setContentsMargins(0, 0, 0, 0);
+    m_editorLayout->addRow(new QLabel("Id:"), m_idEdit);
+    m_idEdit->setDisabled(true);
+    m_editorLayout->addRow(new QLabel("Function:"), m_functionNameEdit);
+    m_editorLayout->setRowVisible(FUNCTION_ROW, false);
+    m_functionNameEdit->setDisabled(true);
+    m_editorLayout->addRow(new QLabel("Caption:"), m_captionEdit);
 
+    m_inputPortEdit->setRange(0, constants::MAX_DATA_INPUT_PORTS);
+    m_inputPortEdit->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
+    m_outputPortEdit->setRange(0, constants::MAX_DATA_OUTPUT_PORTS);
+    m_outputPortEdit->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
+    m_editorLayout->addRow(new QLabel("Input Ports:"), m_inputPortEdit);
+    m_editorLayout->addRow(new QLabel("Output Ports:"), m_outputPortEdit);
+
+    m_editorLayout->addRow(new QLabel("Parameters"));
+    m_editorLayout->setRowVisible(PARAMETER_ROW, false);
+    m_editorLayout->addRow(m_parametersWidget);
+    m_blockEditor->setWidget(formWidget);
+
+    // these will be blocked during updateFields()
+    m_blockableEditorWidgets = {m_idEdit,
+                                m_functionNameEdit,
+                                m_captionEdit,
+                                m_inputPortEdit,
+                                m_outputPortEdit};
+    // these will be enabled/disabled after updateFields();
+    m_editableEditorWidgets = {m_captionEdit, m_inputPortEdit, m_outputPortEdit};
+
+    // init initial disabled state
     updateFields();
-    connect(this, &Blocks::nodeIdChanged, this, &Blocks::updateFields);
 
-    m_blockEditor->setContentLayout(layout);
+    connect(this, &Blocks::nodeIdChanged, this, &Blocks::updateFields);
+    connect(m_blockManager.get(), &BlockManager::nodeUpdated, this, &Blocks::onNodeUpdated);
+
+    connect(m_captionEdit, &QLineEdit::textChanged, this, [this](QString text) {
+        m_blockManager->getBlock(m_nodeId)->setCaption(text);
+    });
+    connect(m_inputPortEdit, &QSpinBox::valueChanged, this, [this](int value) {
+        m_blockManager->getBlock(m_nodeId)->setInputPortNumber(value);
+    });
+    connect(m_outputPortEdit, &QSpinBox::valueChanged, this, [this](int value) {
+        m_blockManager->getBlock(m_nodeId)->setOutputPortNumber(value);
+    });
 }
 
 void Blocks::initLibrary()
 {
-    auto layout = new QVBoxLayout();
+    auto widget = new QWidget();
+    auto layout = new QVBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
 
     // search box
@@ -157,19 +250,105 @@ void Blocks::initLibrary()
         }
     });
 
-    m_library->setContentLayout(layout);
+    m_library->setWidget(widget);
 }
 
-void Blocks::onNodeSelected(QtNodes::NodeId id)
+void Blocks::blockEditorSignals(bool value)
 {
-    setNodeId(id);
+    for (auto widget : m_blockableEditorWidgets)
+        widget->blockSignals(value);
 }
 
-void Blocks::updateFields()
+void Blocks::enableEditorWidgets(bool value)
 {
-    auto jsonObject = m_blockManager->getJson(m_nodeId);
-    if (jsonObject.isEmpty())
-        m_viewerLabel->setText("No block selected");
-    else
-        m_viewerLabel->setText(QJsonDocument(jsonObject).toJson(QJsonDocument::Indented));
+    for (auto widget : m_editableEditorWidgets)
+        widget->setEnabled(value);
+}
+
+QWidget *Blocks::generateParameterWidget(FdfBlockModel *block)
+{
+    if (!block)
+        return nullptr;
+    auto values = block->getParameters();
+    if (values.empty())
+        return nullptr;
+    auto widget = new QWidget;
+    auto layout = new QFormLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    for (auto &pair : block->getParameterSchema()) {
+        auto key = pair.first;
+        // value is not found for now, we need to decide how to add optional params
+        if (values.count(key) < 1)
+            continue;
+        auto value = values.at(key);
+        if (pair.second == QMetaType::QString) {
+            auto options = block->getParameterOptions(key);
+            if (options.isEmpty()) {
+                auto edit = new QLineEdit(value);
+                layout->addRow(new QLabel(key), edit);
+                connect(edit, &QLineEdit::textChanged, block, [block, key](const QString &text) {
+                    block->setParameter(key, text);
+                });
+            } else {
+                auto comboBox = new QComboBox;
+                comboBox->addItems(options);
+                comboBox->setCurrentText(value);
+                layout->addRow(new QLabel(key), comboBox);
+                connect(comboBox,
+                        &QComboBox::currentTextChanged,
+                        block,
+                        [block, key](const QString &text) { block->setParameter(key, text); });
+            }
+        } else if (pair.second == QMetaType::Int) {
+            auto spin = new QSpinBox;
+            spin->setRange(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max());
+            spin->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
+            spin->setValue(value.toInt());
+            layout->addRow(new QLabel(key), new QSpinBox());
+            connect(spin, &QSpinBox::valueChanged, block, [block, key](const int &value) {
+                block->setParameter(key, QString::number(value));
+            });
+        } else if (pair.second == QMetaType::QPoint) {
+            auto pointLayout = new QHBoxLayout();
+            {
+                int xValue = value.mid(value.indexOf('[') + 1, value.indexOf(',') - 1).toInt();
+                int yValue = value.mid(value.indexOf(' ') + 1, value.indexOf(']') - 1).toInt();
+                pointLayout->setContentsMargins(0, 0, 0, 0);
+                pointLayout->setSpacing(0);
+                auto xSpin = new QSpinBox;
+                xSpin->setRange(0, std::numeric_limits<int>::max());
+                xSpin->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
+                xSpin->setValue(xValue);
+                pointLayout->addWidget(xSpin);
+                pointLayout->addWidget(new QLabel(", "));
+                auto ySpin = new QSpinBox;
+                ySpin->setRange(0, std::numeric_limits<int>::max());
+                ySpin->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
+                ySpin->setValue(yValue);
+                pointLayout->addWidget(ySpin);
+                connect(xSpin, &QSpinBox::valueChanged, block, [block, key, ySpin](const int &value) {
+                    block->setParameter(key,
+                                        QString("[%1, %2]")
+                                            .arg(QString::number(value),
+                                                 QString::number(ySpin->value())));
+                });
+                connect(ySpin, &QSpinBox::valueChanged, block, [block, key, xSpin](const int &value) {
+                    block->setParameter(key,
+                                        QString("[%1, %2]")
+                                            .arg(QString::number(xSpin->value()), value));
+                });
+            }
+            layout->addRow(new QLabel(key), pointLayout);
+        } else if (pair.second == QMetaType::QVector2D) {
+            // UI for this can be improved
+            auto edit = new QLineEdit(value);
+            layout->addRow(new QLabel(key), edit);
+            connect(edit, &QLineEdit::textChanged, block, [block, key](const QString &text) {
+                block->setParameter(key, text);
+            });
+        } else {
+            qCritical() << "Block parameter type is unhandled" << pair.second;
+        }
+    }
+    return widget;
 }

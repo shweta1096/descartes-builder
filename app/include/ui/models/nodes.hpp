@@ -2,6 +2,8 @@
 
 #include <QtNodes/NodeData>
 
+#include "data/constants.hpp"
+
 using QtNodes::NodeData;
 using QtNodes::NodeDataType;
 
@@ -15,7 +17,7 @@ public:
 
     virtual QString id() { return m_type.id; }
     QString name() const { return m_type.name; }
-    QString DefaultName() const { return m_defaultName; }
+    QString defaultName() const { return m_defaultName; }
     void setName(const QString &name) { m_type.name = name; }
     void setDefaultName(const QString &name) { m_defaultName = name; }
     void reset() { m_type.name = m_defaultName; }
@@ -35,7 +37,7 @@ public:
     DataNode(const QString &name)
         : NamedNode(name)
     {
-        m_type.id = "DataNode";
+        m_type.id = constants::DATA_PORT_ID;
     }
 };
 
@@ -48,6 +50,6 @@ public:
     FunctionNode(const QString &name)
         : NamedNode(name)
     {
-        m_type.id = "FunctionNode";
+        m_type.id = constants::FUNCTION_PORT_ID;
     }
 };
