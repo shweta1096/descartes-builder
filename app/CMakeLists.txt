@@ -21,7 +21,8 @@ add_definitions("-DQT_MESSAGELOGCONTEXT")
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL Core5Compat)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL
+                                                       Core5Compat)
 
 add_subdirectory(external/qtnodes)
 add_subdirectory(external/qtutility)
@@ -111,7 +112,7 @@ set(CPACK_PACKAGE_VERSION "1.0.0")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
     "Function + Data Flow Digital Twin Builder")
 set(CPACK_PACKAGE_VENDOR "CNRS@CREATE")
-set(CPACK_PACKAGE_CONTACT "nicholas.ng@cnrsatcreate.sg")
+set(CPACK_PACKAGE_CONTACT "contact@cnrsatcreate.sg")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
 
 # Set installation directories
