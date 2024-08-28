@@ -304,7 +304,7 @@ QWidget *Blocks::generateParameterWidget(FdfBlockModel *block)
             spin->setRange(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max());
             spin->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
             spin->setValue(value.toInt());
-            layout->addRow(new QLabel(key), new QSpinBox());
+            layout->addRow(new QLabel(key), spin);
             connect(spin, &QSpinBox::valueChanged, block, [block, key](const int &value) {
                 block->setParameter(key, QString::number(value));
             });

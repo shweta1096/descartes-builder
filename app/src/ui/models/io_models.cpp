@@ -158,3 +158,37 @@ QString DataOutModel::getFileExtenstion() const
             return pair.first;
     return QString();
 }
+
+GraphModel::GraphModel()
+    : FdfBlockModel(FdfType::Output, io_names::GRAPH_FUNCTION)
+    , m_graph(nullptr)
+{
+    addPort<FunctionNode>(PortType::In, "f");
+}
+
+void GraphModel::setFile(const QFileInfo &file)
+{
+    if (file == m_file)
+        return;
+    m_file = file;
+    updateGraph();
+}
+
+QWidget *GraphModel::embeddedWidget()
+{
+    if (!m_graph) {
+        m_graph = new QLabel;
+        m_graph->setStyleSheet("QLabel{ background: transparent; }");
+        if (!m_file.absoluteFilePath().isEmpty())
+            m_graph->setPixmap(QPixmap(m_file.absoluteFilePath()));
+    }
+    return m_graph;
+}
+
+void GraphModel::updateGraph()
+{
+    if (!m_graph)
+        return;
+    m_graph->setPixmap(QPixmap(m_file.absoluteFilePath()));
+    emit contentUpdated();
+}

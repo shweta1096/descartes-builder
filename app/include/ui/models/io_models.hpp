@@ -14,6 +14,7 @@ using ConstLatin1String = QtUtility::data::ConstLatin1String;
 constexpr ConstLatin1String DATA_SOURCE = "data_source";
 constexpr ConstLatin1String FUNC_OUT = "func_out";
 constexpr ConstLatin1String DATA_OUT = "data_out";
+constexpr ConstLatin1String GRAPH_FUNCTION = "graph_function";
 } // namespace io_names
 
 enum CatalogType { Pickle, Csv, H5 };
@@ -23,7 +24,6 @@ class DataSourceModel : public FdfBlockModel
     Q_OBJECT
 public:
     DataSourceModel();
-    void setInData(std::shared_ptr<NodeData>, PortIndex const) override {};
     QWidget *embeddedWidget() override;
     QJsonObject save() const override;
     void load(QJsonObject const &p) override;
@@ -76,4 +76,20 @@ public:
 
 private:
     CatalogType m_fileType;
+};
+
+class GraphModel : public FdfBlockModel
+{
+    Q_OBJECT
+public:
+    GraphModel();
+    QFileInfo file() const { return m_file; }
+    void setFile(const QFileInfo &file);
+    QWidget *embeddedWidget() override;
+
+private:
+    void updateGraph();
+
+    QLabel *m_graph;
+    QFileInfo m_file;
 };
