@@ -31,6 +31,8 @@ using QtNodes::NodeStyle;
 #include "ui/bottom_panel.hpp"
 #include "ui/graphics_scene_tab_widget.hpp"
 #include "ui/side_bar_widgets/blocks.hpp"
+#include "ui/side_bar_widgets/information.hpp"
+#include "ui/side_bar_widgets/settings.hpp"
 
 MainWindow::MainWindow()
     : m_engine(EngineStarter::init())
@@ -187,15 +189,12 @@ void MainWindow::initPrimarySideBar()
         {QtUtility::media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
          "Blocks",
          blockWidget},
-        {QtUtility::media::recolor(QIcon(":/menu.png"), constants::COLOR_SECONDARY),
-         "Menu",
-         new QLabel("Menu Dock Widget")},
         {QtUtility::media::recolor(QIcon(":/settings.png"), constants::COLOR_SECONDARY),
          "Settings",
-         new QLabel("Settings Dock Widget")},
+         new Settings},
         {QtUtility::media::recolor(QIcon(":/information.png"), constants::COLOR_SECONDARY),
          "Information",
-         new QLabel("Information Dock Widget")},
+         new Information},
     };
 
     auto toolBar = new QToolBar("Primary Side Bar");

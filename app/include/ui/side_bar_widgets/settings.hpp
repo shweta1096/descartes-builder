@@ -6,5 +6,5 @@ class Settings : public QWidget
 {
     Q_OBJECT
 public:
-    Settings();
+    Settings(QWidget *parent = nullptr);
 };

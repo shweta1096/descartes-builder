@@ -6,5 +6,5 @@ class Information : public QWidget
 {
     Q_OBJECT
 public:
-    Information();
+    Information(QWidget *parent = nullptr);
 };
