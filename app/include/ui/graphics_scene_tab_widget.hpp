@@ -4,6 +4,7 @@
 
 class TabComponents;
 class TabManager;
+class QPushButton;
 
 class GraphicsSceneTabWidget : public QTabWidget
 {
@@ -19,6 +20,9 @@ public slots:
     void closeCurrentTab();
     void nextTab();
     void previousTab();
+    void setRunState(bool state);
+    void runStarted();
+    void runFinished();
 
 private slots:
     void closeTab(int index);
@@ -34,4 +38,6 @@ protected:
 
 private:
     std::shared_ptr<TabManager> m_tabManager;
+
+    QPushButton *m_runButton;
 };

@@ -11,8 +11,8 @@ public:
     Temp(QObject *parent = nullptr);
 
 public slots:
-    bool runPython();
     void printInfo();
     void printDebug();
     void printError();
+    void printAllSettings();
 };

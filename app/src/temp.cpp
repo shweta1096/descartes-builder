@@ -2,24 +2,11 @@
 
 #include <QDebug>
 
-#include <QtUtility/python/py_process.hpp>
+#include "data/settings.hpp"
 
 Temp::Temp(QObject *parent)
     : QObject(parent)
 {}
-
-bool Temp::runPython()
-{
-    QStringList args = {"Hello", "World"};
-    QResource script(":/test.py");
-
-    auto output = QtUtility::python::run(script, args);
-    if (!output.error.isEmpty())
-        qCritical() << output.error;
-    else
-        qInfo() << output.output;
-    return true;
-}
 
 void Temp::printInfo()
 {
@@ -34,4 +21,9 @@ void Temp::printDebug()
 void Temp::printError()
 {
     qCritical() << "This is an error print";
+}
+
+void Temp::printAllSettings()
+{
+    data::Settings::instance().printAll();
 }

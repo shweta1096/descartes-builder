@@ -20,7 +20,9 @@ public:
     QStringList getValidityWarnings() const { return m_validityWarnings; }
 
 signals:
-    void executed(const QString& output);
+    void started();
+    void finished(bool success);
+    void executed(const QString &output);
 
 protected:
     void setExecutionError(const QString &error) { m_executionError = error; }

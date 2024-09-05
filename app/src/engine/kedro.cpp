@@ -12,6 +12,7 @@
 
 #include "data/constants.hpp"
 #include "data/custom_graph.hpp"
+#include "data/settings.hpp"
 #include "data/tab_components.hpp"
 #include "ui/models/fdf_block_model.hpp"
 #include "ui/models/io_models.hpp"
@@ -23,6 +24,8 @@
 #else
 #define IS_WINDOWS false
 #endif
+
+using Settings = data::Settings;
 
 namespace {
 
@@ -39,9 +42,6 @@ QString quote(const QString &string)
     return '\"' + string + '\"';
 }
 
-} // namespace
-
-namespace {
 QStringList getPortList(const FdfBlockModel &block, const PortType &type)
 {
     QStringList result;
@@ -74,13 +74,20 @@ QString toString(const FdfBlockModel &block)
     result += ')';
     return result;
 }
+
+int timeoutMinutes()
+{
+    return Settings::instance().value("engine timeout (minutes)").toInt();
+}
+
 } // namespace
 
 Kedro::Kedro()
     : m_WINDOWS(IS_WINDOWS)
     , m_setup(false)
     , m_KEDRO_DIR(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/kedro/")
-    , m_process(std::make_unique<QProcess>())
+    , m_setupProcess(std::make_unique<QProcess>())
+    , m_execution(std::make_unique<ExecutionBundle>())
     , m_VENV_PYTHON(
           m_KEDRO_DIR.absoluteFilePath(m_WINDOWS ? "venv\\bin\\python.exe" : "venv/bin/python"))
     , m_DEFAULT_TEMPLATE(m_KEDRO_DIR.absoluteFilePath("templates/builder-spring/"))
@@ -89,54 +96,65 @@ Kedro::Kedro()
         m_KEDRO_DIR.mkpath(".");
     if (!m_runtimeCache.isValid())
         qCritical() << "Temporary dir failed to setup";
-    m_process->setWorkingDirectory(m_KEDRO_DIR.absolutePath());
+    // init setup process
+    m_setupProcess->setWorkingDirectory(m_KEDRO_DIR.absolutePath());
+    // init execution process
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("COLUMNS", "200");
+    env.insert("LINES", "25");
+    m_execution->process.setProcessEnvironment(env); // this is for kedro logger to print better
+        // setprogram can handle spaces in path, this doesn't need to be quoted
+    m_execution->process.setProgram(m_VENV_PYTHON);
+    m_execution->process.setArguments({"-m", "kedro", "run"});
+    m_execution->timer.setSingleShot(true);
+
     if (m_KEDRO_DIR.isEmpty())
         firstTimeSetup();
     else
         verifySetup();
+
+    connect(&m_execution->process, &QProcess::finished, this, &Kedro::onExecutionFinished);
+    connect(&m_execution->timer, &QTimer::timeout, this, &Kedro::onTimeOut);
 }
 
 Kedro::~Kedro() {}
 
 bool Kedro::execute(std::shared_ptr<TabComponents> tab)
 {
+    if (m_execution->inProgress) {
+        qInfo() << "There is already an execution in progress, please wait.";
+        return false;
+    }
+    emit started();
+    m_execution->inProgress = true;
+    m_execution->timer.start(timeoutMinutes() * constants::MINUTE_MSECS);
+    // lambda func to simplify returning false and releasing in progress flag
+    auto falseAndRelease = [this]() -> bool {
+        m_execution->inProgress = false;
+        m_execution->timer.stop();
+        emit finished(false);
+        return false;
+    };
+
     qDebug() << "Kedro is executing...";
     if (!validityCheck(tab))
-        return false;
+        return falseAndRelease();
     if (!m_setup) {
         qCritical() << "Kedro is not setup yet, please setup kedro before executing";
-        return false;
+        return falseAndRelease();
     }
-    // Temp dir will auto delete when out of scope
-    auto kedroProject = initWorkspace(tab);
-    if (!generateParametersYml(kedroProject, tab->getGraph()))
-        return false;
-    if (!generateCatalogYml(kedroProject, tab))
-        return false;
-    if (!generatePipelinePy(kedroProject, tab->getGraph()))
-        return false;
+    m_execution->tab = tab;
+    m_execution->project = initWorkspace(tab);
+    if (!generateParametersYml(m_execution->project, tab->getGraph()))
+        return falseAndRelease();
+    if (!generateCatalogYml(m_execution->project, tab))
+        return falseAndRelease();
+    if (!generatePipelinePy(m_execution->project, tab->getGraph()))
+        return falseAndRelease();
 
     // call kedro run
-
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("COLUMNS", "200");
-    env.insert("LINES", "25");
-
-    QProcess run;
-    run.setWorkingDirectory(kedroProject.absolutePath());
-    run.setProcessEnvironment(env);
-    run.startCommand(QString("%1 -m kedro run").arg(quote(m_VENV_PYTHON)));
-    if (!run.waitForFinished()) {
-        qCritical() << "Failed to run kedro";
-    }
-    auto output = QString::fromUtf8(run.readAllStandardOutput());
-
-    // compress dir to zip and cache to runtime dir
-    auto zip = QtUtility::file::getUniqueFile(
-        QFileInfo(m_runtimeCache.filePath(tab->getFileInfo().baseName() + ".zip")));
-    if (JlCompress::compressDir(zip.absoluteFilePath(), kedroProject.absolutePath()))
-        qDebug() << "Kedro executed, result is cached to: " << zip.absoluteFilePath();
-    emit executed(output);
+    m_execution->process.setWorkingDirectory(m_execution->project.absolutePath());
+    m_execution->process.start();
     return true;
 }
 
@@ -178,6 +196,38 @@ QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
     return QDir(kedroDir.absolutePath() + QDir::separator() + name);
 }
 
+void Kedro::onExecutionFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if (!m_execution->timer.isActive()) {
+        qDebug() << "Execution finished after timeout (minutes): " << timeoutMinutes();
+        return;
+    }
+    m_execution->timer.stop();
+    if (exitStatus == QProcess::ExitStatus::CrashExit) {
+        qCritical() << "Failed to run kedro";
+    } else if (exitCode != 0) {
+        qCritical() << "Kedro process finished with exit code: " << exitCode;
+    }
+
+    auto output = QString::fromUtf8(m_execution->process.readAllStandardOutput());
+
+    // compress dir to zip and cache to runtime dir
+    auto zip = QtUtility::file::getUniqueFile(
+        QFileInfo(m_runtimeCache.filePath(m_execution->tab->getFileInfo().baseName() + ".zip")));
+    if (JlCompress::compressDir(zip.absoluteFilePath(), m_execution->project.absolutePath()))
+        qDebug() << "Kedro executed, result is cached to: " << zip.absoluteFilePath();
+    emit executed(output);
+    releaseExecution();
+    emit finished(true);
+}
+
+void Kedro::onTimeOut()
+{
+    releaseExecution();
+    qInfo() << "Kedro execution timed out, exceeded limit (minutes): " << timeoutMinutes();
+    emit finished(false);
+}
+
 QString Kedro::serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const
 {
     return toString(*graph->delegateModel<FdfBlockModel>(id));
@@ -203,9 +253,9 @@ void Kedro::firstTimeSetup()
     // setup venv
     QStringList args;
     args << "-m" << "venv" << "venv";
-    m_process->start("python3", args);
-    if (!m_process->waitForFinished()) {
-        qWarning() << "Failed to create virtual environment:" << m_process->errorString();
+    m_setupProcess->start("python3", args);
+    if (!m_setupProcess->waitForFinished()) {
+        qWarning() << "Failed to create virtual environment:" << m_setupProcess->errorString();
         return;
     }
 
@@ -221,19 +271,21 @@ void Kedro::firstTimeSetup()
 #else
     args << "kedro-umbrella/";
 #endif
-    QObject::connect(m_process.get(),
-                     &QProcess::finished,
-                     [this](int, QProcess::ExitStatus exitStatus) {
-                         if (exitStatus == QProcess::CrashExit)
-                             qWarning() << "Failed to install kedro-umbrella: "
-                                        << m_process->errorString();
-                         else {
-                             QDir dir(m_KEDRO_DIR.absoluteFilePath("kedro-umbrella"));
-                             dir.removeRecursively();
-                             verifySetup();
-                         }
-                     });
-    m_process->start(venvPip, args);
+    QMetaObject::Connection connection
+        = QObject::connect(m_setupProcess.get(),
+                           &QProcess::finished,
+                           [this, &connection](int, QProcess::ExitStatus exitStatus) {
+                               if (exitStatus == QProcess::CrashExit)
+                                   qWarning() << "Failed to install kedro-umbrella: "
+                                              << m_setupProcess->errorString();
+                               else {
+                                   QDir dir(m_KEDRO_DIR.absoluteFilePath("kedro-umbrella"));
+                                   dir.removeRecursively();
+                                   verifySetup();
+                                   disconnect(connection);
+                               }
+                           });
+    m_setupProcess->start(venvPip, args);
 }
 
 void Kedro::verifySetup()
@@ -325,4 +377,10 @@ bool Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
     out << data;
     pipelinePy.close();
     return true;
+}
+
+void Kedro::releaseExecution()
+{
+    m_execution->tab.reset();
+    m_execution->inProgress = false;
 }

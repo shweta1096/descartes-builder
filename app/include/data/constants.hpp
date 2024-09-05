@@ -76,6 +76,8 @@ constexpr ConstLatin1String NODE_STYLE =
         }
     )";
 
+constexpr uint MINUTE_MSECS = 60000;
+
 constexpr ConstLatin1String DATA_PORT_ID = "DataNode";
 constexpr ConstLatin1String FUNCTION_PORT_ID = "FunctionNode";
 

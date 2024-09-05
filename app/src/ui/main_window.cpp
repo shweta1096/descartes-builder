@@ -87,6 +87,14 @@ void MainWindow::initScene()
             &GraphicsSceneTabWidget::runClicked,
             this,
             &MainWindow::callExecute);
+    connect(m_engine.get(),
+            &AbstractEngine::started,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::runStarted);
+    connect(m_engine.get(),
+            &AbstractEngine::finished,
+            m_graphicsSceneTabWidget,
+            &GraphicsSceneTabWidget::runFinished);
 
     layout->addWidget(m_graphicsSceneTabWidget);
 }
@@ -150,15 +158,15 @@ void MainWindow::initMenuBar()
 
     { // temp menu for testing code
         QMenu *tempMenu = menuBar->addMenu("Temp");
-        auto pythonAction = tempMenu->addAction("Run Python");
         auto infoAction = tempMenu->addAction("print info");
         auto debugAction = tempMenu->addAction("print debug");
         auto errorAction = tempMenu->addAction("print error");
+        auto printSettingsAction = tempMenu->addAction("print settings");
         auto openExample = tempMenu->addAction("Open Example");
-        connect(pythonAction, &QAction::triggered, m_temp, &Temp::runPython);
         connect(infoAction, &QAction::triggered, m_temp, &Temp::printInfo);
         connect(debugAction, &QAction::triggered, m_temp, &Temp::printDebug);
         connect(errorAction, &QAction::triggered, m_temp, &Temp::printError);
+        connect(printSettingsAction, &QAction::triggered, m_temp, &Temp::printAllSettings);
         connect(openExample, &QAction::triggered, m_tabManager.get(), [this]() {
             QDir dir(QApplication::applicationDirPath());
             for (int i = 0; i < 6; ++i) // mac only due to bundle dir

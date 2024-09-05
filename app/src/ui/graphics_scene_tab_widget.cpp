@@ -10,10 +10,11 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(std::shared_ptr<TabManager> tabMa
                                                QWidget *parent)
     : QTabWidget(parent)
     , m_tabManager(tabManager)
+    , m_runButton(new QPushButton("Run"))
 {
-    auto runButton = new QPushButton("Run");
-    setCornerWidget(runButton);
-    connect(runButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::runClicked);
+    tabBar()->setExpanding(false);
+    setCornerWidget(m_runButton);
+    connect(m_runButton, &QPushButton::clicked, this, &GraphicsSceneTabWidget::runClicked);
 
     connect(this,
             &GraphicsSceneTabWidget::tabCloseRequested,
@@ -74,6 +75,22 @@ void GraphicsSceneTabWidget::previousTab()
         return;
     int nextIndex = (currentIndex() - 1 + count()) % count();
     setCurrentIndex(nextIndex);
+}
+
+void GraphicsSceneTabWidget::setRunState(bool state)
+{
+    m_runButton->setEnabled(!state);
+    m_runButton->setText(state ? "Running" : "Run");
+}
+
+void GraphicsSceneTabWidget::runStarted()
+{
+    setRunState(true);
+}
+
+void GraphicsSceneTabWidget::runFinished()
+{
+    setRunState(false);
 }
 
 void GraphicsSceneTabWidget::onTabCountChanged(int count)
