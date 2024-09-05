@@ -20,7 +20,6 @@ CoderModel::CoderModel()
     addPort<FunctionNode>(PortType::Out, "encode");
     addPort<FunctionNode>(PortType::Out, "decode");
 
-    // hardcode parameter value until editor is implemented
     setProcess(Process::StdPca);
     setRandomState(0);
 }

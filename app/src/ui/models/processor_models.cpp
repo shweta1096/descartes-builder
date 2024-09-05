@@ -42,7 +42,6 @@ SplitDataModel::SplitDataModel()
     addPort<DataNode>(PortType::Out, "Y_train");
     addPort<DataNode>(PortType::Out, "Y_test");
 
-    // hardcode parameter value until editor is implemented
     setRandomState(0);
 }
 

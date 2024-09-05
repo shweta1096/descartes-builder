@@ -30,9 +30,15 @@ using QtNodes::NodeStyle;
 #include "temp.hpp"
 #include "ui/bottom_panel.hpp"
 #include "ui/graphics_scene_tab_widget.hpp"
+#include "ui/models/fdf_block_model.hpp"
 #include "ui/side_bar_widgets/blocks.hpp"
+#include "ui/side_bar_widgets/charts.hpp"
 #include "ui/side_bar_widgets/information.hpp"
 #include "ui/side_bar_widgets/settings.hpp"
+
+namespace {
+QtNodes::NodeId selectedId = QtNodes::InvalidNodeId;
+}
 
 MainWindow::MainWindow()
     : m_engine(EngineStarter::init())
@@ -54,6 +60,11 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
+    // this incoming connection will cause a qt fatal message since it tries to run a slot on an partially destroyed object
+    disconnect(m_blockManager.get(),
+               &BlockManager::nodeSelected,
+               this,
+               &MainWindow::onBlockSelected);
     m_tabManager->clear();
     qInfo() << "Program has finished.";
 }
@@ -63,9 +74,25 @@ bool MainWindow::callExecute()
     return m_engine->execute(m_tabManager->getCurrentTab());
 }
 
+void MainWindow::onBlockSelected(const uint &id)
+{
+    selectedId = id;
+    auto block = m_blockManager->getBlock(id);
+    enableChartAction(
+        block && (!block->getExecutedGraphs().isEmpty() || !block->getExecutedValues().empty()));
+}
+
+void MainWindow::onBlockUpdated(const uint &id)
+{
+    if (id == selectedId)
+        onBlockSelected(id);
+}
+
 void MainWindow::initManagers()
 {
     m_blockManager->setTabManager(m_tabManager);
+    connect(m_blockManager.get(), &BlockManager::nodeSelected, this, &MainWindow::onBlockSelected);
+    connect(m_blockManager.get(), &BlockManager::nodeUpdated, this, &MainWindow::onBlockUpdated);
 }
 
 void MainWindow::initScene()
@@ -181,26 +208,30 @@ void MainWindow::initMenuBar()
 
 void MainWindow::initPrimarySideBar()
 {
-    // init widgets
-    auto blockWidget = new Blocks(m_blockManager, m_tabManager);
-    connect(m_blockManager.get(), &BlockManager::nodeSelected, blockWidget, &Blocks::onNodeSelected);
-
     // prevent log panel from taking the corner
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
     struct SideBarWidgetData
     {
+        SideBarAction action;
         QIcon icon;
         QString title;
         QWidget *widget;
     };
     std::vector<SideBarWidgetData> widgets = {
-        {QtUtility::media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
+        {SideBarAction::Blocks,
+         QtUtility::media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
          "Blocks",
-         blockWidget},
-        {QtUtility::media::recolor(QIcon(":/settings.png"), constants::COLOR_SECONDARY),
+         new Blocks(m_blockManager, m_tabManager)},
+        {SideBarAction::Charts,
+         QtUtility::media::recolor(QIcon(":/charts.png"), constants::COLOR_SECONDARY),
+         "Charts",
+         new Charts(m_blockManager)},
+        {SideBarAction::Settings,
+         QtUtility::media::recolor(QIcon(":/settings.png"), constants::COLOR_SECONDARY),
          "Settings",
          new Settings},
-        {QtUtility::media::recolor(QIcon(":/information.png"), constants::COLOR_SECONDARY),
+        {SideBarAction::Information,
+         QtUtility::media::recolor(QIcon(":/information.png"), constants::COLOR_SECONDARY),
          "Information",
          new Information},
     };
@@ -215,6 +246,7 @@ void MainWindow::initPrimarySideBar()
     for (auto widgetData : widgets) {
         auto action = toolBar->addAction(widgetData.icon, widgetData.title);
         action->setCheckable(true);
+        m_sidebarActions[widgetData.action] = action;
         primarySideBarGroup->addAction(action);
         auto dockWidget = new QDockWidget(widgetData.title);
         dockWidget->setMinimumWidth(constants::SIDE_BAR_MINIMUM_WIDTH);
@@ -226,6 +258,8 @@ void MainWindow::initPrimarySideBar()
 
         connect(action, &QAction::toggled, dockWidget, &QDockWidget::setVisible);
     }
+    // disable by default, only enable when the selected block has chart/output data
+    enableChartAction(false);
     if (auto firstAction = toolBar->actions().first())
         firstAction->trigger();
 }
@@ -235,4 +269,16 @@ void MainWindow::initLogPanel()
     auto bottomPanel = new BottomPanel();
     addDockWidget(Qt::BottomDockWidgetArea, bottomPanel);
     connect(m_engine.get(), &AbstractEngine::executed, bottomPanel, &BottomPanel::appendOutputPanel);
+}
+
+void MainWindow::enableChartAction(bool state)
+{
+    if (m_sidebarActions.count(SideBarAction::Charts) < 1)
+        return;
+    auto action = m_sidebarActions.at(SideBarAction::Charts);
+    action->setEnabled(state);
+    QString tooltip = state ? "Charts" : "Select a block with chart/output data to view charts";
+    action->setToolTip(tooltip);
+    if (!state && action->isChecked()) // if currently at charts and we disable it, switch to blocks
+        m_sidebarActions.at(SideBarAction::Blocks)->trigger();
 }

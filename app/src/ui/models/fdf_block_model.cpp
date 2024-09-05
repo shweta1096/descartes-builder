@@ -1,5 +1,7 @@
 #include "ui/models/fdf_block_model.hpp"
 
+#include <QFileInfo>
+
 #include "data/constants.hpp"
 
 FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &functionName)
@@ -322,6 +324,23 @@ unsigned int FdfBlockModel::nPorts(const PortType &portType, const QString &type
 unsigned int FdfBlockModel::minModifiablePorts(const PortType &portType, const QString &typeId) const
 {
     return 0;
+}
+
+void FdfBlockModel::setExecutedValues(const std::unordered_map<QString, QString> &values)
+{
+    m_executedValues = values;
+    emit contentUpdated();
+}
+
+void FdfBlockModel::setExecutedGraphs(const QStringList &paths)
+{
+    if (m_executedGraphs == paths)
+        return;
+    m_executedGraphs.clear();
+    for (auto &path : paths)
+        if (QFileInfo(path).exists())
+            m_executedGraphs << path;
+    emit contentUpdated();
 }
 
 void FdfBlockModel::updateStyle()

@@ -56,6 +56,10 @@ public:
     uint nPorts(const PortType &portType, const QString &typeId) const;
     virtual uint minModifiablePorts(const PortType &portType, const QString &typeId) const;
     virtual bool portNumberModifiable(const PortType &portType) const { return false; };
+    std::unordered_map<QString, QString> getExecutedValues() const { return m_executedValues; }
+    void setExecutedValues(const std::unordered_map<QString, QString> &values);
+    QStringList getExecutedGraphs() const { return m_executedGraphs; }
+    void setExecutedGraphs(const QStringList &paths);
 
 signals:
     void captionUpdated(const QString &caption);
@@ -113,7 +117,7 @@ protected:
         emit contentUpdated();
     }
     template<typename NodeData, typename PortType>
-    void removePort(PortType& ports)
+    void removePort(PortType &ports)
     {
         for (int i = ports.size() - 1; i >= 0; --i)
             // check whether we are removing port of type T (Data, Function etc.), we might have both types together in "ports"
@@ -161,4 +165,6 @@ private:
     InPortType m_inPorts;
     // first is for data, second represents whether it's in use
     OutPortType m_outPorts;
+    std::unordered_map<QString, QString> m_executedValues;
+    QStringList m_executedGraphs;
 };

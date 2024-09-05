@@ -37,9 +37,6 @@ public:
 signals:
     void nodeIdChanged(QtNodes::NodeId id);
 
-public slots:
-    void onNodeSelected(QtNodes::NodeId id);
-
 private slots:
     void updateFields();
     void onLibraryItemClicked(QTreeWidgetItem *item);

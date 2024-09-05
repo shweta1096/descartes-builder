@@ -51,6 +51,8 @@ Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
     , m_library(new QCollapsibleWidget("Library"))
 {
     initUi();
+
+    connect(m_blockManager.get(), &BlockManager::nodeSelected, this, &Blocks::setNodeId);
 }
 
 void Blocks::setNodeId(QtNodes::NodeId id)
@@ -59,11 +61,6 @@ void Blocks::setNodeId(QtNodes::NodeId id)
         return;
     m_nodeId = id;
     emit nodeIdChanged(id);
-}
-
-void Blocks::onNodeSelected(QtNodes::NodeId id)
-{
-    setNodeId(id);
 }
 
 void Blocks::updateFields()

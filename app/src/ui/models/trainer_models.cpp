@@ -45,7 +45,6 @@ BasicTrainerModel::BasicTrainerModel()
     addPort<DataNode>(PortType::In, "Y");
     addPort<FunctionNode>(PortType::Out, "predict");
 
-    // hardcode parameter value until editor is implemented
     setModel(Model::Mlp);
     setRandomState(0);
 }
