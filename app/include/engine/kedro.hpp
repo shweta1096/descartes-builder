@@ -30,6 +30,7 @@ private:
     bool generateParametersYml(const QDir &kedroProject, CustomGraph *graph);
     bool generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComponents> tab);
     bool generatePipelinePy(const QDir &kedroProject, CustomGraph *graph);
+    void postExecutionProcess();
     void releaseExecution();
 
     const bool m_WINDOWS;

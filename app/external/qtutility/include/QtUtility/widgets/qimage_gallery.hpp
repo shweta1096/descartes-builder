@@ -24,8 +24,12 @@ public:
     void remove(const size_t &index);
     void clear();
 
+signals:
+    void hasImage(bool state);
+
 private slots:
     void onImageSelected();
+    void downloadAllClicked();
 
 private:
     void clearViewer();

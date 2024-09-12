@@ -49,5 +49,21 @@ class ScoreModel : public ProcessorModel
 {
     Q_OBJECT
 public:
+    enum Plot {
+        Regression,
+        TimeSeries,
+    };
+
     ScoreModel();
+    virtual std::unordered_map<QString, QString> getParameters() const override;
+    virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
+    virtual QStringList getParameterOptions(const QString &key) const override;
+    virtual void setParameter(const QString &key, const QString &value) override;
+    std::optional<Plot> getPlot() const { return m_plot; }
+    void setPlot(const std::optional<Plot> &plot) { m_plot = plot; }
+
+private:
+    inline static const QString PLOT = "plot";
+
+    std::optional<Plot> m_plot;
 };

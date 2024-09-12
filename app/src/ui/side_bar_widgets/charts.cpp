@@ -25,9 +25,11 @@ Charts::Charts(std::shared_ptr<BlockManager> blockManager, QWidget *parent)
 
     layout->addWidget(m_imageGallery, 2);
     layout->addWidget(new QLabel("Fields"));
+    m_fieldsLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
     layout->addLayout(m_fieldsLayout, 1);
 
     connect(m_blockManager.get(), &BlockManager::nodeSelected, this, &Charts::setNodeId);
+    connect(m_blockManager.get(), &BlockManager::nodeUpdated, this, &Charts::onNodeUpdated);
     connect(this, &Charts::nodeIdChanged, this, &Charts::updateFields);
 }
 

@@ -22,6 +22,8 @@ CoderModel::CoderModel()
 
     setProcess(Process::StdPca);
     setRandomState(0);
+
+    setExecutedGraphs({":/descartes_logo.png"});
 }
 
 std::unordered_map<QString, QString> CoderModel::getParameters() const

@@ -20,6 +20,8 @@ class Charts : public QWidget
 public:
     Charts(std::shared_ptr<BlockManager> blockManager, QWidget *parent = nullptr);
     QtNodes::NodeId nodeId() const { return m_nodeId; }
+
+public slots:
     void setNodeId(QtNodes::NodeId id);
 
 signals:

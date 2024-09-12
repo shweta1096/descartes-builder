@@ -16,6 +16,7 @@
 #include "data/tab_components.hpp"
 #include "ui/models/fdf_block_model.hpp"
 #include "ui/models/io_models.hpp"
+#include "ui/models/processor_models.hpp"
 
 #include <iostream>
 
@@ -117,7 +118,10 @@ Kedro::Kedro()
     connect(&m_execution->timer, &QTimer::timeout, this, &Kedro::onTimeOut);
 }
 
-Kedro::~Kedro() {}
+Kedro::~Kedro()
+{
+    disconnect(&m_execution->process, &QProcess::finished, this, &Kedro::onExecutionFinished);
+}
 
 bool Kedro::execute(std::shared_ptr<TabComponents> tab)
 {
@@ -211,6 +215,8 @@ void Kedro::onExecutionFinished(int exitCode, QProcess::ExitStatus exitStatus)
 
     auto output = QString::fromUtf8(m_execution->process.readAllStandardOutput());
 
+    postExecutionProcess();
+
     // compress dir to zip and cache to runtime dir
     auto zip = QtUtility::file::getUniqueFile(
         QFileInfo(m_runtimeCache.filePath(m_execution->tab->getFileInfo().baseName() + ".zip")));
@@ -271,20 +277,20 @@ void Kedro::firstTimeSetup()
 #else
     args << "kedro-umbrella/";
 #endif
-    QMetaObject::Connection connection
-        = QObject::connect(m_setupProcess.get(),
-                           &QProcess::finished,
-                           [this, &connection](int, QProcess::ExitStatus exitStatus) {
-                               if (exitStatus == QProcess::CrashExit)
-                                   qWarning() << "Failed to install kedro-umbrella: "
-                                              << m_setupProcess->errorString();
-                               else {
-                                   QDir dir(m_KEDRO_DIR.absoluteFilePath("kedro-umbrella"));
-                                   dir.removeRecursively();
-                                   verifySetup();
-                                   disconnect(connection);
-                               }
-                           });
+    connect(
+        m_setupProcess.get(),
+        &QProcess::finished,
+        this,
+        [this](int, QProcess::ExitStatus exitStatus) {
+            if (exitStatus == QProcess::CrashExit)
+                qWarning() << "Failed to install kedro-umbrella: " << m_setupProcess->errorString();
+            else {
+                QDir dir(m_KEDRO_DIR.absoluteFilePath("kedro-umbrella"));
+                dir.removeRecursively();
+                verifySetup();
+            }
+        },
+        Qt::SingleShotConnection);
     m_setupProcess->start(venvPip, args);
 }
 
@@ -377,6 +383,40 @@ bool Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
     out << data;
     pipelinePy.close();
     return true;
+}
+
+void Kedro::postExecutionProcess()
+{
+    // get score blocks
+    auto graph = m_execution->tab->getGraph();
+    for (auto &id : graph->allNodeIds())
+        if (auto score = graph->delegateModel<ScoreModel>(id)) {
+            QDir reportDir(m_execution->project.absoluteFilePath(constants::kedro::REPORTING_PATH));
+            // find the dir for the score block
+            // TODO: this is not done yet in kedro-umbrella
+            auto graphs = reportDir.entryList({"*.png"}, QDir::Files);
+            for (auto &graph : graphs)
+                graph = reportDir.absoluteFilePath(graph);
+            // set the graph and score.yml
+            score->setExecutedGraphs(graphs);
+            if (reportDir.exists("score.yml")) {
+                // parse score.yml
+                std::unordered_map<QString, QString> map;
+                QFile yml(reportDir.absoluteFilePath("score.yml"));
+                if (!yml.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                    qWarning() << "Cannot open score.yml";
+                    return;
+                }
+                for (auto &line : yml.readAll().split('\n')) {
+                    auto pair = line.split(':');
+                    if (pair.size() != 2)
+                        continue;
+                    map[pair.front().trimmed()] = pair.back().trimmed();
+                }
+                yml.close();
+                score->setExecutedValues(map);
+            }
+        }
 }
 
 void Kedro::releaseExecution()

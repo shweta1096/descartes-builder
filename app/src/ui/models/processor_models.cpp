@@ -2,6 +2,14 @@
 
 #include "ui/models/function_names.hpp"
 
+namespace {
+using Plot = ScoreModel::Plot;
+std::unordered_map<Plot, QString> PLOT_STRING = {
+    {Plot::Regression, "regression"},
+    {Plot::TimeSeries, "time_series"},
+};
+} // namespace
+
 ProcessorModel::ProcessorModel(const QString &name, const QString &functionName)
     : FdfBlockModel(FdfType::Processor, name, functionName)
 {}
@@ -87,4 +95,33 @@ ScoreModel::ScoreModel()
     addPort<DataNode>(PortType::In, "Y_pred");
     addPort<DataNode>(PortType::Out, "nrmse");
     addPort<DataNode>(PortType::Out, "r2");
+
+    setPlot(Plot::Regression);
 }
+
+std::unordered_map<QString, QString> ScoreModel::getParameters() const
+{
+    std::unordered_map<QString, QString> result;
+    if (m_plot)
+        result[PLOT] = PLOT_STRING.at(m_plot.value());
+    return result;
+}
+
+std::unordered_map<QString, QMetaType::Type> ScoreModel::getParameterSchema() const
+{
+    std::unordered_map<QString, QMetaType::Type> schema;
+    schema[PLOT] = QMetaType::QString;
+    return schema;
+}
+
+QStringList ScoreModel::getParameterOptions(const QString &key) const
+{
+    QStringList result;
+    if (key == PLOT) {
+        for (auto pair : PLOT_STRING)
+            result << pair.second;
+    }
+    return result;
+}
+
+void ScoreModel::setParameter(const QString &key, const QString &value) {}
