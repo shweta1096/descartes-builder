@@ -9,10 +9,8 @@ FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &f
     , m_type(type)
     , m_name(name)
     , m_functionName(functionName)
-    , m_caption(typeAsString())
+    , m_caption(name)
 {
-    if (type == FdfType::Output)
-        m_caption = name;
     updateStyle();
     updateShape();
 }
