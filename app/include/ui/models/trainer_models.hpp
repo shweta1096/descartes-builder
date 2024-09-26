@@ -9,9 +9,22 @@ public:
     TrainerModel(const QString &name, const QString &functionName);
     virtual bool portNumberModifiable(const PortType &portType) const override;
     virtual uint minModifiablePorts(const PortType &portType, const QString &typeId) const override;
+    uint getTrainerInputPortNum() const { return m_signature.inputs.size(); }
+    uint getTrainerOutputPortNum() const { return m_signature.outputs.size(); }
 
 public slots:
     virtual void setInputPortNumber(uint num) override;
+    // TODO: improve how ports are added, need a way to add ports to the middle
+    // current system will only add/remove ports to the end like a stack
+    void setTrainerInputNumber(uint num);
+    void setTrainerOutputNumber(uint num);
+    virtual void onDataInputSet(const PortIndex &index) override;
+    virtual void onDataInputReset(const PortIndex &index) override;
+
+private:
+    void updateSignature();
+
+    FunctionNode::Signature m_signature;
 };
 
 class BasicTrainerModel : public TrainerModel

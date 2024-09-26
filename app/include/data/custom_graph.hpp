@@ -13,6 +13,7 @@ public:
     CustomGraph(std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registry);
     std::vector<DataSourceModel *> getDataSourceModels() const;
     std::vector<FuncOutModel *> getFuncOutModels() const;
+    bool connectionPossible(QtNodes::ConnectionId const connectionId) const override;
 
 signals:
     void dataSourceModelImportClicked(const QtNodes::NodeId nodeId);

@@ -15,6 +15,7 @@ std::unordered_map<Model, QString> MODEL_STRING = {
 
 TrainerModel::TrainerModel(const QString &name, const QString &functionName)
     : FdfBlockModel(FdfType::Trainer, name, functionName)
+    , m_signature({{QUuid()}, {QUuid()}})
 {}
 
 bool TrainerModel::portNumberModifiable(const PortType &portType) const
@@ -38,11 +39,58 @@ void TrainerModel::setInputPortNumber(uint num)
     setPortNumber<DataNode>(PortType::In, num);
 }
 
+void TrainerModel::setTrainerInputNumber(uint num)
+{
+    if (m_signature.inputs.size() == num)
+        return;
+    m_signature.inputs.resize(num);
+    setInputPortNumber(m_signature.inputs.size() + m_signature.outputs.size());
+    updateSignature();
+}
+
+void TrainerModel::setTrainerOutputNumber(uint num)
+{
+    if (m_signature.outputs.size() == num)
+        return;
+    m_signature.outputs.resize(num);
+    setInputPortNumber(m_signature.inputs.size() + m_signature.outputs.size());
+    updateSignature();
+}
+
+void TrainerModel::onDataInputSet(const PortIndex &index)
+{
+    Q_UNUSED(index);
+    updateSignature();
+}
+
+void TrainerModel::onDataInputReset(const PortIndex &index)
+{
+    m_signature.inputs.at(index) = QUuid();
+    if (auto function = castedPort<FunctionNode>(PortType::Out, 0))
+        function->setSignature(m_signature);
+}
+
+void TrainerModel::updateSignature()
+{
+    std::vector<QUuid> inputTypeIds;
+    for (int i = 0; i < nPorts(PortType::In); ++i) {
+        QUuid typeId;
+        if (auto data = castedPort<DataNode>(PortType::In, i))
+            typeId = data->typeId();
+        if (i < m_signature.inputs.size())
+            m_signature.inputs.at(i) = typeId;
+        else
+            m_signature.outputs.at(i - m_signature.inputs.size()) = typeId;
+    }
+    if (auto function = castedPort<FunctionNode>(PortType::Out, 0))
+        function->setSignature(m_signature);
+}
+
 BasicTrainerModel::BasicTrainerModel()
     : TrainerModel("trainer", trainer_function::BASIC_TRAINER)
 {
-    addPort<DataNode>(PortType::In, "X");
-    addPort<DataNode>(PortType::In, "Y");
+    addPort<DataNode>(PortType::In);
+    addPort<DataNode>(PortType::In);
     addPort<FunctionNode>(PortType::Out, "predict");
 
     setModel(Model::Mlp);

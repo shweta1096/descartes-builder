@@ -60,6 +60,16 @@ public:
     void setExecutedValues(const std::unordered_map<QString, QString> &values);
     QStringList getExecutedGraphs() const { return m_executedGraphs; }
     void setExecutedGraphs(const QStringList &paths);
+    template<typename T>
+    std::vector<std::shared_ptr<T>> allOutData()
+    {
+        static_assert(std::is_base_of<NodeData, T>::value, "T must derive from NodeData");
+        std::vector<std::shared_ptr<T>> result;
+        for (auto &pair : m_outPorts)
+            if (auto casted = std::dynamic_pointer_cast<T>(pair.first))
+                result.push_back(casted);
+        return result;
+    }
 
 signals:
     void captionUpdated(const QString &caption);
@@ -72,6 +82,10 @@ public slots:
     virtual void outputConnectionDeleted(ConnectionId const &conn) override;
     virtual void setInputPortNumber(uint num);
     virtual void setOutputPortNumber(uint num);
+    virtual void onFunctionInputSet(const PortIndex &index);
+    virtual void onDataInputSet(const PortIndex &index);
+    virtual void onFunctionInputReset(const PortIndex &index);
+    virtual void onDataInputReset(const PortIndex &index);
 
 protected:
     bool indexCheck(PortType type, PortIndex index) const;
@@ -137,6 +151,19 @@ protected:
         else if (current < num)
             for (int i = 0; i < num - current; ++i)
                 addPort<T>(type);
+    }
+    template<typename T>
+    std::shared_ptr<T> castedPort(PortType type, PortIndex index)
+    {
+        static_assert(std::is_base_of<NodeData, T>::value, "T must derive from NodeData");
+        if (type == PortType::In) {
+            if (auto shared = std::dynamic_pointer_cast<T>(m_inPorts.at(index).second.lock()))
+                return shared;
+        } else if (type == PortType::Out) {
+            if (auto shared = std::dynamic_pointer_cast<T>(m_outPorts.at(index).first))
+                return shared;
+        }
+        return nullptr;
     }
 
 private:

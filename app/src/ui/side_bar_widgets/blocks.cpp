@@ -25,13 +25,19 @@
 #include "data/constants.hpp"
 #include "data/tab_manager.hpp"
 #include "ui/models/fdf_block_model.hpp"
+#include "ui/models/function_names.hpp"
+#include "ui/models/trainer_models.hpp"
 
 using QCollapsibleWidget = QtUtility::widgets::QCollapsibleWidget;
 
 namespace {
 constexpr uint ADD_BLOCK_SPACING = 20;
 constexpr uint FUNCTION_ROW = 1;
-constexpr uint PARAMETER_ROW = 5;
+constexpr uint INPUT_PORT_ROW = 3;
+constexpr uint OUTPUT_PORT_ROW = 4;
+constexpr uint TRAINER_INPUT_ROW = 5;
+constexpr uint TRAINER_OUTPUT_ROW = 6;
+constexpr uint PARAMETER_ROW = 7;
 } // namespace
 
 Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
@@ -47,6 +53,8 @@ Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
     , m_functionNameEdit(new QLineEdit)
     , m_inputPortEdit(new QSpinBox)
     , m_outputPortEdit(new QSpinBox)
+    , m_trainerInputEdit(new QSpinBox)
+    , m_trainerOutputEdit(new QSpinBox)
     , m_parametersWidget(new QStackedWidget)
     , m_library(new QCollapsibleWidget("Library"))
 {
@@ -67,13 +75,13 @@ void Blocks::updateFields()
 {
     blockEditorSignals(true);
     auto block = m_blockManager->getBlock(m_nodeId);
-    auto blockSelected = block;
-    enableEditorWidgets(blockSelected);
+    enableEditorWidgets(block);
+    handleTrainerBlock(block);
     if (auto widget = m_parametersWidget->currentWidget()) {
         m_parametersWidget->removeWidget(widget);
         widget->deleteLater();
     }
-    if (!blockSelected) {
+    if (!block) {
         m_idEdit->clear();
         m_captionEdit->clear();
         m_functionNameEdit->clear();
@@ -157,6 +165,15 @@ void Blocks::initEditor()
     m_editorLayout->addRow(new QLabel("Input Ports:"), m_inputPortEdit);
     m_editorLayout->addRow(new QLabel("Output Ports:"), m_outputPortEdit);
 
+    m_trainerInputEdit->setRange(1, constants::MAX_DATA_INPUT_PORTS);
+    m_trainerInputEdit->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
+    m_trainerOutputEdit->setRange(1, constants::MAX_DATA_OUTPUT_PORTS);
+    m_trainerOutputEdit->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
+    m_editorLayout->addRow(new QLabel("Trainer Inputs:"), m_trainerInputEdit);
+    m_editorLayout->addRow(new QLabel("Trainer Outputs:"), m_trainerOutputEdit);
+    m_editorLayout->setRowVisible(TRAINER_INPUT_ROW, false);
+    m_editorLayout->setRowVisible(TRAINER_OUTPUT_ROW, false);
+
     m_editorLayout->addRow(new QLabel("Parameters"));
     m_editorLayout->setRowVisible(PARAMETER_ROW, false);
     m_editorLayout->addRow(m_parametersWidget);
@@ -167,7 +184,9 @@ void Blocks::initEditor()
                                 m_functionNameEdit,
                                 m_captionEdit,
                                 m_inputPortEdit,
-                                m_outputPortEdit};
+                                m_outputPortEdit,
+                                m_trainerInputEdit,
+                                m_trainerOutputEdit};
     // these will be enabled/disabled after updateFields();
     m_editableEditorWidgets = {m_captionEdit, m_inputPortEdit, m_outputPortEdit};
 
@@ -185,6 +204,14 @@ void Blocks::initEditor()
     });
     connect(m_outputPortEdit, &QSpinBox::valueChanged, this, [this](int value) {
         m_blockManager->getBlock(m_nodeId)->setOutputPortNumber(value);
+    });
+    connect(m_trainerInputEdit, &QSpinBox::valueChanged, this, [this](int value) {
+        if (auto trainer = dynamic_cast<TrainerModel *>(m_blockManager->getBlock(m_nodeId)))
+            trainer->setTrainerInputNumber(value);
+    });
+    connect(m_trainerOutputEdit, &QSpinBox::valueChanged, this, [this](int value) {
+        if (auto trainer = dynamic_cast<TrainerModel *>(m_blockManager->getBlock(m_nodeId)))
+            trainer->setTrainerOutputNumber(value);
     });
 }
 
@@ -348,4 +375,17 @@ QWidget *Blocks::generateParameterWidget(FdfBlockModel *block)
         }
     }
     return widget;
+}
+
+void Blocks::handleTrainerBlock(FdfBlockModel *block)
+{
+    bool isTrainer = block && block->functionName() == trainer_function::BASIC_TRAINER;
+    m_editorLayout->setRowVisible(INPUT_PORT_ROW, !isTrainer);
+    m_editorLayout->setRowVisible(OUTPUT_PORT_ROW, !isTrainer);
+    m_editorLayout->setRowVisible(TRAINER_INPUT_ROW, isTrainer);
+    m_editorLayout->setRowVisible(TRAINER_OUTPUT_ROW, isTrainer);
+    if (auto trainer = dynamic_cast<TrainerModel *>(block)) {
+        m_trainerInputEdit->setValue(trainer->getTrainerInputPortNum());
+        m_trainerOutputEdit->setValue(trainer->getTrainerOutputPortNum());
+    }
 }

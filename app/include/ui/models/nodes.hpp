@@ -39,11 +39,26 @@ public:
     {
         m_type.id = constants::DATA_PORT_ID;
     }
+    QUuid typeId() const { return m_typeId; }
+    void setTypeId(const QUuid &typeId) { m_typeId = typeId; }
+
+private:
+    QUuid m_typeId;
 };
 
 class FunctionNode : public NamedNode
 {
 public:
+    struct Signature
+    {
+        std::vector<QUuid> inputs;
+        std::vector<QUuid> outputs;
+        std::pair<size_t, size_t> size() const { return {inputs.size(), outputs.size()}; }
+        void inverse() { std::swap(inputs, outputs); }
+        bool isEmpty() const { return inputs.empty() && outputs.empty(); }
+        void print() const { qDebug() << inputs << " => " << outputs; }
+    };
+
     FunctionNode()
         : FunctionNode("function")
     {}
@@ -52,4 +67,9 @@ public:
     {
         m_type.id = constants::FUNCTION_PORT_ID;
     }
+    Signature signature() const { return m_singature; }
+    void setSignature(const Signature &signature) { m_singature = signature; }
+
+private:
+    Signature m_singature;
 };

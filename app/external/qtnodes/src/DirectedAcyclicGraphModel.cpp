@@ -631,14 +631,22 @@ void DirectedAcyclicGraphModel::load(QJsonObject const &jsonDocument)
 
     QJsonArray connectionJsonArray = jsonDocument["connections"].toArray();
 
+    std::deque<ConnectionId> orderedConnections;
     for (QJsonValueRef connection : connectionJsonArray) {
         QJsonObject connJson = connection.toObject();
 
         ConnectionId connId = fromJson(connJson);
 
-        // Restore the connection
-        addConnection(connId);
+        // TODO: better implementation to add connections in a sequential order
+        // current implementation prioritizes input index 0 first since it is
+        // the function input for reduce blocks, which will create i/o ports for the block
+        if (connId.inPortIndex == 0)
+            orderedConnections.push_front(connId);
+        else
+            orderedConnections.push_back(connId);
     }
+    for (auto &conn : orderedConnections)
+        addConnection(conn);
 }
 
 std::vector<NodeId> DirectedAcyclicGraphModel::topologicalOrder() const

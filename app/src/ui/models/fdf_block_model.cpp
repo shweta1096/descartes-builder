@@ -50,10 +50,18 @@ void FdfBlockModel::setInData(std::shared_ptr<NodeData> data, PortIndex const in
         emit dataInvalidated(index);
         m_inPorts.at(index).second = std::weak_ptr<NodeData>();
         resetPortCaption(PortType::In, index);
+        if (auto casted = dynamic_cast<FunctionNode *>(m_inPorts.at(index).first.get()))
+            onFunctionInputReset(index);
+        else if (auto casted = dynamic_cast<DataNode *>(m_inPorts.at(index).first.get()))
+            onDataInputReset(index);
         return;
     }
     m_inPorts.at(index).second = data;
     setPortCaption(PortType::In, index, data->type().name);
+    if (auto casted = std::dynamic_pointer_cast<FunctionNode>(data))
+        onFunctionInputSet(index);
+    else if (auto casted = std::dynamic_pointer_cast<DataNode>(data))
+        onDataInputSet(index);
     propagateUpdate();
 }
 
@@ -181,6 +189,14 @@ void FdfBlockModel::setOutputPortNumber(uint num)
 {
     qDebug() << "Output port number cannot be modified";
 }
+
+void FdfBlockModel::onFunctionInputSet(const PortIndex &index) {}
+
+void FdfBlockModel::onDataInputSet(const PortIndex &index) {}
+
+void FdfBlockModel::onFunctionInputReset(const PortIndex &index) {}
+
+void FdfBlockModel::onDataInputReset(const PortIndex &index) {}
 
 bool FdfBlockModel::indexCheck(PortType type, PortIndex index) const
 {

@@ -28,6 +28,8 @@ public:
 
 public slots:
     virtual void setInputPortNumber(uint num) override;
+    virtual void onDataInputSet(const PortIndex &index) override;
+    virtual void onDataInputReset(const PortIndex &index) override;
 
 private:
     inline static const QString PROCESS = "data_xform";
@@ -35,4 +37,6 @@ private:
 
     Process m_process;
     std::optional<int> m_randomState;
+
+    static std::map<std::vector<QUuid>, QUuid> m_typeIdMap;
 };

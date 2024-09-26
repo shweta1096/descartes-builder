@@ -27,6 +27,9 @@ DataSourceModel::DataSourceModel()
     , m_label(nullptr)
 {
     addPort<DataNode>(PortType::Out);
+
+    for (auto &port : allOutData<DataNode>())
+        port->setTypeId(QUuid::createUuid());
 }
 
 QWidget *DataSourceModel::embeddedWidget()

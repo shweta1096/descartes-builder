@@ -2,6 +2,7 @@
 
 #include "ui/models/fdf_block_model.hpp"
 #include "ui/models/io_models.hpp"
+#include "ui/models/processor_models.hpp"
 
 namespace {
 
@@ -48,6 +49,24 @@ std::vector<FuncOutModel *> CustomGraph::getFuncOutModels() const
     for (auto &id : m_funcOutNodes)
         result.push_back(delegateModel<FuncOutModel>(id));
     return result;
+}
+
+bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) const
+{
+    if (auto block = delegateModel<FdfBlockModel>(getNodeId(PortType::In, connectionId)))
+        if (auto processorBlock = dynamic_cast<ExternalProcessorModel *>(block)) {
+            QUuid outTypeId;
+            auto outBlock = delegateModel<FdfBlockModel>(getNodeId(PortType::Out, connectionId));
+            if (auto data = std::dynamic_pointer_cast<DataNode>(
+                    outBlock->outData(getPortIndex(PortType::Out, connectionId))))
+                outTypeId = data->typeId();
+            auto result = processorBlock->canConnect(PortType::In,
+                                                     getPortIndex(PortType::In, connectionId),
+                                                     outTypeId);
+            if (!result)
+                return false;
+        }
+    return DirectedAcyclicGraphModel::connectionPossible(connectionId);
 }
 
 void CustomGraph::initBlockConnections(const QtNodes::NodeId nodeId, FdfBlockModel *block)

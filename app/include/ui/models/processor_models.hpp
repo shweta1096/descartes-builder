@@ -30,7 +30,13 @@ public:
     void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
     void setSplitTime(const std::optional<int> &splitTime) { m_splitTime = splitTime; }
 
+public slots:
+    virtual void onDataInputSet(const PortIndex &index) override;
+    virtual void onDataInputReset(const PortIndex &index) override;
+
 private:
+    void setOutputTypeId(const PortIndex &inputIndex, const QUuid &typeId);
+
     inline static const QString RANDOM_STATE = "random_state";
     inline static const QString SPLIT_TIME = "split_time";
 
@@ -43,6 +49,17 @@ class ExternalProcessorModel : public ProcessorModel
     Q_OBJECT
 public:
     ExternalProcessorModel();
+    bool canConnect(PortType portType, PortIndex index, QUuid typeId) const;
+
+public slots:
+    virtual void onFunctionInputSet(const PortIndex &index) override;
+    virtual void onFunctionInputReset(const PortIndex &index) override;
+    virtual bool portNumberModifiable(const PortType &portType) const override;
+
+private:
+    void updateDataPortsWithSignature();
+
+    FunctionNode::Signature m_signature;
 };
 
 class ScoreModel : public ProcessorModel

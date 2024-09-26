@@ -13,6 +13,8 @@ std::unordered_map<Process, QString> PROCESS_STRING = {
 };
 } // namespace
 
+std::map<std::vector<QUuid>, QUuid> CoderModel::m_typeIdMap;
+
 CoderModel::CoderModel()
     : FdfBlockModel(FdfType::Coder, "transform", coder_function::TRANSFORM_DATA)
 {
@@ -78,6 +80,36 @@ uint CoderModel::minModifiablePorts(const PortType &portType, const QString &typ
         if (typeId == constants::FUNCTION_PORT_ID)
             return 1;
     return 0;
+}
+
+void CoderModel::onDataInputSet(const PortIndex &index)
+{
+    Q_UNUSED(index);
+    std::vector<QUuid> inputTypeIds;
+    for (int i = 0; i < nPorts(PortType::In); ++i)
+        if (auto data = castedPort<DataNode>(PortType::In, i))
+            inputTypeIds.push_back(data->typeId());
+    QUuid outputType;
+    if (CoderModel::m_typeIdMap.count(inputTypeIds) > 0)
+        outputType = CoderModel::m_typeIdMap.at(inputTypeIds);
+    else {
+        outputType = QUuid::createUuid();
+        CoderModel::m_typeIdMap[inputTypeIds] = outputType;
+    }
+    FunctionNode::Signature signature;
+    signature.inputs = inputTypeIds;
+    signature.outputs = {outputType};
+    if (auto encode = castedPort<FunctionNode>(PortType::Out, 0))
+        encode->setSignature(signature);
+    // set decode to the inverse
+    signature.inverse();
+    if (auto decode = castedPort<FunctionNode>(PortType::Out, 1))
+        decode->setSignature(signature);
+}
+
+void CoderModel::onDataInputReset(const PortIndex &index)
+{
+    onDataInputSet(index);
 }
 
 void CoderModel::setInputPortNumber(uint num)

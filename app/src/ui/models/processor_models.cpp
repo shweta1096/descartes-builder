@@ -80,12 +80,71 @@ void SplitDataModel::setParameter(const QString &key, const QString &value)
     }
 }
 
+void SplitDataModel::onDataInputSet(const PortIndex &index)
+{
+    QUuid target;
+    if (auto data = castedPort<DataNode>(PortType::In, index))
+        target = data->typeId();
+    setOutputTypeId(index, target);
+}
+
+void SplitDataModel::onDataInputReset(const PortIndex &index)
+{
+    setOutputTypeId(index, QUuid());
+}
+
+void SplitDataModel::setOutputTypeId(const PortIndex &inputIndex, const QUuid &typeId)
+{
+    // hardcoded wiring from input to output
+    std::unordered_map<PortIndex, std::vector<PortIndex>> relations = {{0, {0, 1}}, {1, {2, 3}}};
+    for (auto &relatedIndex : relations.at(inputIndex)) {
+        auto port = castedPort<DataNode>(PortType::Out, relatedIndex);
+        port->setTypeId(typeId);
+    }
+}
+
 ExternalProcessorModel::ExternalProcessorModel()
     : ProcessorModel("reduce", processor_function::PROCESSOR)
 {
     addPort<FunctionNode>(PortType::In);
-    addPort<DataNode>(PortType::In);
-    addPort<DataNode>(PortType::Out);
+}
+
+bool ExternalProcessorModel::canConnect(PortType portType, PortIndex index, QUuid typeId) const
+{
+    if (m_signature.isEmpty())
+        return true;
+    if (index == 0)
+        return true; // function input, always allow function to be connected, may want to disconnect data after this
+    return m_signature.inputs.at(--index) == typeId;
+}
+
+void ExternalProcessorModel::onFunctionInputSet(const PortIndex &index)
+{
+    if (auto function = castedPort<FunctionNode>(PortType::In, 0))
+        m_signature = function->signature();
+    updateDataPortsWithSignature();
+}
+
+void ExternalProcessorModel::onFunctionInputReset(const PortIndex &index)
+{
+    m_signature = FunctionNode::Signature();
+    updateDataPortsWithSignature();
+}
+
+bool ExternalProcessorModel::portNumberModifiable(const PortType &portType) const
+{
+    // port number will be modified by function instead
+    return false;
+}
+
+void ExternalProcessorModel::updateDataPortsWithSignature()
+{
+    setPortNumber<DataNode>(PortType::In, m_signature.inputs.size());
+    setPortNumber<DataNode>(PortType::Out, m_signature.outputs.size());
+    for (int i = 0; i < m_signature.outputs.size(); ++i) {
+        auto port = castedPort<DataNode>(PortType::Out, i);
+        port->setTypeId(m_signature.outputs.at(i));
+    }
 }
 
 ScoreModel::ScoreModel()
@@ -97,6 +156,9 @@ ScoreModel::ScoreModel()
     addPort<DataNode>(PortType::Out, "r2");
 
     setPlot(Plot::Regression);
+
+    for (auto &port : allOutData<DataNode>())
+        port->setTypeId(QUuid::createUuid());
 }
 
 std::unordered_map<QString, QString> ScoreModel::getParameters() const

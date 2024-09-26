@@ -49,6 +49,7 @@ private:
     void blockEditorSignals(bool value);
     void enableEditorWidgets(bool value);
     QWidget *generateParameterWidget(FdfBlockModel *block);
+    void handleTrainerBlock(FdfBlockModel *block);
 
     std::shared_ptr<BlockManager> m_blockManager;
     std::shared_ptr<TabManager> m_tabManager;
@@ -63,6 +64,8 @@ private:
     QLineEdit *m_functionNameEdit;
     QSpinBox *m_inputPortEdit;
     QSpinBox *m_outputPortEdit;
+    QSpinBox *m_trainerInputEdit;
+    QSpinBox *m_trainerOutputEdit;
     QStackedWidget *m_parametersWidget;
     QtUtility::widgets::QCollapsibleWidget *m_library;
 };
