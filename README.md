@@ -10,7 +10,8 @@ Function + Data Flow GUI to create digital twin pipelines.
   - include Qt5compat module if not included by default
 - C++ compiler
   - depends on OS (gcc for ubuntu, clang for macos, msvc for windows etc.)
-- Python 3.11
+- CMake
+- Python 3.10
 
 ## Windows
 
@@ -20,8 +21,11 @@ Function + Data Flow GUI to create digital twin pipelines.
 
 - OpenGL dev
 - pyhton venv (for venv to have it's own pip, not necessary to build but for kedro to execute)
+- xcb libraries
+`sudo apt install libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-cursor-dev`
+- build tools for QT
+`sudo apt install cmake build-essential libgl1-mesa-dev`
 
-`sudo apt-get install libxkbcommon-dev libgl1-mesa-dev python3.10-venv`
 
 ## Optional
 
