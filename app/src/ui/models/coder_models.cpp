@@ -82,13 +82,20 @@ uint CoderModel::minModifiablePorts(const PortType &portType, const QString &typ
     return 0;
 }
 
+// Set the inputs to a particular index
 void CoderModel::onDataInputSet(const PortIndex &index)
 {
     Q_UNUSED(index);
+
+    // Save input type 
     std::vector<QUuid> inputTypeIds;
     for (int i = 0; i < nPorts(PortType::In); ++i)
         if (auto data = castedPort<DataNode>(PortType::In, i))
             inputTypeIds.push_back(data->typeId());
+    
+    // Create encode output data type
+    // Given an input type 't', any two coder shall produce the same 
+    // output function type (t, t') and (t', t)
     QUuid outputType;
     if (CoderModel::m_typeIdMap.count(inputTypeIds) > 0)
         outputType = CoderModel::m_typeIdMap.at(inputTypeIds);
@@ -96,6 +103,8 @@ void CoderModel::onDataInputSet(const PortIndex &index)
         outputType = QUuid::createUuid();
         CoderModel::m_typeIdMap[inputTypeIds] = outputType;
     }
+
+    // Set encode/decode function type
     FunctionNode::Signature signature;
     signature.inputs = inputTypeIds;
     signature.outputs = {outputType};
@@ -109,6 +118,7 @@ void CoderModel::onDataInputSet(const PortIndex &index)
 
 void CoderModel::onDataInputReset(const PortIndex &index)
 {
+    // note that index is unused in the set function
     onDataInputSet(index);
 }
 

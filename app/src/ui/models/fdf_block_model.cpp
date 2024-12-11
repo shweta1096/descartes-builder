@@ -47,6 +47,7 @@ void FdfBlockModel::setInData(std::shared_ptr<NodeData> data, PortIndex const in
     if (!indexCheck(PortType::In, index))
         return;
     if (!data) {
+        // delete the data and reset the port names accordingly
         emit dataInvalidated(index);
         m_inPorts.at(index).second = std::weak_ptr<NodeData>();
         resetPortCaption(PortType::In, index);

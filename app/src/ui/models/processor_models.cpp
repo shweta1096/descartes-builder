@@ -114,7 +114,10 @@ bool ExternalProcessorModel::canConnect(PortType portType, PortIndex index, QUui
     if (m_signature.isEmpty())
         return true;
     if (index == 0)
-        return true; // function input, always allow function to be connected, may want to disconnect data after this
+        // function input, always allow functions to be connected, 
+        // may want to disconnect data after this
+        return true; 
+    // note that the first input is the function from a previous block
     return m_signature.inputs.at(--index) == typeId;
 }
 

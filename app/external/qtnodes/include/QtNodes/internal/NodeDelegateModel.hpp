@@ -63,6 +63,7 @@ public:
     void setNodeStyle(NodeStyle const &style);
 
 public:
+    // Callback for when a port is connected to a block as input data. 
     virtual void setInData(std::shared_ptr<NodeData> nodeData, PortIndex const portIndex) = 0;
 
     virtual std::shared_ptr<NodeData> outData(PortIndex const port) = 0;

@@ -28,6 +28,7 @@ public:
 
 public slots:
     virtual void setInputPortNumber(uint num) override;
+    // Implicit Typing handling
     virtual void onDataInputSet(const PortIndex &index) override;
     virtual void onDataInputReset(const PortIndex &index) override;
 
@@ -38,5 +39,6 @@ private:
     Process m_process;
     std::optional<int> m_randomState;
 
+    // map of inputs of the coder -> encoded output type
     static std::map<std::vector<QUuid>, QUuid> m_typeIdMap;
 };

@@ -35,6 +35,7 @@ public slots:
     virtual void onDataInputReset(const PortIndex &index) override;
 
 private:
+    // define the output type for a given input type
     void setOutputTypeId(const PortIndex &inputIndex, const QUuid &typeId);
 
     inline static const QString RANDOM_STATE = "random_state";
@@ -44,6 +45,7 @@ private:
     std::optional<int> m_splitTime;
 };
 
+// Reusing a function for a predecessor node
 class ExternalProcessorModel : public ProcessorModel
 {
     Q_OBJECT
