@@ -65,7 +65,7 @@ void TrainerModel::onDataInputSet(const PortIndex &index)
 
 void TrainerModel::onDataInputReset(const PortIndex &index)
 {
-    m_signature.inputs.at(index) = QUuid();
+    m_signature.update(index, QUuid());
     if (auto function = castedPort<FunctionNode>(PortType::Out, 0))
         function->setSignature(m_signature);
 }
@@ -73,14 +73,11 @@ void TrainerModel::onDataInputReset(const PortIndex &index)
 void TrainerModel::updateSignature()
 {
     std::vector<QUuid> inputTypeIds;
-    for (int i = 0; i < nPorts(PortType::In); ++i) {
+    for (PortIndex i = 0; i < nPorts(PortType::In); ++i) {
         QUuid typeId;
         if (auto data = castedPort<DataNode>(PortType::In, i))
             typeId = data->typeId();
-        if (i < m_signature.inputs.size())
-            m_signature.inputs.at(i) = typeId;
-        else
-            m_signature.outputs.at(i - m_signature.inputs.size()) = typeId;
+        m_signature.update(i, typeId);
     }
     if (auto function = castedPort<FunctionNode>(PortType::Out, 0))
         function->setSignature(m_signature);
