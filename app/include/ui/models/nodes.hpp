@@ -54,11 +54,12 @@ public:
         std::vector<QUuid> inputs;
         std::vector<QUuid> outputs;
         std::pair<size_t, size_t> size() const { return {inputs.size(), outputs.size()}; }
-        void update(unsigned int port, QUuid typeId) {
+        void update(unsigned int port, QUuid typeId)
+        {
             if (port < inputs.size())
                 inputs.at(port) = typeId;
             else
-                outputs.at(port - inputs.size()) = typeId;  
+                outputs.at(port - inputs.size()) = typeId;
         }
         void inverse() { std::swap(inputs, outputs); }
         bool isEmpty() const { return inputs.empty() && outputs.empty(); }

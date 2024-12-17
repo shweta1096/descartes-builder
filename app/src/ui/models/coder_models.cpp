@@ -87,14 +87,14 @@ void CoderModel::onDataInputSet(const PortIndex &index)
 {
     Q_UNUSED(index);
 
-    // Save input type 
+    // Save input type
     std::vector<QUuid> inputTypeIds;
     for (int i = 0; i < nPorts(PortType::In); ++i)
         if (auto data = castedPort<DataNode>(PortType::In, i))
             inputTypeIds.push_back(data->typeId());
-    
+
     // Create encode output data type
-    // Given an input type 't', any two coder shall produce the same 
+    // Given an input type 't', any two coder shall produce the same
     // output function type (t, t') and (t', t)
     QUuid outputType;
     if (CoderModel::m_typeIdMap.count(inputTypeIds) > 0)

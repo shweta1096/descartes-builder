@@ -31,7 +31,7 @@ protected:
     void makeOutPortsUnique(const QtNodes::NodeId &nodeId,
                             FdfBlockModel *block,
                             const QtNodes::PortIndex &index);
-
+    void warnInvalidConnection(QtNodes::ConnectionId const connectionId) const;
     // tracks node captions for uniqueness
     std::unordered_map<QString, QtNodes::NodeId> m_usedNodeCaptions;
     std::unordered_set<QtNodes::NodeId> m_trackedNodes;
@@ -39,4 +39,7 @@ protected:
     std::unordered_map<QString, std::pair<QtNodes::NodeId, QtNodes::PortIndex>> m_usedOutPortCaptions;
     std::unordered_set<QtNodes::NodeId> m_dataSourceNodes;
     std::unordered_set<QtNodes::NodeId> m_funcOutNodes;
+
+private:
+    Q_INVOKABLE void showWarning(QtNodes::ConnectionId connectionId);
 };

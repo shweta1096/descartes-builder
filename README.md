@@ -20,12 +20,12 @@ Function + Data Flow GUI to create digital twin pipelines.
 ## Ubuntu
 
 - OpenGL dev
-- pyhton venv (for venv to have it's own pip, not necessary to build but for kedro to execute)
+- python venv (for venv to have it's own pip, not necessary to build but for kedro to execute)
 - xcb libraries
 `sudo apt install libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-cursor-dev`
 - build tools for QT
 `sudo apt install cmake build-essential libgl1-mesa-dev`
-
+- zlib: `sudo apt install zlib1g-dev libbz2-dev`
 
 ## Optional
 

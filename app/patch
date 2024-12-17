@@ -1,0 +1,72 @@
+diff --git a/app/include/data/custom_graph.hpp b/app/include/data/custom_graph.hpp
+index c144041..0036563 100644
+--- a/app/include/data/custom_graph.hpp
++++ b/app/include/data/custom_graph.hpp
+@@ -31,7 +31,7 @@ protected:
+     void makeOutPortsUnique(const QtNodes::NodeId &nodeId,
+                             FdfBlockModel *block,
+                             const QtNodes::PortIndex &index);
+-
++    void warnInvalidConnection(QtNodes::ConnectionId const connectionId) const;
+     // tracks node captions for uniqueness
+     std::unordered_map<QString, QtNodes::NodeId> m_usedNodeCaptions;
+     std::unordered_set<QtNodes::NodeId> m_trackedNodes;
+@@ -39,4 +39,6 @@ protected:
+     std::unordered_map<QString, std::pair<QtNodes::NodeId, QtNodes::PortIndex>> m_usedOutPortCaptions;
+     std::unordered_set<QtNodes::NodeId> m_dataSourceNodes;
+     std::unordered_set<QtNodes::NodeId> m_funcOutNodes;
++private:
++    Q_INVOKABLE void showWarning(QtNodes::ConnectionId connectionId);
+ };
+diff --git a/app/src/data/custom_graph.cpp b/app/src/data/custom_graph.cpp
+index 3ce1248..15785f6 100644
+--- a/app/src/data/custom_graph.cpp
++++ b/app/src/data/custom_graph.cpp
+@@ -3,6 +3,8 @@
+ #include "ui/models/fdf_block_model.hpp"
+ #include "ui/models/io_models.hpp"
+ #include "ui/models/processor_models.hpp"
++#include <QMetaObject>
++#include <QMessageBox>
+ 
+ namespace {
+ 
+@@ -51,6 +53,26 @@ std::vector<FuncOutModel *> CustomGraph::getFuncOutModels() const
+     return result;
+ }
+ 
++void CustomGraph::showWarning(QtNodes::ConnectionId connectionId) {
++    QMessageBox msgBox;
++    msgBox.setIcon(QMessageBox::Warning);
++    msgBox.setText("Invalid Connection");
++    msgBox.setInformativeText(QString("Cannot connect (%1,%2) -> (%3,%4)")
++                  .arg(connectionId.outNodeId)
++                  .arg(connectionId.outPortIndex)
++                  .arg(connectionId.inNodeId)
++                  .arg(connectionId.inPortIndex));
++    msgBox.exec(); 
++}
++
++void CustomGraph::warnInvalidConnection(QtNodes::ConnectionId const connectionId) const
++{
++    QMetaObject::invokeMethod(const_cast<CustomGraph*>(this), 
++                                "showWarning", Qt::QueuedConnection,
++                                Q_ARG(QtNodes::ConnectionId, connectionId)
++                                );
++}
++
+ bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) const
+ {
+     if (auto block = delegateModel<FdfBlockModel>(getNodeId(PortType::In, connectionId)))
+@@ -63,8 +85,10 @@ bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) c
+             auto result = processorBlock->canConnect(PortType::In,
+                                                      getPortIndex(PortType::In, connectionId),
+                                                      outTypeId);
+-            if (!result)
++            if (!result) {
++                warnInvalidConnection(connectionId);
+                 return false;
++            }
+         }
+     return DirectedAcyclicGraphModel::connectionPossible(connectionId);
+ }

@@ -3,6 +3,8 @@
 #include "ui/models/fdf_block_model.hpp"
 #include "ui/models/io_models.hpp"
 #include "ui/models/processor_models.hpp"
+#include <QMessageBox>
+#include <QMetaObject>
 
 namespace {
 
@@ -51,6 +53,27 @@ std::vector<FuncOutModel *> CustomGraph::getFuncOutModels() const
     return result;
 }
 
+void CustomGraph::showWarning(QtNodes::ConnectionId connectionId)
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setText("Invalid Connection");
+    msgBox.setInformativeText(QString("Cannot connect (%1,%2) -> (%3,%4)")
+                                  .arg(connectionId.outNodeId)
+                                  .arg(connectionId.outPortIndex)
+                                  .arg(connectionId.inNodeId)
+                                  .arg(connectionId.inPortIndex));
+    msgBox.exec();
+}
+
+void CustomGraph::warnInvalidConnection(QtNodes::ConnectionId const connectionId) const
+{
+    QMetaObject::invokeMethod(const_cast<CustomGraph *>(this),
+                              "showWarning",
+                              Qt::QueuedConnection,
+                              Q_ARG(QtNodes::ConnectionId, connectionId));
+}
+
 bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) const
 {
     if (auto block = delegateModel<FdfBlockModel>(getNodeId(PortType::In, connectionId)))
@@ -63,8 +86,10 @@ bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) c
             auto result = processorBlock->canConnect(PortType::In,
                                                      getPortIndex(PortType::In, connectionId),
                                                      outTypeId);
-            if (!result)
+            if (!result) {
+                warnInvalidConnection(connectionId);
                 return false;
+            }
         }
     return DirectedAcyclicGraphModel::connectionPossible(connectionId);
 }
