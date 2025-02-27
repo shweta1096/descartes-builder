@@ -44,7 +44,7 @@ BZIP2_INCLUDE_DIR:PATH=/usr/include
 BZIP2_LIBRARY_DEBUG:FILEPATH=BZIP2_LIBRARY_DEBUG-NOTFOUND
 
 //Path to a library.
-BZIP2_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libbz2.so
+BZIP2_LIBRARY_RELEASE:FILEPATH=/home/eduardoconto/miniconda3/lib/libbz2.so
 
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
@@ -85,7 +85,7 @@ CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
 //C compiler
-CMAKE_C_COMPILER:FILEPATH=/usr/bin/cc
+CMAKE_C_COMPILER:STRING=/usr/bin/cc
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
@@ -488,7 +488,7 @@ QtNodesLibrary_IS_TOP_LEVEL:STATIC=OFF
 QtNodesLibrary_SOURCE_DIR:STATIC=/home/eduardoconto/descartes-builder/app/external/qtnodes
 
 //Dependencies for the target
-QtNodes_LIB_DEPENDS:STATIC=general;Qt6::Core;general;Qt6::Widgets;general;Qt6::Gui;general;Qt6::OpenGL;
+QtNodes_LIB_DEPENDS:STATIC=general;Qt6::Core;general;Qt6::Widgets;general;Qt6::Gui;general;Qt6::OpenGL;general;fmt::fmt;
 
 //Value Computed by CMake
 QtUtility_BINARY_DIR:STATIC=/home/eduardoconto/descartes-builder/build/external/qtutility
@@ -530,10 +530,10 @@ Vulkan_GLSLANG_VALIDATOR_EXECUTABLE:FILEPATH=Vulkan_GLSLANG_VALIDATOR_EXECUTABLE
 Vulkan_GLSLC_EXECUTABLE:FILEPATH=Vulkan_GLSLC_EXECUTABLE-NOTFOUND
 
 //Path to a file.
-Vulkan_INCLUDE_DIR:PATH=Vulkan_INCLUDE_DIR-NOTFOUND
+Vulkan_INCLUDE_DIR:PATH=/usr/include/vulkan
 
 //Path to a library.
-Vulkan_LIBRARY:FILEPATH=Vulkan_LIBRARY-NOTFOUND
+Vulkan_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libvulkan.so
 
 //Path to a file.
 XKB_INCLUDE_DIR:PATH=/usr/include
@@ -551,7 +551,10 @@ ZLIB_INCLUDE_DIR:PATH=/usr/include
 ZLIB_LIBRARY_DEBUG:FILEPATH=ZLIB_LIBRARY_DEBUG-NOTFOUND
 
 //Path to a library.
-ZLIB_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libz.so
+ZLIB_LIBRARY_RELEASE:FILEPATH=/home/eduardoconto/miniconda3/lib/libz.so
+
+//The directory containing a CMake configuration file for fmt.
+fmt_DIR:PATH=/home/eduardoconto/miniconda3/lib/cmake/fmt
 
 //Value Computed by CMake
 gmock_BINARY_DIR:STATIC=/home/eduardoconto/descartes-builder/build/external/googletest/googlemock
@@ -822,21 +825,23 @@ CPACK_SOURCE_TZ-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CPACK_SOURCE_ZIP
 CPACK_SOURCE_ZIP-ADVANCED:INTERNAL=1
 //Details about finding BZip2
-FIND_PACKAGE_MESSAGE_DETAILS_BZip2:INTERNAL=[/usr/lib/x86_64-linux-gnu/libbz2.so][/usr/include][v1.0.8()]
+FIND_PACKAGE_MESSAGE_DETAILS_BZip2:INTERNAL=[/home/eduardoconto/miniconda3/lib/libbz2.so][/usr/include][v1.0.8()]
 //Details about finding OpenGL
 FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[/usr/lib/x86_64-linux-gnu/libOpenGL.so][/usr/lib/x86_64-linux-gnu/libGLX.so][/usr/include][c ][v()]
 //Details about finding Python3
-FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[/home/eduardoconto/miniconda3/envs/builder/bin/python3.10][/home/eduardoconto/miniconda3/envs/builder/include/python3.10][/home/eduardoconto/miniconda3/envs/builder/lib/libpython3.10.so][cfound components: Interpreter Development Development.Module Development.Embed ][v3.10.14()]
+FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[/home/eduardoconto/miniconda3/envs/builder_dev1/bin/python3.10][/home/eduardoconto/miniconda3/envs/builder_dev1/include/python3.10][/home/eduardoconto/miniconda3/envs/builder_dev1/lib/libpython3.10.so][cfound components: Interpreter Development Development.Module Development.Embed ][v3.10.8()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding WrapAtomic
 FIND_PACKAGE_MESSAGE_DETAILS_WrapAtomic:INTERNAL=[1][v()]
 //Details about finding WrapOpenGL
 FIND_PACKAGE_MESSAGE_DETAILS_WrapOpenGL:INTERNAL=[ON][v()]
+//Details about finding WrapVulkanHeaders
+FIND_PACKAGE_MESSAGE_DETAILS_WrapVulkanHeaders:INTERNAL=[/usr/include/vulkan][v()]
 //Details about finding XKB
 FIND_PACKAGE_MESSAGE_DETAILS_XKB:INTERNAL=[/usr/lib/x86_64-linux-gnu/libxkbcommon.so][/usr/include][v(0.5.0)]
 //Details about finding ZLIB
-FIND_PACKAGE_MESSAGE_DETAILS_ZLIB:INTERNAL=[/usr/lib/x86_64-linux-gnu/libz.so][/usr/include][v1.2.11()]
+FIND_PACKAGE_MESSAGE_DETAILS_ZLIB:INTERNAL=[/home/eduardoconto/miniconda3/lib/libz.so][/usr/include][v1.2.11()]
 //Test HAVE_STDATOMIC
 HAVE_STDATOMIC:INTERNAL=1
 //ADVANCED property for variable: OPENGL_EGL_INCLUDE_DIR
@@ -1700,17 +1705,17 @@ ZLIB_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 ZLIB_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //CMAKE_INSTALL_PREFIX during last run
 _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=/usr/local
-_Python3_DEVELOPMENT_EMBED_SIGNATURE:INTERNAL=5fd0d8a622645170094f53040ed9ba0e
-_Python3_DEVELOPMENT_MODULE_SIGNATURE:INTERNAL=548397badb5c0d6c78c86ab1a0cc6963
+_Python3_DEVELOPMENT_EMBED_SIGNATURE:INTERNAL=809f9540dbdc3747864ed63480f25686
+_Python3_DEVELOPMENT_MODULE_SIGNATURE:INTERNAL=ae4443988f0b785033c1292385e9d421
 //Path to a program.
-_Python3_EXECUTABLE:INTERNAL=/home/eduardoconto/miniconda3/envs/builder/bin/python3.10
+_Python3_EXECUTABLE:INTERNAL=/home/eduardoconto/miniconda3/envs/builder_dev1/bin/python3.10
 //Path to a file.
-_Python3_INCLUDE_DIR:INTERNAL=/home/eduardoconto/miniconda3/envs/builder/include/python3.10
+_Python3_INCLUDE_DIR:INTERNAL=/home/eduardoconto/miniconda3/envs/builder_dev1/include/python3.10
 //Python3 Properties
-_Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;10;14;64;;cpython-310-x86_64-linux-gnu;/home/eduardoconto/miniconda3/envs/builder/lib/python3.10;/home/eduardoconto/miniconda3/envs/builder/lib/python3.10;/home/eduardoconto/miniconda3/envs/builder/lib/python3.10/site-packages;/home/eduardoconto/miniconda3/envs/builder/lib/python3.10/site-packages
-_Python3_INTERPRETER_SIGNATURE:INTERNAL=c3e332cfeebd4bd6abf3a44f1c28471d
+_Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;10;8;64;;cpython-310-x86_64-linux-gnu;/home/eduardoconto/miniconda3/envs/builder_dev1/lib/python3.10;/home/eduardoconto/miniconda3/envs/builder_dev1/lib/python3.10;/home/eduardoconto/miniconda3/envs/builder_dev1/lib/python3.10/site-packages;/home/eduardoconto/miniconda3/envs/builder_dev1/lib/python3.10/site-packages
+_Python3_INTERPRETER_SIGNATURE:INTERNAL=afb77bf67c699c550c2622342cc02f31
 //Path to a library.
-_Python3_LIBRARY_RELEASE:INTERNAL=/home/eduardoconto/miniconda3/envs/builder/lib/libpython3.10.so
+_Python3_LIBRARY_RELEASE:INTERNAL=/home/eduardoconto/miniconda3/envs/builder_dev1/lib/libpython3.10.so
 __pkg_config_checked_PKG_XKB:INTERNAL=1
 cmake_package_name:INTERNAL=GTest
 generated_dir:INTERNAL=/home/eduardoconto/descartes-builder/build/external/googletest/googletest/generated

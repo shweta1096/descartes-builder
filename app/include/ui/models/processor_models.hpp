@@ -27,8 +27,10 @@ public:
     virtual void setParameter(const QString &key, const QString &value) override;
     std::optional<int> getRandomState() const { return m_randomState; }
     std::optional<int> getSplitTime() const { return m_splitTime; }
+    std::optional<int> getTrainSize() const { return m_trainSize; }
     void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
     void setSplitTime(const std::optional<int> &splitTime) { m_splitTime = splitTime; }
+    void setTrainSize(const std::optional<double> &trainSize) { m_trainSize = trainSize; }
 
 public slots:
     virtual void onDataInputSet(const PortIndex &index) override;
@@ -36,13 +38,15 @@ public slots:
 
 private:
     // define the output type for a given input type
-    void setOutputTypeId(const PortIndex &inputIndex, const QUuid &typeId);
+    void setOutputType(const PortIndex &inputIndex, const QUuid &typeId, const QString &name);
 
     inline static const QString RANDOM_STATE = "random_state";
     inline static const QString SPLIT_TIME = "split_time";
+    inline static const QString TRAIN_SIZE = "train_size";
 
     std::optional<int> m_randomState;
-    std::optional<int> m_splitTime;
+    std::optional<int> m_splitTime = 0;
+    std::optional<double> m_trainSize = 0.0;
 };
 
 // Reusing a function for a predecessor node
@@ -83,6 +87,39 @@ public:
 
 private:
     inline static const QString PLOT = "plot";
-
+    // TODO get rid of this funky optionals..
     std::optional<Plot> m_plot;
+};
+
+class SensitivityAnalysisModel : public ProcessorModel
+{
+    Q_OBJECT
+public:
+    SensitivityAnalysisModel();
+
+    virtual bool hasParameters() const override { return true; }
+    virtual std::unordered_map<QString, QString> getParameters() const override;
+    virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
+    virtual void setParameter(const QString &key, const QString &value) override;
+
+private:
+    inline static const QString NUM_SAMPLE = "num_sample";
+    inline static const QString TARGET = "target";
+    inline static const QString DIFF_STEP = "diff_step";
+    inline static const QString GRID_SIZE = "grid_size";
+
+    int m_numSample = 1;
+    int m_target = 0;
+    int m_diffStep = 10;
+    int m_gridSize = 1000;
+};
+
+class DifferenceModel : public ProcessorModel
+{
+    Q_OBJECT
+public:
+    DifferenceModel();
+    virtual void onDataInputSet(const PortIndex &index) override;
+    virtual void onDataInputReset(const PortIndex &index);
+    virtual void setOutputTypeId(const QtNodes::PortIndex &, const QUuid &);
 };

@@ -19,6 +19,7 @@ constexpr QColor COLOR_TRAINER(205, 162, 190);
 
 constexpr uint SIDE_BAR_MINIMUM_WIDTH = 250;
 constexpr uint INT_SPIN_BOX_MAX_WIDTH = 55;
+constexpr uint DOUBLE_SPIN_BOX_MAX_WIDTH = 55;
 
 constexpr ConstLatin1String CONNECTION_STYLE =
     R"(

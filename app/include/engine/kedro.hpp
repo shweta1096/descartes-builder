@@ -31,6 +31,8 @@ private:
     bool generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComponents> tab);
     bool generatePipelinePy(const QDir &kedroProject, CustomGraph *graph);
     void postExecutionProcess();
+    void postScoreModel(CustomGraph *graph, const QtNodes::NodeId &id);
+    void postSensitivityAnalysisModel(CustomGraph *graph, const QtNodes::NodeId &id);
     void releaseExecution();
 
     const bool m_WINDOWS;
@@ -48,6 +50,5 @@ private:
         std::shared_ptr<TabComponents> tab;
     };
     std::unique_ptr<ExecutionBundle> m_execution;
-    const QString m_VENV_PYTHON;
     const QString m_DEFAULT_TEMPLATE;
 };

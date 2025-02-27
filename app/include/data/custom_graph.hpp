@@ -18,20 +18,30 @@ public:
 signals:
     void dataSourceModelImportClicked(const QtNodes::NodeId nodeId);
 
-protected:
+private:
     void initBlockConnections(const QtNodes::NodeId nodeId, FdfBlockModel *block);
+
     virtual void onNodeCreated(const QtNodes::NodeId nodeId) override;
-    virtual void onNodeDeleted(const QtNodes::NodeId nodeId);
+    void onNodeDeleted(const QtNodes::NodeId nodeId);
+
     void onOutPortInserted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex index);
     void onOutPortDeleted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex index);
+
     // rename captions that are duplicates
     void makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *block);
+
     // rename out ports that are duplicates
     void makeOutPortsUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *block);
     void makeOutPortsUnique(const QtNodes::NodeId &nodeId,
                             FdfBlockModel *block,
                             const QtNodes::PortIndex &index);
+
     void warnInvalidConnection(QtNodes::ConnectionId const connectionId) const;
+
+    // show warning for invalid port connection (implicit typing failure)
+    Q_INVOKABLE void showWarning(QtNodes::ConnectionId connectionId);
+
+private:
     // tracks node captions for uniqueness
     std::unordered_map<QString, QtNodes::NodeId> m_usedNodeCaptions;
     std::unordered_set<QtNodes::NodeId> m_trackedNodes;
@@ -39,7 +49,4 @@ protected:
     std::unordered_map<QString, std::pair<QtNodes::NodeId, QtNodes::PortIndex>> m_usedOutPortCaptions;
     std::unordered_set<QtNodes::NodeId> m_dataSourceNodes;
     std::unordered_set<QtNodes::NodeId> m_funcOutNodes;
-
-private:
-    Q_INVOKABLE void showWarning(QtNodes::ConnectionId connectionId);
 };

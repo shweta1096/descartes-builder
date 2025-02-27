@@ -65,3 +65,23 @@ private:
     // only for mlp2
     std::optional<std::vector<int>> m_hiddenLayerSizes;
 };
+
+class TorchTrainerModel : public TrainerModel
+{
+    Q_OBJECT
+public:
+    TorchTrainerModel();
+    virtual bool hasParameters() const override { return true; }
+    virtual std::unordered_map<QString, QString> getParameters() const override;
+    virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
+    virtual void setParameter(const QString &key, const QString &value) override;
+
+private:
+    inline static const QString RANDOM_STATE = "random_state";
+    inline static const QString MAX_ITER = "max_iter";
+    inline static const QString LEARNING_RATE = "learning_rate";
+
+    int m_randomState = 0;
+    int m_maxIter = 1000;
+    double m_learningRate = 0.001;
+};

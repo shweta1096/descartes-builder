@@ -38,6 +38,7 @@ public:
         : NamedNode(name)
     {
         m_type.id = constants::DATA_PORT_ID;
+        m_type.name = name;
     }
     QUuid typeId() const { return m_typeId; }
     void setTypeId(const QUuid &typeId) { m_typeId = typeId; }
@@ -73,10 +74,11 @@ public:
         : NamedNode(name)
     {
         m_type.id = constants::FUNCTION_PORT_ID;
+        m_type.name = name;
     }
-    Signature signature() const { return m_singature; }
-    void setSignature(const Signature &signature) { m_singature = signature; }
+    Signature signature() const { return m_signature; }
+    void setSignature(const Signature &signature) { m_signature = signature; }
 
 private:
-    Signature m_singature;
+    Signature m_signature;
 };

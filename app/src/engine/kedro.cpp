@@ -18,6 +18,7 @@
 #include "ui/models/io_models.hpp"
 #include "ui/models/processor_models.hpp"
 
+#include "engine/kedro.hpp"
 #include <iostream>
 
 #ifdef Q_OS_WIN
@@ -89,8 +90,6 @@ Kedro::Kedro()
     , m_KEDRO_DIR(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/kedro/")
     , m_setupProcess(std::make_unique<QProcess>())
     , m_execution(std::make_unique<ExecutionBundle>())
-    , m_VENV_PYTHON(
-          m_KEDRO_DIR.absoluteFilePath(m_WINDOWS ? "venv\\bin\\python.exe" : "venv/bin/python"))
     , m_DEFAULT_TEMPLATE(m_KEDRO_DIR.absoluteFilePath("templates/builder-spring/"))
 {
     if (!m_KEDRO_DIR.exists())
@@ -105,8 +104,8 @@ Kedro::Kedro()
     env.insert("LINES", "25");
     m_execution->process.setProcessEnvironment(env); // this is for kedro logger to print better
         // setprogram can handle spaces in path, this doesn't need to be quoted
-    m_execution->process.setProgram(m_VENV_PYTHON);
-    m_execution->process.setArguments({"-m", "kedro", "run"});
+    m_execution->process.setProgram("kedro");
+    m_execution->process.setArguments({"run"});
     m_execution->timer.setSingleShot(true);
 
     if (m_KEDRO_DIR.isEmpty())
@@ -186,18 +185,30 @@ QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
     // kedro dir inside of temp dir, to avoid cases where file name conflicts with existing folder
     QDir kedroDir(tab->getTempDir()->filePath("kedro"));
     kedroDir.mkpath(".");
+    QDir workspaceDir = QDir(kedroDir.absolutePath() + QDir::separator() + name);
+    if (workspaceDir.exists()) {
+        qInfo() << "Workspace already exists: " << workspaceDir.absolutePath();
+        return workspaceDir;
+    }
+
+    qInfo() << "Creating workspace " << workspaceDir.absolutePath();
     QProcess workspaceProcess;
     workspaceProcess.setWorkingDirectory(kedroDir.absolutePath());
-    QString command = QString("bash -c \"echo %1 | %2 -m kedro new -s %3\"")
-                          .arg(singleQuote(name),
-                               singleQuote(m_VENV_PYTHON),
-                               singleQuote(m_DEFAULT_TEMPLATE));
+    QString command = QString("bash -c \"echo %1 | kedro new -s %2\"")
+                          .arg(singleQuote(name), singleQuote(m_DEFAULT_TEMPLATE));
     workspaceProcess.startCommand(command);
     if (!workspaceProcess.waitForFinished()) {
         qCritical() << "Failed to create workspace " << name;
         return QDir();
     }
-    return QDir(kedroDir.absolutePath() + QDir::separator() + name);
+    if (workspaceProcess.exitStatus() != QProcess::NormalExit || workspaceProcess.exitCode() != 0) {
+        qCritical() << "Workspace creation command failed with exit code "
+                    << workspaceProcess.exitCode();
+        qCritical() << "Command output:\n" << workspaceProcess.readAllStandardOutput();
+        qCritical() << "Command error output:\n" << workspaceProcess.readAllStandardError();
+        return QDir();
+    }
+    return workspaceDir;
 }
 
 void Kedro::onExecutionFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -256,44 +267,7 @@ void Kedro::firstTimeSetup()
     file.setFileName(m_KEDRO_DIR.filePath("templates.zip"));
     file.remove();
 
-    // setup venv
-    QStringList args;
-    args << "-m"
-         << "venv"
-         << "venv";
-    m_setupProcess->start("python3", args);
-    if (!m_setupProcess->waitForFinished()) {
-        qWarning() << "Failed to create virtual environment:" << m_setupProcess->errorString();
-        return;
-    }
-
-    // install kedro-umbrella
-    QString venvPip = "venv/bin/pip";
-#ifdef Q_OS_WIN
-    venvPip = "venv\\Scripts\\pip.exe";
-#endif
-    args.clear();
-    args << "install";
-#ifdef Q_OS_WIN
-    args << "kedro-umbrella\\";
-#else
-    args << "kedro-umbrella/";
-#endif
-    connect(
-        m_setupProcess.get(),
-        &QProcess::finished,
-        this,
-        [this](int, QProcess::ExitStatus exitStatus) {
-            if (exitStatus == QProcess::CrashExit)
-                qWarning() << "Failed to install kedro-umbrella: " << m_setupProcess->errorString();
-            else {
-                QDir dir(m_KEDRO_DIR.absoluteFilePath("kedro-umbrella"));
-                dir.removeRecursively();
-                verifySetup();
-            }
-        },
-        Qt::SingleShotConnection);
-    m_setupProcess->start(venvPip, args);
+    verifySetup();
 }
 
 void Kedro::verifySetup()
@@ -389,36 +363,64 @@ bool Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
 
 void Kedro::postExecutionProcess()
 {
-    // get score blocks
     auto graph = m_execution->tab->getGraph();
-    for (auto &id : graph->allNodeIds())
-        if (auto score = graph->delegateModel<ScoreModel>(id)) {
-            QDir reportDir(m_execution->project.absoluteFilePath(constants::kedro::REPORTING_PATH));
-            // find the dir for the score block
-            // TODO: this is not done yet in kedro-umbrella
-            auto graphs = reportDir.entryList({"*.png"}, QDir::Files);
-            for (auto &graph : graphs)
-                graph = reportDir.absoluteFilePath(graph);
-            // set the graph and score.yml
-            score->setExecutedGraphs(graphs);
-            if (reportDir.exists("score.yml")) {
-                // parse score.yml
-                std::unordered_map<QString, QString> map;
-                QFile yml(reportDir.absoluteFilePath("score.yml"));
-                if (!yml.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                    qWarning() << "Cannot open score.yml";
-                    return;
-                }
-                for (auto &line : yml.readAll().split('\n')) {
-                    auto pair = line.split(':');
-                    if (pair.size() != 2)
-                        continue;
-                    map[pair.front().trimmed()] = pair.back().trimmed();
-                }
-                yml.close();
-                score->setExecutedValues(map);
-            }
+    for (auto &id : graph->allNodeIds()) {
+        postScoreModel(graph, id);
+        postSensitivityAnalysisModel(graph, id);
+    }
+}
+
+void Kedro::postScoreModel(CustomGraph *graph, const QtNodes::NodeId &id)
+{
+    auto score = graph->delegateModel<ScoreModel>(id);
+    if (!score)
+        return;
+
+    QDir reportDir(m_execution->project.absoluteFilePath(constants::kedro::REPORTING_PATH)
+                   + score->caption().replace(' ', '_') // XXX /!\ needs to be in the block directly
+    );
+
+    // save the graphs
+    auto graphs = reportDir.entryList({"*.png"}, QDir::Files);
+    for (auto &graph : graphs)
+        graph = reportDir.absoluteFilePath(graph);
+    score->setExecutedGraphs(graphs);
+
+    // save the score
+    if (reportDir.exists("score.yml")) {
+        // parse score.yml
+        // XXX HACKY PARSER
+        std::unordered_map<QString, QString> map;
+        QFile yml(reportDir.absoluteFilePath("score.yml"));
+        if (!yml.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qWarning() << "Cannot open score.yml";
+            return;
         }
+        for (auto &line : yml.readAll().split('\n')) {
+            auto pair = line.split(':');
+            if (pair.size() != 2)
+                continue;
+            map[pair.front().trimmed()] = pair.back().trimmed();
+        }
+        yml.close();
+        score->setExecutedValues(map);
+    }
+}
+
+void Kedro::postSensitivityAnalysisModel(CustomGraph *graph, const QtNodes::NodeId &id)
+{
+    auto block = graph->delegateModel<SensitivityAnalysisModel>(id);
+    if (!block)
+        return;
+
+    QDir reportDir(m_execution->project.absoluteFilePath(constants::kedro::REPORTING_PATH)
+                   + block->caption().replace(' ', '_') // XXX /!\ needs to be in the block directly
+    );
+    // save the graphs
+    auto graphs = reportDir.entryList({"*.png"}, QDir::Files);
+    for (auto &graph : graphs)
+        graph = reportDir.absoluteFilePath(graph);
+    block->setExecutedGraphs(graphs);
 }
 
 void Kedro::releaseExecution()

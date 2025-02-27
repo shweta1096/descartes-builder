@@ -189,20 +189,30 @@ void MainWindow::initMenuBar()
         auto debugAction = tempMenu->addAction("print debug");
         auto errorAction = tempMenu->addAction("print error");
         auto printSettingsAction = tempMenu->addAction("print settings");
-        auto openExample = tempMenu->addAction("Open Example");
+        auto openPipe = tempMenu->addAction("Open Pipe deformation");
+        auto openMagnet = tempMenu->addAction("Open Magnetic bearing");
         connect(infoAction, &QAction::triggered, m_temp, &Temp::printInfo);
         connect(debugAction, &QAction::triggered, m_temp, &Temp::printDebug);
         connect(errorAction, &QAction::triggered, m_temp, &Temp::printError);
         connect(printSettingsAction, &QAction::triggered, m_temp, &Temp::printAllSettings);
-        connect(openExample, &QAction::triggered, m_tabManager.get(), [this]() {
+        connect(openPipe, &QAction::triggered, m_tabManager.get(), [this]() {
             QDir dir(QApplication::applicationDirPath());
-            for (int i = 0; i < 6; ++i) // mac only due to bundle dir
+            for (int i = 0; i < 2; ++i) // mac only due to bundle dir
                 dir.cdUp();
             dir.cd("examples");
             m_tabManager->openFrom(dir.absoluteFilePath("pipe-deformation-test.dcb"));
         });
-        openExample->setShortcut(
+        openPipe->setShortcut(
             QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_E));
+        connect(openMagnet, &QAction::triggered, m_tabManager.get(), [this]() {
+            QDir dir(QApplication::applicationDirPath());
+            for (int i = 0; i < 2; ++i) // mac only due to bundle dir
+                dir.cdUp();
+            dir.cd("examples");
+            m_tabManager->openFrom(dir.absoluteFilePath("magnetic-bearing.dcb"));
+        });
+        openMagnet->setShortcut(
+            QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_M));
     }
 }
 
@@ -220,7 +230,7 @@ void MainWindow::initPrimarySideBar()
     std::vector<SideBarWidgetData> widgets = {
         {SideBarAction::Blocks,
          QtUtility::media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
-         "Blocks",
+         "Box",
          new Blocks(m_blockManager, m_tabManager)},
         {SideBarAction::Charts,
          QtUtility::media::recolor(QIcon(":/charts.png"), constants::COLOR_SECONDARY),

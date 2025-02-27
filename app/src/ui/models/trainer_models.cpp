@@ -102,9 +102,12 @@ std::unordered_map<QString, QString> BasicTrainerModel::getParameters() const
         result[RANDOM_STATE] = QString::number(m_randomState.value());
     if (m_model == Model::Mlp2 && m_hiddenLayerSizes) {
         QStringList sizes;
-        for (auto &size : m_hiddenLayerSizes.value())
+        for (auto &size : m_hiddenLayerSizes.value()) {
             sizes << QString::number(size);
-        result[HIDDEN_LAYER_SIZES] = sizes.join(", ");
+        }
+        QString input_string = sizes.join(", ");
+        QString formatted_string = "[" + input_string + "]"; // Kedro expects [size1, size2, ...]
+        result[HIDDEN_LAYER_SIZES] = formatted_string;
     }
     return result;
 }
@@ -140,7 +143,9 @@ void BasicTrainerModel::setParameter(const QString &key, const QString &value)
             }
     } else if (key == HIDDEN_LAYER_SIZES) {
         std::vector<int> result;
-        auto sizes = value.split(", ");
+        // For compatibility with kedro expected format
+        auto formattedValue = value;
+        auto sizes = formattedValue.replace("[", "").replace("]", "").replace(" ", "").split(",");
         for (auto size : sizes)
             result.push_back(size.toInt());
         setHiddenLayerSizes(result);
@@ -152,9 +157,47 @@ void BasicTrainerModel::setModel(const Model &model)
     if (m_model == model)
         return;
     m_model = model;
-    if (m_model == Model::Mlp2)
-        m_hiddenLayerSizes = std::vector<int>();
-    else if (m_hiddenLayerSizes)
+    if (m_model == Model::Mlp2) {
+        if (!m_hiddenLayerSizes)
+            m_hiddenLayerSizes = std::vector<int>();
+    } else if (m_hiddenLayerSizes)
         m_hiddenLayerSizes = std::nullopt;
     emit contentUpdated();
+}
+
+TorchTrainerModel::TorchTrainerModel()
+    : TrainerModel("pytorch_trainer", trainer_function::PYTORCH_TRAINER)
+{
+    addPort<DataNode>(PortType::In);
+    addPort<DataNode>(PortType::In);
+    addPort<FunctionNode>(PortType::Out, "model");
+}
+
+std::unordered_map<QString, QString> TorchTrainerModel::getParameters() const
+{
+    std::unordered_map<QString, QString> result;
+    result[RANDOM_STATE] = QString::number(m_randomState);
+    result[MAX_ITER] = QString::number(m_maxIter);
+    result[LEARNING_RATE] = QString::number(m_learningRate);
+    return result;
+}
+
+std::unordered_map<QString, QMetaType::Type> TorchTrainerModel::getParameterSchema() const
+{
+    std::unordered_map<QString, QMetaType::Type> schema;
+    schema[RANDOM_STATE] = QMetaType::Int;
+    schema[MAX_ITER] = QMetaType::Int;
+    schema[LEARNING_RATE] = QMetaType::Double;
+    return schema;
+}
+
+void TorchTrainerModel::setParameter(const QString &key, const QString &value)
+{
+    if (key == RANDOM_STATE) {
+        m_randomState = value.toInt();
+    } else if (key == MAX_ITER) {
+        m_maxIter = value.toInt();
+    } else if (key == LEARNING_RATE) {
+        m_learningRate = value.toDouble();
+    }
 }

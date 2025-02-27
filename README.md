@@ -26,6 +26,8 @@ Function + Data Flow GUI to create digital twin pipelines.
 - build tools for QT
 `sudo apt install cmake build-essential libgl1-mesa-dev`
 - zlib: `sudo apt install zlib1g-dev libbz2-dev`
+- format: `sudo apt-get install libfmt-dev`
+- vulkan: `sudo apt install vulkan-tools vulkan-validationlayers-dev libvulkan-dev`
 
 ## Optional
 

@@ -44,10 +44,12 @@ public:
 
     virtual std::shared_ptr<NodeData> portData(PortType const type, PortIndex const index) const;
     virtual std::vector<std::shared_ptr<NodeData>> connectedPortData(PortType const type) const;
+
     void setCaption(const QString &caption);
     bool setPortCaption(PortType type, PortIndex index, const QString &caption);
     bool setPortDefaultCaption(PortType type, PortIndex index, const QString &caption);
     bool resetPortCaption(PortType portType, PortIndex portIndex);
+
     virtual std::shared_ptr<NodeData> inData(PortIndex const index);
     virtual std::unordered_map<QString, QString> getParameters() const;
     virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const;
@@ -56,10 +58,12 @@ public:
     uint nPorts(const PortType &portType, const QString &typeId) const;
     virtual uint minModifiablePorts(const PortType &portType, const QString &typeId) const;
     virtual bool portNumberModifiable(const PortType &portType) const { return false; };
+
     std::unordered_map<QString, QString> getExecutedValues() const { return m_executedValues; }
     void setExecutedValues(const std::unordered_map<QString, QString> &values);
     QStringList getExecutedGraphs() const { return m_executedGraphs; }
     void setExecutedGraphs(const QStringList &paths);
+
     template<typename T>
     std::vector<std::shared_ptr<T>> allOutData()
     {
@@ -168,6 +172,7 @@ protected:
 
 private:
     using InPortType = std::vector<std::pair<std::unique_ptr<NodeData>, std::weak_ptr<NodeData>>>;
+    // port -> in use
     using OutPortType = std::vector<std::pair<std::shared_ptr<NodeData>, bool>>;
 
     void updateStyle();

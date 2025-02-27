@@ -4,38 +4,25 @@
 
 namespace {
 using Process = CoderModel::Process;
-std::unordered_map<Process, QString> PROCESS_STRING = {
-    {Process::None, "none"},
-    {Process::Std, "std"},
+std::unordered_map<Process, QString> REDUCE_STRING = {
     {Process::Pca, "pca"},
     {Process::PcaStd, "pca_std"},
     {Process::StdPca, "std_pca"},
 };
+std::unordered_map<Process, QString> TRANSFORM_STRING = {
+    {Process::None, "none"},
+    {Process::Std, "std"},
+};
 } // namespace
 
-std::map<std::vector<QUuid>, QUuid> CoderModel::m_typeIdMap;
+// Input data type -> output data type 
+// this is really Function Signature XXX but using another type :/ 
+std::map<std::vector<QUuid>, QUuid> TransformDataModel::m_typeIdMap;
+std::map<std::vector<QUuid>, QUuid> ReduceDataModel::m_typeIdMap;
 
-CoderModel::CoderModel()
-    : FdfBlockModel(FdfType::Coder, "transform", coder_function::TRANSFORM_DATA)
-{
-    addPort<DataNode>(PortType::In);
-    addPort<FunctionNode>(PortType::Out, "encode");
-    addPort<FunctionNode>(PortType::Out, "decode");
-
-    setProcess(Process::StdPca);
-    setRandomState(0);
-
-    setExecutedGraphs({":/descartes_logo.png"});
-}
-
-std::unordered_map<QString, QString> CoderModel::getParameters() const
-{
-    std::unordered_map<QString, QString> result;
-    result[PROCESS] = PROCESS_STRING.at(m_process);
-    if (m_randomState)
-        result[RANDOM_STATE] = QString::number(m_randomState.value());
-    return result;
-}
+CoderModel::CoderModel(const QString &name, const QString &functionName)
+    : FdfBlockModel(FdfType::Coder, name, functionName)
+{}
 
 std::unordered_map<QString, QMetaType::Type> CoderModel::getParameterSchema() const
 {
@@ -43,27 +30,6 @@ std::unordered_map<QString, QMetaType::Type> CoderModel::getParameterSchema() co
     schema[PROCESS] = QMetaType::QString;
     schema[RANDOM_STATE] = QMetaType::Int;
     return schema;
-}
-
-QStringList CoderModel::getParameterOptions(const QString &key) const
-{
-    QStringList result;
-    if (key == PROCESS) {
-        for (auto pair : PROCESS_STRING)
-            result << pair.second;
-    }
-    return result;
-}
-
-void CoderModel::setParameter(const QString &key, const QString &value)
-{
-    if (key == PROCESS) {
-        for (auto pair : PROCESS_STRING)
-            if (pair.second == value)
-                setProcess(pair.first);
-    } else if (key == RANDOM_STATE) {
-        setRandomState(value.toInt());
-    }
 }
 
 bool CoderModel::portNumberModifiable(const PortType &portType) const
@@ -82,8 +48,53 @@ uint CoderModel::minModifiablePorts(const PortType &portType, const QString &typ
     return 0;
 }
 
+void CoderModel::setInputPortNumber(uint num)
+{
+    setPortNumber<DataNode>(PortType::In, num);
+}
+
+TransformDataModel::TransformDataModel()
+    : CoderModel("transform", coder_function::TRANSFORM_DATA)
+{
+    addPort<DataNode>(PortType::In);
+    addPort<FunctionNode>(PortType::Out, "encode");
+    addPort<FunctionNode>(PortType::Out, "decode");
+    setProcess(Process::Std);
+    setRandomState(0);
+}
+
+std::unordered_map<QString, QString> TransformDataModel::getParameters() const
+{
+    std::unordered_map<QString, QString> result;
+    result[PROCESS] = TRANSFORM_STRING.at(m_process);
+    if (m_randomState)
+        result[RANDOM_STATE] = QString::number(m_randomState.value());
+    return result;
+}
+
+QStringList TransformDataModel::getParameterOptions(const QString &key) const
+{
+    QStringList result;
+    if (key == PROCESS) {
+        for (auto pair : TRANSFORM_STRING)
+            result << pair.second;
+    }
+    return result;
+}
+
+void TransformDataModel::setParameter(const QString &key, const QString &value)
+{
+    if (key == PROCESS) {
+        for (auto pair : TRANSFORM_STRING)
+            if (pair.second == value)
+                setProcess(pair.first);
+    } else if (key == RANDOM_STATE) {
+        setRandomState(value.toInt());
+    }
+}
+
 // Set the inputs to a particular index
-void CoderModel::onDataInputSet(const PortIndex &index)
+void TransformDataModel::onDataInputSet(const PortIndex &index)
 {
     Q_UNUSED(index);
 
@@ -97,11 +108,11 @@ void CoderModel::onDataInputSet(const PortIndex &index)
     // Given an input type 't', any two coder shall produce the same
     // output function type (t, t') and (t', t)
     QUuid outputType;
-    if (CoderModel::m_typeIdMap.count(inputTypeIds) > 0)
-        outputType = CoderModel::m_typeIdMap.at(inputTypeIds);
+    if (TransformDataModel::m_typeIdMap.count(inputTypeIds) > 0)
+        outputType = TransformDataModel::m_typeIdMap.at(inputTypeIds);
     else {
         outputType = QUuid::createUuid();
-        CoderModel::m_typeIdMap[inputTypeIds] = outputType;
+        TransformDataModel::m_typeIdMap[inputTypeIds] = outputType;
     }
 
     // Set encode/decode function type
@@ -116,13 +127,86 @@ void CoderModel::onDataInputSet(const PortIndex &index)
         decode->setSignature(signature);
 }
 
-void CoderModel::onDataInputReset(const PortIndex &index)
+void TransformDataModel::onDataInputReset(const PortIndex &index)
 {
-    // note that index is unused in the set function
     onDataInputSet(index);
 }
 
-void CoderModel::setInputPortNumber(uint num)
+ReduceDataModel::ReduceDataModel()
+    : CoderModel("reduce", coder_function::REDUCE_DATA)
 {
-    setPortNumber<DataNode>(PortType::In, num);
+    addPort<DataNode>(PortType::In);
+    addPort<FunctionNode>(PortType::Out, "reduce");
+    addPort<FunctionNode>(PortType::Out, "inv_reduce");
+    setProcess(Process::StdPca);
+    setRandomState(0);
+}
+
+std::unordered_map<QString, QString> ReduceDataModel::getParameters() const
+{
+    std::unordered_map<QString, QString> result;
+    result[PROCESS] = REDUCE_STRING.at(m_process);
+    if (m_randomState)
+        result[RANDOM_STATE] = QString::number(m_randomState.value());
+    return result;
+}
+
+QStringList ReduceDataModel::getParameterOptions(const QString &key) const
+{
+    QStringList result;
+    if (key == PROCESS) {
+        for (auto pair : REDUCE_STRING)
+            result << pair.second;
+    }
+    return result;
+}
+
+void ReduceDataModel::setParameter(const QString &key, const QString &value)
+{
+    if (key == PROCESS) {
+        for (auto pair : REDUCE_STRING)
+            if (pair.second == value)
+                setProcess(pair.first);
+    } else if (key == RANDOM_STATE) {
+        setRandomState(value.toInt());
+    }
+}
+
+// Set the inputs to a particular index
+void ReduceDataModel::onDataInputSet(const PortIndex &index)
+{
+    Q_UNUSED(index);
+
+    // Save input type
+    std::vector<QUuid> inputTypeIds;
+    for (int i = 0; i < nPorts(PortType::In); ++i)
+        if (auto data = castedPort<DataNode>(PortType::In, i))
+            inputTypeIds.push_back(data->typeId());
+
+    // Create encode output data type
+    // Given an input type 't', any two coder shall produce the same
+    // output function type (t, t') and (t', t)
+    QUuid outputType;
+    if (ReduceDataModel::m_typeIdMap.count(inputTypeIds) > 0)
+        outputType = ReduceDataModel::m_typeIdMap.at(inputTypeIds);
+    else {
+        outputType = QUuid::createUuid();
+        ReduceDataModel::m_typeIdMap[inputTypeIds] = outputType;
+    }
+
+    // Set encode/decode function type
+    FunctionNode::Signature signature;
+    signature.inputs = inputTypeIds;
+    signature.outputs = {outputType};
+    if (auto encode = castedPort<FunctionNode>(PortType::Out, 0))
+        encode->setSignature(signature);
+    // set decode to the inverse
+    signature.inverse();
+    if (auto decode = castedPort<FunctionNode>(PortType::Out, 1))
+        decode->setSignature(signature);
+}
+
+void ReduceDataModel::onDataInputReset(const PortIndex &index)
+{
+    onDataInputSet(index);
 }

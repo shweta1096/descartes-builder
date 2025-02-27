@@ -332,6 +332,16 @@ QWidget *Blocks::generateParameterWidget(FdfBlockModel *block)
             connect(spin, &QSpinBox::valueChanged, block, [block, key](const int &value) {
                 block->setParameter(key, QString::number(value));
             });
+        } else if (pair.second == QMetaType::Double) {
+            auto spin = new QDoubleSpinBox;
+            spin->setRange(0, std::numeric_limits<double>::max());
+            spin->setDecimals(6);
+            spin->setMaximumWidth(constants::DOUBLE_SPIN_BOX_MAX_WIDTH);
+            spin->setValue(value.toDouble());
+            layout->addRow(new QLabel(key), spin);
+            connect(spin, &QDoubleSpinBox::valueChanged, block, [block, key](double value) {
+                block->setParameter(key, QString::number(value, 'f', 6));
+            });
         } else if (pair.second == QMetaType::QPoint) {
             auto pointLayout = new QHBoxLayout();
             {
