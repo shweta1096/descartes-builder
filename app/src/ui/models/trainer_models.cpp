@@ -1,5 +1,4 @@
 #include "ui/models/trainer_models.hpp"
-
 #include "ui/models/function_names.hpp"
 namespace {
 using Model = BasicTrainerModel::Model;
@@ -15,7 +14,7 @@ std::unordered_map<Model, QString> MODEL_STRING = {
 
 TrainerModel::TrainerModel(const QString &name, const QString &functionName)
     : FdfBlockModel(FdfType::Trainer, name, functionName)
-    , m_signature({{QUuid()}, {QUuid()}})
+    , m_signature({{UIDManager::NONE_ID}, {UIDManager::NONE_ID}})
 {}
 
 bool TrainerModel::portNumberModifiable(const PortType &portType) const
@@ -65,16 +64,16 @@ void TrainerModel::onDataInputSet(const PortIndex &index)
 
 void TrainerModel::onDataInputReset(const PortIndex &index)
 {
-    m_signature.update(index, QUuid());
+    m_signature.update(index, UIDManager::NONE_ID);
     if (auto function = castedPort<FunctionNode>(PortType::Out, 0))
         function->setSignature(m_signature);
 }
 
 void TrainerModel::updateSignature()
 {
-    std::vector<QUuid> inputTypeIds;
+    std::vector<FdfUID> inputTypeIds;
     for (PortIndex i = 0; i < nPorts(PortType::In); ++i) {
-        QUuid typeId;
+        FdfUID typeId;
         if (auto data = castedPort<DataNode>(PortType::In, i))
             typeId = data->typeId();
         m_signature.update(i, typeId);

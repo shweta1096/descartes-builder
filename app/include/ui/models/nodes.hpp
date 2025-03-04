@@ -3,6 +3,7 @@
 #include <QtNodes/NodeData>
 
 #include "data/constants.hpp"
+#include "uid_manager.hpp"
 
 using QtNodes::NodeData;
 using QtNodes::NodeDataType;
@@ -40,11 +41,11 @@ public:
         m_type.id = constants::DATA_PORT_ID;
         m_type.name = name;
     }
-    QUuid typeId() const { return m_typeId; }
-    void setTypeId(const QUuid &typeId) { m_typeId = typeId; }
+    FdfUID typeId() const { return m_typeId; }
+    void setTypeId(const FdfUID &typeId) { m_typeId = typeId; }
 
 private:
-    QUuid m_typeId;
+    FdfUID m_typeId;
 };
 
 class FunctionNode : public NamedNode
@@ -52,10 +53,10 @@ class FunctionNode : public NamedNode
 public:
     struct Signature
     {
-        std::vector<QUuid> inputs;
-        std::vector<QUuid> outputs;
+        std::vector<FdfUID> inputs;
+        std::vector<FdfUID> outputs;
         std::pair<size_t, size_t> size() const { return {inputs.size(), outputs.size()}; }
-        void update(unsigned int port, QUuid typeId)
+        void update(unsigned int port, FdfUID typeId)
         {
             if (port < inputs.size())
                 inputs.at(port) = typeId;

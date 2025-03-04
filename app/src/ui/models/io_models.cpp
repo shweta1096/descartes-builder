@@ -1,4 +1,5 @@
 #include "ui/models/io_models.hpp"
+#include "data/tab_manager.hpp"
 
 #include <QLabel>
 #include <QPushButton>
@@ -7,8 +8,8 @@
 namespace {
 
 std::unordered_map<CatalogType, QString> CATALOG_STRING = {
-    {CatalogType::Pickle, "pickle.PickleDataSet"},
-    {CatalogType::Csv, "pandas.CSVDataSet"},
+    {CatalogType::Pickle, "pickle.PickleDataset"},
+    {CatalogType::Csv, "pandas.CSVDataset"},
     {CatalogType::H5, "kedro_umbrella.library.H5Dataset"},
 };
 
@@ -27,9 +28,14 @@ DataSourceModel::DataSourceModel()
     , m_label(nullptr)
 {
     addPort<DataNode>(PortType::Out);
+    auto uidManager = TabManager::instance().getCurrentUIDManager();
+    if (!uidManager) {
+        qWarning() << "UIDManager is null!";
+        return;
+    }
 
     for (auto &port : allOutData<DataNode>())
-        port->setTypeId(QUuid::createUuid());
+        port->setTypeId(uidManager->createUID());
 }
 
 QWidget *DataSourceModel::embeddedWidget()

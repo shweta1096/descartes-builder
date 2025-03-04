@@ -10,7 +10,14 @@ class TabManager : public QObject
 public:
     using ViewWidget = QWidget;
 
-    TabManager(QObject *parent = nullptr);
+    static TabManager &instance()
+    {
+        static TabManager instance;
+        return instance;
+    }
+    TabManager(const TabManager &) = delete;
+    TabManager &operator=(const TabManager &) = delete;
+
     std::shared_ptr<TabComponents> getCurrentTab() const;
     std::shared_ptr<TabComponents> getTab(QWidget *view) const;
     size_t size() const { return m_tabs.size(); }
@@ -25,6 +32,7 @@ public:
     void setTabParent(QWidget *parent) { m_tabParent = parent; }
     void setCurrentView(ViewWidget *view);
     QFileInfo getFileInfo(ViewWidget *view) const;
+    UIDManager *getCurrentUIDManager() const;
     void clear();
 
 signals:
@@ -42,6 +50,7 @@ public:
 
 private:
     bool openIfExists(const QFileInfo &file);
+    explicit TabManager(QObject *parent = nullptr);
 
     std::unordered_map<ViewWidget *, std::shared_ptr<TabComponents>> m_tabs;
     ViewWidget *m_currentView;

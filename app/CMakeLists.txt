@@ -18,7 +18,25 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 
 add_definitions("-DQT_MESSAGELOGCONTEXT")
 
-find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+if(WIN32)
+  message(STATUS "Configuring for Windows")
+  find_package(Python3 REQUIRED)
+  include_directories(${PYTHON3_INCLUDE_DIRS})
+  link_libraries(${PYTHON3_LIBRARIES})
+
+  find_package(ZLIB REQUIRED)
+  include_directories(${ZLIB_INCLUDE_DIR})
+  link_libraries(${ZLIB_LIBRARY})
+
+  find_package(BZIP2 REQUIRED)
+  include_directories(${BZIP2_INCLUDE_DIR})
+  link_libraries(${BZIP2_LIBRARY})
+
+elseif(UNIX)
+  message(STATUS "Configuring for Linux")
+  find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+
+endif()
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Test OpenGL
@@ -67,7 +85,7 @@ set_target_properties(
              ${PROJECT_VERSION} MACOSX_BUNDLE_SHORT_VERSION_STRING
              ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR} MACOSX_BUNDLE
              TRUE WIN32_EXECUTABLE
-             TRUE)
+             OFF)
 
 include(GNUInstallDirs)
 install(
@@ -79,6 +97,21 @@ install(
 if(QT_VERSION_MAJOR EQUAL 6)
   qt_finalize_executable(${PROJECT_NAME})
 endif()
+
+if(WIN32)
+  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND "${CMAKE_PREFIX_PATH}/bin/windeployqt.exe"
+  "$<TARGET_FILE:${PROJECT_NAME}>"
+  COMMENT "Running windeployqt to deploy Qt dependencies..."
+  )
+
+  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy 
+  "${CMAKE_PREFIX_PATH}/bin/Qt6Core5Compat.dll" 
+  "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+  )
+endif()
+
 
 # copy engine lib to binary dir add_custom_target( setup_engine ALL COMMAND
 # ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/external/kedro-umbrella

@@ -1,4 +1,5 @@
 #include "ui/models/coder_models.hpp"
+#include "data/tab_manager.hpp"
 
 #include "ui/models/function_names.hpp"
 
@@ -14,11 +15,6 @@ std::unordered_map<Process, QString> TRANSFORM_STRING = {
     {Process::Std, "std"},
 };
 } // namespace
-
-// Input data type -> output data type 
-// this is really Function Signature XXX but using another type :/ 
-std::map<std::vector<QUuid>, QUuid> TransformDataModel::m_typeIdMap;
-std::map<std::vector<QUuid>, QUuid> ReduceDataModel::m_typeIdMap;
 
 CoderModel::CoderModel(const QString &name, const QString &functionName)
     : FdfBlockModel(FdfType::Coder, name, functionName)
@@ -99,7 +95,7 @@ void TransformDataModel::onDataInputSet(const PortIndex &index)
     Q_UNUSED(index);
 
     // Save input type
-    std::vector<QUuid> inputTypeIds;
+    std::vector<FdfUID> inputTypeIds;
     for (int i = 0; i < nPorts(PortType::In); ++i)
         if (auto data = castedPort<DataNode>(PortType::In, i))
             inputTypeIds.push_back(data->typeId());
@@ -107,13 +103,12 @@ void TransformDataModel::onDataInputSet(const PortIndex &index)
     // Create encode output data type
     // Given an input type 't', any two coder shall produce the same
     // output function type (t, t') and (t', t)
-    QUuid outputType;
-    if (TransformDataModel::m_typeIdMap.count(inputTypeIds) > 0)
-        outputType = TransformDataModel::m_typeIdMap.at(inputTypeIds);
-    else {
-        outputType = QUuid::createUuid();
-        TransformDataModel::m_typeIdMap[inputTypeIds] = outputType;
+    auto uidManager = TabManager::instance().getCurrentUIDManager();
+    if (!uidManager) {
+        qWarning() << "UIDManager is null!";
+        return;
     }
+    FdfUID outputType = uidManager->createOrFetchTransformUid(inputTypeIds);
 
     // Set encode/decode function type
     FunctionNode::Signature signature;
@@ -178,7 +173,7 @@ void ReduceDataModel::onDataInputSet(const PortIndex &index)
     Q_UNUSED(index);
 
     // Save input type
-    std::vector<QUuid> inputTypeIds;
+    std::vector<FdfUID> inputTypeIds;
     for (int i = 0; i < nPorts(PortType::In); ++i)
         if (auto data = castedPort<DataNode>(PortType::In, i))
             inputTypeIds.push_back(data->typeId());
@@ -186,13 +181,12 @@ void ReduceDataModel::onDataInputSet(const PortIndex &index)
     // Create encode output data type
     // Given an input type 't', any two coder shall produce the same
     // output function type (t, t') and (t', t)
-    QUuid outputType;
-    if (ReduceDataModel::m_typeIdMap.count(inputTypeIds) > 0)
-        outputType = ReduceDataModel::m_typeIdMap.at(inputTypeIds);
-    else {
-        outputType = QUuid::createUuid();
-        ReduceDataModel::m_typeIdMap[inputTypeIds] = outputType;
+    auto uidManager = TabManager::instance().getCurrentUIDManager();
+    if (!uidManager) {
+        qWarning() << "UIDManager is null!";
+        return;
     }
+    FdfUID outputType = uidManager->createOrFetchReduceUid(inputTypeIds);
 
     // Set encode/decode function type
     FunctionNode::Signature signature;

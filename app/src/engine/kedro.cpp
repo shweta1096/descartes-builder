@@ -55,6 +55,24 @@ QStringList getPortList(const FdfBlockModel &block, const PortType &type)
     return result;
 }
 
+QDir getKedroUmbrellaDir()
+{ // Run a Python command to find kedro-umbrella's location
+    QProcess process;
+    process.start("python",
+                  QStringList() << "-c"
+                                << "import kedro_umbrella, os; "
+                                   "print(os.path.dirname(kedro_umbrella.__file__))");
+    process.waitForFinished();
+
+    QString kedroUmbrellaPath = process.readAllStandardOutput().trimmed();
+    if (kedroUmbrellaPath.isEmpty()) {
+        qCritical() << "Failed to locate kedro-umbrella package";
+        return QDir();
+    }
+    qInfo() << "Using kedro_umbrella path :" << kedroUmbrellaPath;
+    return QDir(kedroUmbrellaPath);
+}
+
 QString toString(const FdfBlockModel &block)
 {
     QString result = block.typeAsString() + '(';
@@ -87,31 +105,27 @@ int timeoutMinutes()
 Kedro::Kedro()
     : m_WINDOWS(IS_WINDOWS)
     , m_setup(false)
-    , m_KEDRO_DIR(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/kedro/")
-    , m_setupProcess(std::make_unique<QProcess>())
+    , m_KEDRO_UMBRELLA_DIR(getKedroUmbrellaDir())
     , m_execution(std::make_unique<ExecutionBundle>())
-    , m_DEFAULT_TEMPLATE(m_KEDRO_DIR.absoluteFilePath("templates/builder-spring/"))
+    , m_DEFAULT_TEMPLATE(m_KEDRO_UMBRELLA_DIR.absoluteFilePath("template/builder-spring/"))
 {
-    if (!m_KEDRO_DIR.exists())
-        m_KEDRO_DIR.mkpath(".");
     if (!m_runtimeCache.isValid())
         qCritical() << "Temporary dir failed to setup";
-    // init setup process
-    m_setupProcess->setWorkingDirectory(m_KEDRO_DIR.absolutePath());
     // init execution process
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("COLUMNS", "200");
     env.insert("LINES", "25");
     m_execution->process.setProcessEnvironment(env); // this is for kedro logger to print better
-        // setprogram can handle spaces in path, this doesn't need to be quoted
+#if IS_WINDOWS
+    m_execution->process.setProgram("python");
+    m_execution->process.setArguments({"-m", "kedro", "run"});
+#else
     m_execution->process.setProgram("kedro");
     m_execution->process.setArguments({"run"});
+#endif
     m_execution->timer.setSingleShot(true);
 
-    if (m_KEDRO_DIR.isEmpty())
-        firstTimeSetup();
-    else
-        verifySetup();
+    verifySetup();
 
     connect(&m_execution->process, &QProcess::finished, this, &Kedro::onExecutionFinished);
     connect(&m_execution->timer, &QTimer::timeout, this, &Kedro::onTimeOut);
@@ -183,8 +197,7 @@ QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
 {
     auto name = tab->getFileInfo().baseName();
     // kedro dir inside of temp dir, to avoid cases where file name conflicts with existing folder
-    QDir kedroDir(tab->getTempDir()->filePath("kedro"));
-    kedroDir.mkpath(".");
+    QDir kedroDir = ensureDirExists(tab->getTempDir()->filePath("kedro"));
     QDir workspaceDir = QDir(kedroDir.absolutePath() + QDir::separator() + name);
     if (workspaceDir.exists()) {
         qInfo() << "Workspace already exists: " << workspaceDir.absolutePath();
@@ -194,8 +207,13 @@ QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
     qInfo() << "Creating workspace " << workspaceDir.absolutePath();
     QProcess workspaceProcess;
     workspaceProcess.setWorkingDirectory(kedroDir.absolutePath());
-    QString command = QString("bash -c \"echo %1 | kedro new -s %2\"")
-                          .arg(singleQuote(name), singleQuote(m_DEFAULT_TEMPLATE));
+    QString command;
+#if IS_WINDOWS
+    command = QString("cmd.exe /C echo %1 | python -m kedro new -s %2").arg(name, m_DEFAULT_TEMPLATE);
+#else
+    command = QString("bash -c \"echo %1 | kedro new -s %2\"")
+                  .arg(singleQuote(name), singleQuote(m_DEFAULT_TEMPLATE));
+#endif
     workspaceProcess.startCommand(command);
     if (!workspaceProcess.waitForFinished()) {
         qCritical() << "Failed to create workspace " << name;
@@ -225,6 +243,9 @@ void Kedro::onExecutionFinished(int exitCode, QProcess::ExitStatus exitStatus)
     }
 
     auto output = QString::fromUtf8(m_execution->process.readAllStandardOutput());
+    auto errorOutput = m_execution->process.readAllStandardError().trimmed();
+    if (!errorOutput.isEmpty())
+        output += "\nERROR LOG:\n" + QString::fromUtf8(errorOutput);
 
     postExecutionProcess();
 
@@ -250,26 +271,6 @@ QString Kedro::serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) cons
     return toString(*graph->delegateModel<FdfBlockModel>(id));
 }
 
-void Kedro::firstTimeSetup()
-{
-    qInfo() << "Performing first time set up";
-    // extract resources to app data
-    if (!QFile::copy(":/kedro-umbrella.zip", m_KEDRO_DIR.filePath("kedro-umbrella.zip")))
-        qCritical() << "Failed to copy kedro-umbrella.zip";
-    if (!QFile::copy(":/templates.zip", m_KEDRO_DIR.filePath("templates.zip")))
-        qCritical() << "Failed to copy templates.zip";
-    JlCompress::extractDir(m_KEDRO_DIR.filePath("kedro-umbrella.zip"), m_KEDRO_DIR.absolutePath());
-    JlCompress::extractDir(m_KEDRO_DIR.filePath("templates.zip"), m_KEDRO_DIR.absolutePath());
-    QFile file(m_KEDRO_DIR.filePath("kedro-umbrella.zip"));
-
-    // clean zip files
-    file.remove();
-    file.setFileName(m_KEDRO_DIR.filePath("templates.zip"));
-    file.remove();
-
-    verifySetup();
-}
-
 void Kedro::verifySetup()
 {
     m_setup = true;
@@ -287,7 +288,7 @@ bool Kedro::generateParametersYml(const QDir &kedroProject, CustomGraph *graph)
             for (auto &pair : block->getParameters())
                 parameters << QString("  %1: %2").arg(pair.first, pair.second);
         }
-    QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
+    QDir conf = ensureDirExists(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
     //generate parameters.yml
     QFile parametersYml(conf.absoluteFilePath("parameters.yml"));
     if (!parametersYml.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -302,9 +303,10 @@ bool Kedro::generateParametersYml(const QDir &kedroProject, CustomGraph *graph)
 
 bool Kedro::generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComponents> tab)
 {
-    QDir conf(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
+    QDir conf = ensureDirExists(kedroProject.absoluteFilePath(constants::kedro::CONF_PATH));
     auto dataSources = tab->getGraph()->getDataSourceModels();
-    QDir rawDataDir(kedroProject.absoluteFilePath(constants::kedro::RAW_DATA_PATH));
+    QDir rawDataDir = ensureDirExists(
+        kedroProject.absoluteFilePath(constants::kedro::RAW_DATA_PATH));
     QStringList catalogEntries;
     for (auto data : dataSources) {
         auto fileName = data->file().fileName();
@@ -342,7 +344,7 @@ bool Kedro::generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComp
 bool Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
 {
     // for some reason dir name char '-' will convert to '_'
-    QDir source(kedroProject.absoluteFilePath(
+    QDir source = ensureDirExists(kedroProject.absoluteFilePath(
         QString(constants::kedro::SOURCE_PATH).arg(kedroProject.dirName().replace('-', '_'))));
     QStringList serializedObjects;
     for (const auto &id : graph->topologicalOrder())
@@ -359,6 +361,17 @@ bool Kedro::generatePipelinePy(const QDir &kedroProject, CustomGraph *graph)
     out << data;
     pipelinePy.close();
     return true;
+}
+
+QDir Kedro::ensureDirExists(const QString &path)
+{
+    // check that the dire exists. This check is added because of the behaviour in windows for temp dirs.
+
+    QDir dir(path);
+    if (!dir.exists() && !dir.mkpath(".")) {
+        qCritical() << "Failed to create directory:" << dir.absolutePath();
+    }
+    return dir;
 }
 
 void Kedro::postExecutionProcess()

@@ -6,6 +6,7 @@
 #include <QtNodes/GraphicsView>
 
 #include "data/custom_graph.hpp"
+#include "ui/models/uid_manager.hpp"
 
 using QtNodes::DagGraphicsScene;
 using QtNodes::GraphicsView;
@@ -16,7 +17,9 @@ TabManager::TabManager(QObject *parent)
 
 std::shared_ptr<TabComponents> TabManager::getCurrentTab() const
 {
-    return getTab(m_currentView);
+    if (m_currentView)
+        return getTab(m_currentView);
+    return nullptr;
 }
 
 std::shared_ptr<TabComponents> TabManager::getTab(QWidget *view) const
@@ -91,6 +94,15 @@ QFileInfo TabManager::getFileInfo(ViewWidget *view) const
     return m_tabs.at(view)->getFileInfo();
 }
 
+UIDManager *TabManager::getCurrentUIDManager() const
+{
+    if (auto tab = getCurrentTab()) {
+        // return the underlying pointer here; the calling fn should not delete/reassign this
+        return tab->getUIDManager().get();
+    }
+    return nullptr;
+}
+
 void TabManager::clear()
 {
     auto it = m_tabs.begin();
@@ -132,7 +144,9 @@ bool TabManager::open()
     auto tab = std::make_shared<TabComponents>(m_tabParent);
     if (!tab->open() || openIfExists(tab->getFileInfo()))
         return false;
-    return addTab(tab);
+    if (addTab(tab))
+        return tab->openExisting();
+    return false;
 }
 
 bool TabManager::openFrom(const QString &filePath)
@@ -140,7 +154,9 @@ bool TabManager::openFrom(const QString &filePath)
     // open in a new tab
     QFileInfo file(filePath);
     auto tab = std::make_shared<TabComponents>(m_tabParent, file);
-    return addTab(tab);
+    if (addTab(tab))
+        return tab->openExisting();
+    return false;
 }
 
 bool TabManager::openIfExists(const QFileInfo &file)

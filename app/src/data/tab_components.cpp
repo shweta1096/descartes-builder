@@ -1,5 +1,5 @@
 #include "data/tab_components.hpp"
-
+#include "data/tab_manager.hpp"
 #include <QDebug>
 #include <QFileDialog>
 #include <QStandardPaths>
@@ -27,6 +27,7 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
     , m_view(new GraphicsView(m_scene))
     , m_dir(std::make_shared<QTemporaryDir>())
     , m_dataDir(m_dir->filePath("data"))
+    , m_uidManager(std::make_unique<UIDManager>())
 {
     m_graph->setParent(parent);
     if (!m_dir->isValid())
@@ -35,6 +36,7 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
     // Qt bug for MacOS throws warnings when using touch pad with graphics view
     // touch pad seems to trigger touch events, so touch events are disabled to supress the bug
     m_view->viewport()->setAttribute(Qt::WA_AcceptTouchEvents, false);
+    m_uidManager->setGraph(m_graph);
     connect(m_scene, &DagGraphicsScene::sceneLoaded, m_view, &GraphicsView::centerScene);
     if (parent)
         QObject::connect(m_scene, &DagGraphicsScene::modified, parent, [parent]() {
@@ -46,7 +48,6 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
             &TabComponents::onDataSourceImportClicked);
     if (fileInfo) {
         m_localFile = fileInfo.value();
-        openExisting();
     }
 }
 
@@ -100,6 +101,8 @@ bool TabComponents::open()
 
 bool TabComponents::openExisting()
 {
+    if (m_localFile.filePath().isEmpty())
+        return false;
     JlCompress::extractDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath());
     if (!m_dataDir.exists(m_localFile.baseName() + SCENE_EXTENSION))
         return false;

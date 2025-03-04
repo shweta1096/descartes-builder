@@ -40,8 +40,6 @@ public:
 private:
     Process m_process;
     std::optional<int> m_randomState;
-    // map of inputs of the coder -> encoded output type
-    static std::map<std::vector<QUuid>, QUuid> m_typeIdMap;
     Process getProcess() const { return m_process; }
     std::optional<int> getRandomState() const { return m_randomState; }
     void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
@@ -63,8 +61,6 @@ private:
 private:
     Process m_process;
     std::optional<int> m_randomState;
-    // map of inputs of the coder -> encoded output type
-    static std::map<std::vector<QUuid>, QUuid> m_typeIdMap;
     Process getProcess() const { return m_process; }
     std::optional<int> getRandomState() const { return m_randomState; }
     void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }

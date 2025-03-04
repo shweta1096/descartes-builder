@@ -18,8 +18,16 @@ constexpr QColor COLOR_PROCESSOR(169, 196, 236);
 constexpr QColor COLOR_TRAINER(205, 162, 190);
 
 constexpr uint SIDE_BAR_MINIMUM_WIDTH = 250;
-constexpr uint INT_SPIN_BOX_MAX_WIDTH = 55;
-constexpr uint DOUBLE_SPIN_BOX_MAX_WIDTH = 55;
+constexpr uint INT_LINE_EDIT_MAXIMUM_WIDTH = 150;
+constexpr uint INT_SPIN_BOX_MAX_WIDTH = 65;
+constexpr uint INT_SPIN_BOX_MIN_WIDTH = 60;
+constexpr uint DOUBLE_SPIN_BOX_MAX_WIDTH = 80;
+constexpr uint DOUBLE_SPIN_BOX_MIN_WIDTH = 75;
+
+const uint SIDEBAR_PORT_ID_COL = 0;
+const uint SIDEBAR_PORT_CAPTION_COL = 1;
+const uint SIDEBAR_PORT_TYPEID_COL = 2;
+const uint SIDEBAR_PORT_TYPETAG_COL = 3;
 
 constexpr ConstLatin1String CONNECTION_STYLE =
     R"(

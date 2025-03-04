@@ -37,4 +37,6 @@ BottomPanel::BottomPanel()
 void BottomPanel::appendOutputPanel(const QString &text)
 {
     m_outputPanel->appendPlainText(text);
+    m_outputPanel->setFont(QFont("Courier", 12));
+    m_outputPanel->setLineWrapMode(QPlainTextEdit::NoWrap);
 }

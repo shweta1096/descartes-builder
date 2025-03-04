@@ -76,10 +76,6 @@ The backbone of the software is the execution engine which runs on Python. Kedro
 
 ## Files
 
-### First Execution
-
-On first launch of the software, a first time setup will process will be started which will setup a `kedro` dir at `QStandardPaths::AppDataLocation)` which will be different depending on the OS. This directory will store a python venv with all the dependencies of kedro-umbrella installed and the `builder-spring` template for creating kedro projects.
-
 ### During Execution
 
-During execution, each tab of the software will create a `QTemporaryDir` which is a runtime directory storing all relavant files of that tab in a location depending on your OS. This directory is split into 2 directories. The first is the `data` dir, which will contain any imported data files and the graph as a JSON (.dag). The second is the `kedro` dir, which stores the entire kedro project. When the tab is saved, the entire `data` folder is zipped as a `.dcb`.
+During execution, each tab of the software will create a `QTemporaryDir` which is a runtime directory storing all relavant files of that tab in a location depending on your OS. A template `builder-spring` is copied here from kedro_umbrella path. This kedro_umbrella path is fetched at run time every time, from the Python environment variable. This directory is split into 2 directories. The first is the `data` dir, which will contain any imported data files and the graph as a JSON (.dag). The second is the `kedro` dir, which stores the entire kedro project. When the tab is saved, the entire `data` folder is zipped as a `.dcb`.

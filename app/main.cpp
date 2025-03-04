@@ -1,12 +1,13 @@
-#include <QApplication>
-#include <QFile>
-
 #include "log_manager.hpp"
 #include "ui/main_window.hpp"
+#include <QApplication>
+#include <QFile>
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    //QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     { // load stylesheet
         QFile style(":/style.qss");

@@ -1,5 +1,6 @@
 #include "data/custom_graph.hpp"
 
+#include "data/tab_manager.hpp"
 #include "ui/models/fdf_block_model.hpp"
 #include "ui/models/io_models.hpp"
 #include "ui/models/processor_models.hpp"
@@ -58,34 +59,51 @@ void CustomGraph::showWarning(QtNodes::ConnectionId connectionId)
 {
     QMessageBox msgBox;
     msgBox.setIcon(QMessageBox::Warning);
-    msgBox.setText("Invalid Connection");
+    // msgBox.setText("Invalid Connection");
+    msgBox.setText("<b><span style='color:red;'>Invalid Connection</span></b>");
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Ignore);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.button(QMessageBox::Ignore)->setText("Override");
+    msgBox.button(QMessageBox::Ignore)->setEnabled(false); // only enable if valid types are found
     QString inBlockCap = "in blk", outBlockCap = "out blk", inPortName = "in port",
-            outPortName = "out port";
-    if (auto inBlock = delegateModel<FdfBlockModel>(getNodeId(PortType::In, connectionId))) {
-        if (auto dataIn = std::dynamic_pointer_cast<NamedNode>(
-                inBlock->outData(getPortIndex(PortType::In, connectionId)))) {
-            inPortName = dataIn->name();
+            outPortName = "out port", expectedTag = "unknown", gotTag = "unknown";
+    auto uidManager = TabManager::instance().getCurrentUIDManager();
+    if (!uidManager) {
+        qWarning() << "UIDManager is null!";
+        return;
+    }
+
+    // TODO : Handle overrides for other models
+    if (auto inBlock = delegateModel<ExternalProcessorModel>(
+            getNodeId(PortType::In, connectionId))) {
+        // assuming the function port is already set
+        if (auto funcPort = std::dynamic_pointer_cast<FunctionNode>(inBlock->inData(0))) {
+            FdfUID inputType = funcPort->signature().inputs.at(connectionId.inPortIndex - 1);
+            inPortName = "data";
+            expectedTag = uidManager->getTag(inputType);
         }
         inBlockCap = inBlock->caption();
     }
     if (auto outBlock = delegateModel<FdfBlockModel>(getNodeId(PortType::Out, connectionId))) {
-        if (auto dataOut = std::dynamic_pointer_cast<NamedNode>(
+        if (auto dataOut = std::dynamic_pointer_cast<DataNode>(
                 outBlock->outData(getPortIndex(PortType::Out, connectionId)))) {
             outPortName = dataOut->name();
+            gotTag = uidManager->getTag(dataOut->typeId());
         }
         outBlockCap = outBlock->caption();
     }
-    msgBox.setInformativeText(QString("Cannot connect %1:%2 to %3:%4 ")
-                                  .arg(outBlockCap)
-                                  .arg(outPortName)
-                                  .arg(inBlockCap)
-                                  .arg(inPortName));
+    if (expectedTag != "unknown" && gotTag != "unknown")
+        msgBox.button(QMessageBox::Ignore)->setEnabled(true);
+    msgBox.setInformativeText(
+        QString("Failed to connect '%1'. The expected input is of type '%2'.\nPlease verify your "
+                "connections or use 'Override' to indicate that these two data types are the same.")
+            .arg(gotTag)
+            .arg(expectedTag));
     int ret = msgBox.exec();
     if (ret == QMessageBox::Ignore) {
-        // TODO implement backpropagation
+        // UIDManager replaces types, and updates the graph internally
+        FdfUID gotId = uidManager->getUid(gotTag);
+        uidManager->updateMap(gotId, expectedTag);
     }
 }
 
@@ -101,7 +119,7 @@ bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) c
 {
     if (auto block = delegateModel<FdfBlockModel>(getNodeId(PortType::In, connectionId)))
         if (auto processorBlock = dynamic_cast<ExternalProcessorModel *>(block)) {
-            QUuid outTypeId;
+            FdfUID outTypeId;
             auto outBlock = delegateModel<FdfBlockModel>(getNodeId(PortType::Out, connectionId));
             if (auto data = std::dynamic_pointer_cast<DataNode>(
                     outBlock->outData(getPortIndex(PortType::Out, connectionId))))

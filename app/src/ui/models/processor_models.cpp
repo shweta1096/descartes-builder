@@ -1,6 +1,7 @@
 #include "ui/models/processor_models.hpp"
-
+#include "data/tab_manager.hpp"
 #include "ui/models/function_names.hpp"
+#include "ui/models/uid_manager.hpp"
 
 namespace {
 using Plot = ScoreModel::Plot;
@@ -87,7 +88,7 @@ void SplitDataModel::setParameter(const QString &key, const QString &value)
 
 void SplitDataModel::onDataInputSet(const PortIndex &index)
 {
-    QUuid target;
+    FdfUID target;
     QString name;
     if (auto data = castedPort<DataNode>(PortType::In, index)) {
         target = data->typeId();
@@ -98,11 +99,11 @@ void SplitDataModel::onDataInputSet(const PortIndex &index)
 
 void SplitDataModel::onDataInputReset(const PortIndex &index)
 {
-    setOutputType(index, QUuid(), "");
+    setOutputType(index, UIDManager::NONE_ID, "");
 }
 
 void SplitDataModel::setOutputType(const PortIndex &inputIndex,
-                                   const QUuid &typeId,
+                                   const FdfUID &typeId,
                                    const QString &name)
 {
     // hardcoded wiring from input to output
@@ -123,7 +124,7 @@ ExternalProcessorModel::ExternalProcessorModel()
     addPort<FunctionNode>(PortType::In);
 }
 
-bool ExternalProcessorModel::canConnect(PortType portType, PortIndex index, QUuid typeId) const
+bool ExternalProcessorModel::canConnect(PortType portType, PortIndex index, FdfUID typeId) const
 {
     if (m_signature.isEmpty())
         return true;
@@ -174,9 +175,14 @@ ScoreModel::ScoreModel()
     addPort<DataNode>(PortType::Out, "r2");
 
     setPlot(Plot::Regression);
-
-    for (auto &port : allOutData<DataNode>())
-        port->setTypeId(QUuid::createUuid());
+    auto uidManager = TabManager::instance().getCurrentUIDManager();
+    if (!uidManager) {
+        qWarning() << "UIDManager is null!";
+        return;
+    }
+    for (auto &port : allOutData<DataNode>()) {
+        port->setTypeId(uidManager->createUID());
+    }
 }
 
 std::unordered_map<QString, QString> ScoreModel::getParameters() const
@@ -218,12 +224,19 @@ void DifferenceModel::onDataInputSet(const PortIndex &index)
 {
     // if one input is already set, make sure other input is also of same type
     // otherwise bring up a cannot connect dialog
-    QUuid target;
+    FdfUID target;
     PortIndex other = (index == 0) ? 1 : 0;
+    auto uidManager = TabManager::instance().getCurrentUIDManager();
+    if (!uidManager) {
+        qWarning() << "UIDManager is null!";
+        return;
+    }
     if (auto data = castedPort<DataNode>(PortType::In, index)) {
         if (auto other_data = castedPort<DataNode>(PortType::In, other)) {
             // comes here if other is set
             if (data->typeId() != other_data->typeId()) {
+                FdfUID outType = uidManager->createUID();
+                setOutputTypeId(0, outType);
                 qInfo() << "Difference module type mismatch";
             }
         } else {
@@ -235,10 +248,10 @@ void DifferenceModel::onDataInputSet(const PortIndex &index)
 
 void DifferenceModel::onDataInputReset(const PortIndex &index)
 {
-    setOutputTypeId(0, QUuid());
+    setOutputTypeId(0, UIDManager::NONE_ID);
 }
 
-void DifferenceModel::setOutputTypeId(const PortIndex &inputIndex, const QUuid &typeId)
+void DifferenceModel::setOutputTypeId(const PortIndex &inputIndex, const FdfUID &typeId)
 {
     auto port = castedPort<DataNode>(PortType::Out, 0);
     port->setTypeId(typeId);

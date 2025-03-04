@@ -42,7 +42,7 @@ QtNodes::NodeId selectedId = QtNodes::InvalidNodeId;
 
 MainWindow::MainWindow()
     : m_engine(EngineStarter::init())
-    , m_tabManager(std::make_shared<TabManager>())
+    , m_tabManager(std::shared_ptr<TabManager>(&TabManager::instance(), [](TabManager *) {}))
     , m_blockManager(std::make_shared<BlockManager>())
     , m_temp(new Temp(this))
 {
@@ -54,7 +54,7 @@ MainWindow::MainWindow()
 
     setWindowTitle("DesCartes Builder");
     setGeometry(QApplication::primaryScreen()->availableGeometry());
-
+    showMaximized();
     qInfo() << "Welcome to DesCartes Builder";
 }
 
@@ -197,13 +197,12 @@ void MainWindow::initMenuBar()
         connect(printSettingsAction, &QAction::triggered, m_temp, &Temp::printAllSettings);
         connect(openPipe, &QAction::triggered, m_tabManager.get(), [this]() {
             QDir dir(QApplication::applicationDirPath());
-            for (int i = 0; i < 2; ++i) // mac only due to bundle dir
+            for (int i = 0; i < 2; ++i) // linux and windows
                 dir.cdUp();
             dir.cd("examples");
             m_tabManager->openFrom(dir.absoluteFilePath("pipe-deformation-test.dcb"));
         });
-        openPipe->setShortcut(
-            QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_E));
+        openPipe->setShortcut(QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_E));
         connect(openMagnet, &QAction::triggered, m_tabManager.get(), [this]() {
             QDir dir(QApplication::applicationDirPath());
             for (int i = 0; i < 2; ++i) // mac only due to bundle dir
@@ -211,8 +210,7 @@ void MainWindow::initMenuBar()
             dir.cd("examples");
             m_tabManager->openFrom(dir.absoluteFilePath("magnetic-bearing.dcb"));
         });
-        openMagnet->setShortcut(
-            QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_M));
+        openMagnet->setShortcut(QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_M));
     }
 }
 

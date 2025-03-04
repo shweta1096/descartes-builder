@@ -21,4 +21,6 @@ void LogPanel::appendMessage(const QString &text, const QColor &color)
     setTextCursor(cursor);
     setCurrentCharFormat(format);
     appendPlainText(text);
+    setFont(QFont("Courier", 12));
+    setLineWrapMode(QPlainTextEdit::NoWrap);
 }

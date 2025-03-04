@@ -24,12 +24,11 @@ private slots:
 
 private:
     QString serializeNode(const QtNodes::NodeId &id, CustomGraph *graph) const;
-    // setups a python venv and install kedro-umbrella to AppDataLocation
-    void firstTimeSetup();
     void verifySetup();
     bool generateParametersYml(const QDir &kedroProject, CustomGraph *graph);
     bool generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComponents> tab);
     bool generatePipelinePy(const QDir &kedroProject, CustomGraph *graph);
+    QDir ensureDirExists(const QString &path);
     void postExecutionProcess();
     void postScoreModel(CustomGraph *graph, const QtNodes::NodeId &id);
     void postSensitivityAnalysisModel(CustomGraph *graph, const QtNodes::NodeId &id);
@@ -37,10 +36,8 @@ private:
 
     const bool m_WINDOWS;
     bool m_setup;
-    const QDir m_KEDRO_DIR;
+    const QDir m_KEDRO_UMBRELLA_DIR;
     QTemporaryDir m_runtimeCache;
-    // the working dir for this process is the kedro dir
-    std::unique_ptr<QProcess> m_setupProcess;
     struct ExecutionBundle
     {
         bool inProgress = false;

@@ -49,6 +49,7 @@ public:
     bool setPortCaption(PortType type, PortIndex index, const QString &caption);
     bool setPortDefaultCaption(PortType type, PortIndex index, const QString &caption);
     bool resetPortCaption(PortType portType, PortIndex portIndex);
+    void propagateUpdate();
 
     virtual std::shared_ptr<NodeData> inData(PortIndex const index);
     virtual std::unordered_map<QString, QString> getParameters() const;
@@ -93,7 +94,6 @@ public slots:
 
 protected:
     bool indexCheck(PortType type, PortIndex index) const;
-    void propagateUpdate();
     template<typename T>
     void addPort(PortType type, const QString &name = QString())
     {

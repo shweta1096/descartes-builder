@@ -2,13 +2,15 @@
 
 #include <QFileInfo>
 
+#include "QtUtility/export.hpp"
+
 namespace QtUtility {
 namespace file {
 
-bool create(const QFileInfo &info, const bool &override = false);
-QFileInfo getUniqueFile(const QFileInfo &info);
-QFileInfo createUnique(const QFileInfo &info);
-void copyAndReplaceFolderContents(const QDir &from, const QDir &to);
+QTUTILITY_EXPORT bool create(const QFileInfo &info, const bool &override = false);
+QTUTILITY_EXPORT QFileInfo getUniqueFile(const QFileInfo &info);
+QTUTILITY_EXPORT QFileInfo createUnique(const QFileInfo &info);
+QTUTILITY_EXPORT void copyAndReplaceFolderContents(const QDir &from, const QDir &to);
 
 } // namespace file
 } // namespace QtUtility

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fdf_block_model.hpp"
+#include "uid_manager.hpp"
 
 class ProcessorModel : public FdfBlockModel
 {
@@ -38,7 +39,7 @@ public slots:
 
 private:
     // define the output type for a given input type
-    void setOutputType(const PortIndex &inputIndex, const QUuid &typeId, const QString &name);
+    void setOutputType(const PortIndex &inputIndex, const FdfUID &typeId, const QString &name);
 
     inline static const QString RANDOM_STATE = "random_state";
     inline static const QString SPLIT_TIME = "split_time";
@@ -55,7 +56,7 @@ class ExternalProcessorModel : public ProcessorModel
     Q_OBJECT
 public:
     ExternalProcessorModel();
-    bool canConnect(PortType portType, PortIndex index, QUuid typeId) const;
+    bool canConnect(PortType portType, PortIndex index, FdfUID typeId) const;
 
 public slots:
     virtual void onFunctionInputSet(const PortIndex &index) override;
@@ -121,5 +122,5 @@ public:
     DifferenceModel();
     virtual void onDataInputSet(const PortIndex &index) override;
     virtual void onDataInputReset(const PortIndex &index);
-    virtual void setOutputTypeId(const QtNodes::PortIndex &, const QUuid &);
+    virtual void setOutputTypeId(const QtNodes::PortIndex &, const FdfUID &);
 };

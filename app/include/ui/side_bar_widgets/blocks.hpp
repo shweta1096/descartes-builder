@@ -1,8 +1,10 @@
 #pragma once
 
+#include <QObject>
 #include <QWidget>
 
 #include <unordered_set>
+#include <QtNodes/NodeDelegateModel>
 
 class QLabel;
 class QTreeWidgetItem;
@@ -13,6 +15,7 @@ class QFormLayout;
 class BlockManager;
 class TabManager;
 class FdfBlockModel;
+using QtNodes::PortType;
 
 namespace QtUtility {
 namespace widgets {
@@ -49,6 +52,7 @@ private:
     void blockEditorSignals(bool value);
     void enableEditorWidgets(bool value);
     QWidget *generateParameterWidget(FdfBlockModel *block);
+    QWidget *generatePortsWidget(FdfBlockModel *block, const PortType &portType);
     void handleTrainerBlock(FdfBlockModel *block);
 
     std::shared_ptr<BlockManager> m_blockManager;
@@ -63,6 +67,7 @@ private:
     QLineEdit *m_captionEdit;
     QLineEdit *m_functionNameEdit;
     QSpinBox *m_inputPortEdit;
+    QStackedWidget *m_outputPorts;
     QSpinBox *m_outputPortEdit;
     QSpinBox *m_trainerInputEdit;
     QSpinBox *m_trainerOutputEdit;
