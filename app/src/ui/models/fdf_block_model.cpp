@@ -10,6 +10,7 @@ FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &f
     , m_name(name)
     , m_functionName(functionName)
     , m_caption(name)
+    , m_label(nullptr)
 {
     updateStyle();
     updateShape();
@@ -68,7 +69,12 @@ void FdfBlockModel::setInData(std::shared_ptr<NodeData> data, PortIndex const in
 
 QWidget *FdfBlockModel::embeddedWidget()
 {
-    return nullptr;
+    if (!m_label) {
+        m_label = new QLabel();
+        m_label->setAlignment(Qt::AlignCenter);
+        m_label->setStyleSheet("QLabel{ background: transparent; }");
+    }
+    return m_label;
 }
 
 QString FdfBlockModel::portCaption(PortType portType, PortIndex portIndex) const

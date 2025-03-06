@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QLabel>
 #include <QObject>
 
 #include <QtNodes/NodeDelegateModel>
@@ -199,4 +200,5 @@ private:
     OutPortType m_outPorts;
     std::unordered_map<QString, QString> m_executedValues;
     QStringList m_executedGraphs;
+    QLabel *m_label; // For resizing blocks
 };
