@@ -1,7 +1,6 @@
 #include "ui/models/processor_models.hpp"
 #include "data/tab_manager.hpp"
 #include "ui/models/function_names.hpp"
-#include "ui/models/uid_manager.hpp"
 
 namespace {
 using Plot = ScoreModel::Plot;
@@ -124,16 +123,21 @@ ExternalProcessorModel::ExternalProcessorModel()
     addPort<FunctionNode>(PortType::In);
 }
 
-bool ExternalProcessorModel::canConnect(PortType portType, PortIndex index, FdfUID typeId) const
+bool ExternalProcessorModel::canConnect(ConnectionInfo &connInfo) const
 {
     if (m_signature.isEmpty())
         return true;
+    PortIndex index = connInfo.inIndex;
     if (index == 0)
         // function input, always allow functions to be connected,
         // may want to disconnect data after this
         return true;
     // note that the first input is the function from a previous block
-    return m_signature.inputs.at(--index) == typeId;
+    connInfo.expectedInType = m_signature.inputs.at(--index);
+    if (connInfo.expectedInType != connInfo.receivedOutType) {
+        return warnInvalidConnection(connInfo, constants::TYPE_MISMATCH);
+    }
+    return true;
 }
 
 void ExternalProcessorModel::onFunctionInputSet(const PortIndex &index)
@@ -145,7 +149,7 @@ void ExternalProcessorModel::onFunctionInputSet(const PortIndex &index)
 
 void ExternalProcessorModel::onFunctionInputReset(const PortIndex &index)
 {
-    m_signature = FunctionNode::Signature();
+    m_signature = Signature();
     updateDataPortsWithSignature();
 }
 
@@ -212,6 +216,19 @@ QStringList ScoreModel::getParameterOptions(const QString &key) const
 
 void ScoreModel::setParameter(const QString &key, const QString &value) {}
 
+bool ScoreModel::canConnect(ConnectionInfo &connInfo) const
+{
+    auto otherIndex = (connInfo.inIndex == 0) ? 1 : 0;
+    // check if the other input is already set, if so, get its type
+    if (auto otherInput = const_cast<ScoreModel *>(this)->castedPort<DataNode>(PortType::In,
+                                                                               otherIndex)) {
+        connInfo.expectedInType = otherInput->typeId();
+        if (connInfo.expectedInType != connInfo.receivedOutType)
+            return warnInvalidConnection(connInfo, constants::TYPE_MISMATCH);
+    }
+    return true;
+}
+
 DifferenceModel::DifferenceModel()
     : ProcessorModel("difference", processor_function::DIFFERENCE)
 {
@@ -222,49 +239,44 @@ DifferenceModel::DifferenceModel()
 
 void DifferenceModel::onDataInputSet(const PortIndex &index)
 {
-    // if one input is already set, make sure other input is also of same type
-    // otherwise bring up a cannot connect dialog
     FdfUID target;
-    PortIndex other = (index == 0) ? 1 : 0;
-    auto uidManager = TabManager::instance().getCurrentUIDManager();
-    if (!uidManager) {
-        qWarning() << "UIDManager is null!";
-        return;
-    }
     if (auto data = castedPort<DataNode>(PortType::In, index)) {
-        if (auto other_data = castedPort<DataNode>(PortType::In, other)) {
-            // comes here if other is set
-            if (data->typeId() != other_data->typeId()) {
-                FdfUID outType = uidManager->createUID();
-                setOutputTypeId(0, outType);
-                qInfo() << "Difference module type mismatch";
-            }
-        } else {
-            target = data->typeId();
-            setOutputTypeId(0, target);
-        }
+        target = data->typeId();
+        setOutputTypeId(0, target);
     }
 }
 
 void DifferenceModel::onDataInputReset(const PortIndex &index)
 {
-    setOutputTypeId(0, UIDManager::NONE_ID);
+    //reset the output port id to NONE if both the inputs are reset
+    PortIndex other = (index == 0) ? 1 : 0;
+    if (!castedPort<DataNode>(PortType::In, other))
+        setOutputTypeId(0, UIDManager::NONE_ID);
 }
 
 void DifferenceModel::setOutputTypeId(const PortIndex &inputIndex, const FdfUID &typeId)
 {
-    auto port = castedPort<DataNode>(PortType::Out, 0);
-    port->setTypeId(typeId);
+    if (auto port = castedPort<DataNode>(PortType::Out, inputIndex))
+        port->setTypeId(typeId);
+}
+
+bool DifferenceModel::canConnect(ConnectionInfo &connInfo) const
+{
+    auto otherIndex = (connInfo.inIndex == 0) ? 1 : 0;
+    // check if the other input is already set, if so, get its type
+    if (auto otherInput = const_cast<DifferenceModel *>(this)->castedPort<DataNode>(PortType::In,
+                                                                                    otherIndex)) {
+        connInfo.expectedInType = otherInput->typeId();
+        if (connInfo.expectedInType != connInfo.receivedOutType)
+            return warnInvalidConnection(connInfo, constants::TYPE_MISMATCH);
+    }
+    return true;
 }
 
 SensitivityAnalysisModel::SensitivityAnalysisModel()
     : ProcessorModel("sensitivity_analysis", processor_function::SENSITIVITY_ANALYSIS)
 {
     addPort<FunctionNode>(PortType::In, "model");
-    addPort<DataNode>(PortType::Out, "x1");
-    addPort<DataNode>(PortType::Out, "x2");
-    addPort<DataNode>(PortType::Out, "y1");
-    addPort<DataNode>(PortType::Out, "y2");
 }
 
 std::unordered_map<QString, QString> SensitivityAnalysisModel::getParameters() const
@@ -298,4 +310,63 @@ void SensitivityAnalysisModel::setParameter(const QString &key, const QString &v
     } else if (key == GRID_SIZE) {
         m_gridSize = value.toInt();
     }
+}
+
+void SensitivityAnalysisModel::onFunctionInputSet(const PortIndex &index)
+{
+    if (auto function = castedPort<FunctionNode>(PortType::In, 0))
+        m_signature = function->signature();
+    updateDataPortsWithSignature();
+}
+
+void SensitivityAnalysisModel::onFunctionInputReset(const PortIndex &index)
+{
+    m_signature = Signature();
+    updateDataPortsWithSignature();
+}
+
+void SensitivityAnalysisModel::updateDataPortsWithSignature()
+{
+    // Set the total number of output ports based on inputs and outputs
+    setPortNumber<DataNode>(PortType::Out,
+                            (m_signature.inputs.size() + m_signature.outputs.size()) * 2);
+
+    int outputPortIndex = 0;
+
+    // Set the types of X1 and X2 ports with the trainer input type
+    if (!m_signature.inputs.empty()) {
+        FdfUID trainerInputType = m_signature.inputs[0];
+        if (auto port = castedPort<DataNode>(PortType::Out, outputPortIndex))
+            port->setTypeId(trainerInputType);
+        if (auto port = castedPort<DataNode>(PortType::Out, outputPortIndex + 1))
+            port->setTypeId(trainerInputType);
+    }
+
+    outputPortIndex += 2;
+
+    // Set the types of Y1 and Y2 ports with the trainer output type
+    if (!m_signature.outputs.empty()) {
+        FdfUID trainerOutputType = m_signature.outputs[0];
+        if (auto port = castedPort<DataNode>(PortType::Out, outputPortIndex))
+            port->setTypeId(trainerOutputType);
+        if (auto port = castedPort<DataNode>(PortType::Out, outputPortIndex + 1))
+            port->setTypeId(trainerOutputType);
+    }
+}
+
+void SensitivityAnalysisModel::setOutputTypeId(const PortIndex &inputIndex, const FdfUID &typeId)
+{
+    if (auto port = castedPort<DataNode>(PortType::Out, inputIndex))
+        port->setTypeId(typeId);
+}
+
+bool SensitivityAnalysisModel::canConnect(ConnectionInfo &connInfo) const
+{
+    //check if the input function signature is singular (1 input, 1 output)
+    if (connInfo.receivedSignature
+        && (connInfo.receivedSignature->inputs.size() > 1
+            || connInfo.receivedSignature->outputs.size() > 1)) {
+        return warnInvalidConnection(connInfo, constants::SINGULAR_SIGNATURE);
+    }
+    return true;
 }

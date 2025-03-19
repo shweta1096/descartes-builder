@@ -73,7 +73,7 @@ void TrainerModel::updateSignature()
 {
     std::vector<FdfUID> inputTypeIds;
     for (PortIndex i = 0; i < nPorts(PortType::In); ++i) {
-        FdfUID typeId;
+        FdfUID typeId = UIDManager::NONE_ID;
         if (auto data = castedPort<DataNode>(PortType::In, i))
             typeId = data->typeId();
         m_signature.update(i, typeId);

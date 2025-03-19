@@ -1,8 +1,9 @@
 #include "ui/models/fdf_block_model.hpp"
-
-#include <QFileInfo>
-
 #include "data/constants.hpp"
+#include "data/tab_manager.hpp"
+#include <QAbstractButton>
+#include <QFileInfo>
+#include <QMessageBox>
 
 FdfBlockModel::FdfBlockModel(FdfType type, const QString &name, const QString &functionName)
     : NodeDelegateModel()
@@ -363,6 +364,63 @@ void FdfBlockModel::setExecutedGraphs(const QStringList &paths)
         if (QFileInfo(path).exists())
             m_executedGraphs << path;
     emit contentUpdated();
+}
+
+bool FdfBlockModel::canConnect(ConnectionInfo &connInfo) const
+{
+    return true;
+}
+
+bool FdfBlockModel::warnInvalidConnection(ConnectionInfo connInfo, const QString &message) const
+{
+    return QMetaObject::invokeMethod(const_cast<FdfBlockModel *>(this),
+                                     "showWarning",
+                                     Qt::QueuedConnection,
+                                     Q_ARG(ConnectionInfo, connInfo),
+                                     Q_ARG(QString, message));
+}
+
+bool FdfBlockModel::showWarning(ConnectionInfo connInfo, const QString &message)
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setText("<b><span style='color:red;'>Invalid Connection</span></b>");
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+
+    auto uidManager = TabManager::instance().getCurrentUIDManager();
+    if (!uidManager) {
+        qWarning() << "UIDManager is null!";
+        return false;
+    }
+
+    // Check the message and handle accordingly
+    if (message == constants::TYPE_MISMATCH) {
+        auto expectedInType = connInfo.expectedInType;
+        auto receivedOutType = connInfo.receivedOutType;
+
+        QString expectedTag = uidManager->getTag(expectedInType);
+        QString gotTag = uidManager->getTag(receivedOutType);
+        msgBox.setInformativeText(QString(message).arg(gotTag).arg(expectedTag));
+
+        if (expectedTag != UIDManager::NONE_TAG && gotTag != UIDManager::NONE_TAG) {
+            msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Ignore);
+            msgBox.button(QMessageBox::Ignore)->setText("Override");
+        }
+
+        if (msgBox.exec() == QMessageBox::Ignore) {
+            uidManager->updateMap(receivedOutType, expectedTag);
+            return true;
+        }
+
+    } else if (message == constants::SINGULAR_SIGNATURE) {
+        msgBox.setInformativeText(message);
+        msgBox.exec();
+
+    } else {
+        qWarning() << "Unknown connection warning message: " << message;
+    }
+    return false;
 }
 
 void FdfBlockModel::updateStyle()

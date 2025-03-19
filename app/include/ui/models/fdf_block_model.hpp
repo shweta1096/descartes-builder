@@ -64,6 +64,7 @@ public:
     void setExecutedValues(const std::unordered_map<QString, QString> &values);
     QStringList getExecutedGraphs() const { return m_executedGraphs; }
     void setExecutedGraphs(const QStringList &paths);
+    virtual bool canConnect(ConnectionInfo &connInfo) const;
 
     template<typename T>
     std::vector<std::shared_ptr<T>> allOutData()
@@ -169,6 +170,9 @@ protected:
         }
         return nullptr;
     }
+    // show warning for invalid port connection (implicit typing failure)
+    bool warnInvalidConnection(ConnectionInfo connInfo, const QString &message) const;
+    Q_INVOKABLE bool showWarning(ConnectionInfo connInfo, const QString &message);
 
 private:
     using InPortType = std::vector<std::pair<std::unique_ptr<NodeData>, std::weak_ptr<NodeData>>>;

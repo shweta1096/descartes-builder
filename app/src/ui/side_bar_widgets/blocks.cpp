@@ -10,6 +10,7 @@
 #include <QLayout>
 #include <QLineEdit>
 #include <QMenu>
+#include <QMessageBox>
 #include <QSpinBox>
 #include <QStackedWidget>
 #include <QTableWidget>
@@ -379,9 +380,31 @@ QWidget *Blocks::generatePortsWidget(FdfBlockModel *block, const PortType &portT
                             QTableWidgetItem *typeIdItem = tableWidget->item(row, 2);
                             if (typeIdItem) {
                                 currentID = typeIdItem->text().toInt();
-                                // Make sure the tag is different
-                                if (uidManager->getTag(currentID) != newTag)
-                                    uidManager->updateMap(currentID, newTag);
+                                // If the new tag is one that already exists in the map,
+                                // raise a confirmation question
+                                if (uidManager->getTag(currentID) != newTag) {
+                                    if (uidManager->getUid(newTag) != UIDManager::NONE_ID) {
+                                        // If the user confirms the change, update the map
+                                        if (QMessageBox::question(nullptr,
+                                                                  "Type Tag Conflict",
+                                                                  "The tag you entered already "
+                                                                  "exists. Do you want to "
+                                                                  "override the existing tag?",
+                                                                  QMessageBox::Yes | QMessageBox::No)
+                                            == QMessageBox::Yes) {
+                                            uidManager->updateMap(currentID, newTag);
+                                        } else {
+                                            // If the user cancels the change, revert the tag
+                                            item->setText(uidManager->getTag(currentID));
+                                        }
+                                    } else {
+                                        // Make sure the tag is not of the format "type_X", and
+                                        // X is a number, as this will cause bug when a new type X
+                                        // is created later in the flow.
+                                        // TODO : Add a warning message to the user - After annotation changes
+                                        uidManager->updateMap(currentID, newTag);
+                                    }
+                                }
                             }
                         }
                     });
@@ -495,12 +518,15 @@ QWidget *Blocks::generateParameterWidget(FdfBlockModel *block)
 
 void Blocks::handleTrainerBlock(FdfBlockModel *block)
 {
-    bool isTrainer = block && block->functionName() == trainer_function::BASIC_TRAINER;
+    if (!block)
+        return;
+    auto trainer = dynamic_cast<TrainerModel *>(block);
+    bool isTrainer = (trainer != nullptr);
     m_editorLayout->setRowVisible(INPUT_PORT_ROW, !isTrainer);
     m_editorLayout->setRowVisible(OUTPUT_PORT_ROW, !isTrainer);
     m_editorLayout->setRowVisible(TRAINER_INPUT_ROW, isTrainer);
     m_editorLayout->setRowVisible(TRAINER_OUTPUT_ROW, isTrainer);
-    if (auto trainer = dynamic_cast<TrainerModel *>(block)) {
+    if (isTrainer) {
         m_trainerInputEdit->setValue(trainer->getTrainerInputPortNum());
         m_trainerOutputEdit->setValue(trainer->getTrainerOutputPortNum());
     }

@@ -111,7 +111,7 @@ void TransformDataModel::onDataInputSet(const PortIndex &index)
     FdfUID outputType = uidManager->createOrFetchTransformUid(inputTypeIds);
 
     // Set encode/decode function type
-    FunctionNode::Signature signature;
+    Signature signature;
     signature.inputs = inputTypeIds;
     signature.outputs = {outputType};
     if (auto encode = castedPort<FunctionNode>(PortType::Out, 0))
@@ -189,7 +189,7 @@ void ReduceDataModel::onDataInputSet(const PortIndex &index)
     FdfUID outputType = uidManager->createOrFetchReduceUid(inputTypeIds);
 
     // Set encode/decode function type
-    FunctionNode::Signature signature;
+    Signature signature;
     signature.inputs = inputTypeIds;
     signature.outputs = {outputType};
     if (auto encode = castedPort<FunctionNode>(PortType::Out, 0))

@@ -24,7 +24,7 @@ public slots:
 private:
     void updateSignature();
 
-    FunctionNode::Signature m_signature;
+    Signature m_signature;
 };
 
 class BasicTrainerModel : public TrainerModel

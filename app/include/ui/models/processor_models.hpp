@@ -56,7 +56,7 @@ class ExternalProcessorModel : public ProcessorModel
     Q_OBJECT
 public:
     ExternalProcessorModel();
-    bool canConnect(PortType portType, PortIndex index, FdfUID typeId) const;
+    virtual bool canConnect(ConnectionInfo &connInfo) const override;
 
 public slots:
     virtual void onFunctionInputSet(const PortIndex &index) override;
@@ -65,8 +65,7 @@ public slots:
 
 private:
     void updateDataPortsWithSignature();
-
-    FunctionNode::Signature m_signature;
+    Signature m_signature;
 };
 
 class ScoreModel : public ProcessorModel
@@ -83,6 +82,8 @@ public:
     virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
     virtual QStringList getParameterOptions(const QString &key) const override;
     virtual void setParameter(const QString &key, const QString &value) override;
+    virtual bool canConnect(ConnectionInfo &connInfo) const override;
+
     std::optional<Plot> getPlot() const { return m_plot; }
     void setPlot(const std::optional<Plot> &plot) { m_plot = plot; }
 
@@ -102,6 +103,11 @@ public:
     virtual std::unordered_map<QString, QString> getParameters() const override;
     virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
     virtual void setParameter(const QString &key, const QString &value) override;
+    virtual void setOutputTypeId(const QtNodes::PortIndex &inputIndex, const FdfUID &typeId);
+    virtual void onFunctionInputSet(const PortIndex &index) override;
+    virtual void onFunctionInputReset(const PortIndex &index) override;
+    void updateDataPortsWithSignature();
+    virtual bool canConnect(ConnectionInfo &connInfo) const override;
 
 private:
     inline static const QString NUM_SAMPLE = "num_sample";
@@ -113,6 +119,7 @@ private:
     int m_target = 0;
     int m_diffStep = 10;
     int m_gridSize = 1000;
+    Signature m_signature;
 };
 
 class DifferenceModel : public ProcessorModel
@@ -123,4 +130,5 @@ public:
     virtual void onDataInputSet(const PortIndex &index) override;
     virtual void onDataInputReset(const PortIndex &index);
     virtual void setOutputTypeId(const QtNodes::PortIndex &, const FdfUID &);
+    virtual bool canConnect(ConnectionInfo &connInfo) const override;
 };

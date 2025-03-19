@@ -1,12 +1,11 @@
 #include "ui/models/uid_manager.hpp"
+#include "data/custom_graph.hpp"
 #include "ui/models/fdf_block_model.hpp"
 #include "ui/models/nodes.hpp"
 #include <QDebug>
 
 const FdfUID UIDManager::NONE_ID = -1;
 const QString UIDManager::NONE_TAG = "type_none";
-const bool UIDManager::USE_XFORM_MAP = true;
-const bool UIDManager::USE_REDUCE_MAP = false;
 
 UIDManager::UIDManager() {}
 
@@ -106,7 +105,7 @@ void UIDManager::overrideType(FdfUID removeType, FdfUID keepType)
             if (!functionPort)
                 continue;
 
-            FunctionNode::Signature signature = functionPort->signature();
+            Signature signature = functionPort->signature();
 
             // Replace type in input and output signatures
             updated = replaceTypesInUIDVector(signature.inputs, keepType, removeType);
@@ -120,32 +119,36 @@ void UIDManager::overrideType(FdfUID removeType, FdfUID keepType)
             block->propagateUpdate();
     }
     // Step 2: Update types in the transform and reduce typemaps
-    replaceTypesInCoderMap(keepType, removeType, USE_XFORM_MAP);  // for transform map
-    replaceTypesInCoderMap(keepType, removeType, USE_REDUCE_MAP); // for reduce map
+    replaceTypesInCoderMap(keepType, removeType);
 }
 
-void UIDManager::replaceTypesInCoderMap(FdfUID keepType, FdfUID removeType, bool useTransformMap)
+void UIDManager::replaceTypesInCoderMap(FdfUID keepType, FdfUID removeType)
 {
-    // Update the reduce/xform maps to reflect any type overides
+    // Update the reduce & xform maps to reflect any type overides
     // A new map (updatedMap) is created, and the current map is overwritten at the end
-    std::map<std::vector<FdfUID>, FdfUID> updatedMap;
 
-    auto &currentMap = useTransformMap ? transform_typeIdMap : reduce_typeIdMap;
-    for (auto const &elem : currentMap) {
-        std::vector<FdfUID> newInputTypeIds = elem.first;
-        FdfUID newOutputType = elem.second;
+    std::map<std::vector<FdfUID>, FdfUID> *coderMaps[] = {&transform_typeIdMap, &reduce_typeIdMap};
 
-        // If an transformed/reduced type was overridden
-        if (elem.second == removeType)
-            newOutputType = keepType;
-        // If any of the input types of reduce/transform were overridden
-        else if (std::find(elem.first.begin(), elem.first.end(), removeType) != elem.first.end()) {
-            replaceTypesInUIDVector(newInputTypeIds, keepType, removeType);
+    for (auto *currentMap : coderMaps) {
+        std::map<std::vector<FdfUID>, FdfUID> updatedMap;
+
+        for (auto const &elem : *currentMap) {
+            std::vector<FdfUID> newInputTypeIds = elem.first;
+            FdfUID newOutputType = elem.second;
+
+            // If an transformed/reduced type was overridden
+            if (elem.second == removeType)
+                newOutputType = keepType;
+            // If any of the input types of reduce/transform were overridden
+            else if (std::find(elem.first.begin(), elem.first.end(), removeType)
+                     != elem.first.end()) {
+                replaceTypesInUIDVector(newInputTypeIds, keepType, removeType);
+            }
+            // Assign the new vector and id to the updatedMap
+            updatedMap[newInputTypeIds] = newOutputType;
         }
-        // Assign the new vector and id to the updatedMap
-        updatedMap[newInputTypeIds] = newOutputType;
+        *currentMap = updatedMap;
     }
-    currentMap = updatedMap;
 }
 
 bool UIDManager::replaceTypesInUIDVector(std::vector<FdfUID> &vec,
@@ -163,22 +166,53 @@ bool UIDManager::replaceTypesInUIDVector(std::vector<FdfUID> &vec,
 
 FdfUID UIDManager::createOrFetchTransformUid(std::vector<FdfUID> inputTypeIds)
 {
-    return createOrFetchCoderUid(inputTypeIds, USE_XFORM_MAP);
+    return createOrFetchCoderUid(inputTypeIds, transform_typeIdMap);
 }
 
 FdfUID UIDManager::createOrFetchReduceUid(std::vector<FdfUID> inputTypeIds)
 {
-    return createOrFetchCoderUid(inputTypeIds, USE_REDUCE_MAP);
+    return createOrFetchCoderUid(inputTypeIds, reduce_typeIdMap);
 }
 
-FdfUID UIDManager::createOrFetchCoderUid(std::vector<FdfUID> inputTypeIds, bool useTransformMap)
+FdfUID UIDManager::createOrFetchCoderUid(std::vector<FdfUID> inputTypeIds,
+                                         std::map<std::vector<FdfUID>, FdfUID> &coderMap)
 {
-    auto &coderMap = useTransformMap ? transform_typeIdMap : reduce_typeIdMap;
     if (coderMap.count(inputTypeIds) > 0) {
-        return coderMap.at(inputTypeIds);
+        return coderMap.at(inputTypeIds); // return the existing UID
     } else {
         FdfUID outputType = createUID();
-        coderMap[inputTypeIds] = outputType;
+        coderMap[inputTypeIds] = outputType; // create a new UID
         return outputType;
     }
+}
+
+void UIDManager::getConnectionInfo(QtNodes::ConnectionId const connectionId,
+                                   ConnectionInfo &connInfo) const
+{
+    if (!graph) {
+        qWarning() << "UID Manager does not have an associated graph!";
+        return;
+    }
+    connInfo.inNodeId = getNodeId(PortType::In, connectionId);
+    connInfo.outNodeId = getNodeId(PortType::Out, connectionId);
+    if (auto block = graph->delegateModel<FdfBlockModel>(getNodeId(PortType::In, connectionId)))
+        if (auto outBlock = graph->delegateModel<FdfBlockModel>(
+                getNodeId(PortType::Out, connectionId))) {
+            // Fetch the block names
+            connInfo.inBlockCaption = block->caption();
+            connInfo.outBlockCaption = outBlock->caption();
+            // Fetch the incoming/received indices
+            connInfo.outIndex = getPortIndex(PortType::Out, connectionId);
+            connInfo.inIndex = getPortIndex(PortType::In, connectionId);
+            // Fetch the incoming type
+            if (auto data = std::dynamic_pointer_cast<DataNode>(
+                    outBlock->outData(connInfo.outIndex)))
+                connInfo.receivedOutType = data->typeId();
+            else if (auto function = std::dynamic_pointer_cast<FunctionNode>(
+                         outBlock->outData(connInfo.outIndex))) {
+                std::shared_ptr<Signature> receivedSig = std::make_shared<Signature>(
+                    function->signature());
+                connInfo.receivedSignature = receivedSig;
+            }
+        }
 }

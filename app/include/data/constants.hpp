@@ -140,4 +140,12 @@ def create_pipeline(**kwargs) -> Pipeline:
     )";
 } // namespace kedro
 
+// error messages for warning pop ups
+const QString TYPE_MISMATCH = "Failed to connect '%1'. The expected input is of "
+                              "type '%2'.\nPlease verify your "
+                              "connections or use 'Override' to indicate that "
+                              "these two data types are the same.";
+const QString SINGULAR_SIGNATURE
+    = "The expected function signature is singular. Please check the connection.";
+
 } // namespace constants

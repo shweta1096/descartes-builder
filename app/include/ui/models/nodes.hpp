@@ -37,6 +37,7 @@ public:
     {}
     DataNode(const QString &name)
         : NamedNode(name)
+        , m_typeId(UIDManager::NONE_ID) // Initialize m_typeId with a default value
     {
         m_type.id = constants::DATA_PORT_ID;
         m_type.name = name;
@@ -51,23 +52,6 @@ private:
 class FunctionNode : public NamedNode
 {
 public:
-    struct Signature
-    {
-        std::vector<FdfUID> inputs;
-        std::vector<FdfUID> outputs;
-        std::pair<size_t, size_t> size() const { return {inputs.size(), outputs.size()}; }
-        void update(unsigned int port, FdfUID typeId)
-        {
-            if (port < inputs.size())
-                inputs.at(port) = typeId;
-            else
-                outputs.at(port - inputs.size()) = typeId;
-        }
-        void inverse() { std::swap(inputs, outputs); }
-        bool isEmpty() const { return inputs.empty() && outputs.empty(); }
-        void print() const { qDebug() << inputs << " => " << outputs; }
-    };
-
     FunctionNode()
         : FunctionNode("function")
     {}

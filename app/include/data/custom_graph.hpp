@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ui/models/uid_manager.hpp"
 #include <QtNodes/DirectedAcyclicGraphModel>
 
 class FdfBlockModel;
@@ -37,11 +38,6 @@ private:
     void makeOutPortsUnique(const QtNodes::NodeId &nodeId,
                             FdfBlockModel *block,
                             const QtNodes::PortIndex &index);
-
-    void warnInvalidConnection(QtNodes::ConnectionId const connectionId) const;
-
-    // show warning for invalid port connection (implicit typing failure)
-    Q_INVOKABLE void showWarning(QtNodes::ConnectionId connectionId);
 
 private:
     // tracks node captions for uniqueness
