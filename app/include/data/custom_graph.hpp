@@ -29,6 +29,8 @@ private:
 
     // rename captions that are duplicates
     void makeCaptionUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *block);
+    // to set port colours for function nodes
+    void stylePorts(const QtNodes::NodeId &nodeId, FdfBlockModel *block);
 
     // rename out ports that are duplicates
     void makeOutPortsUnique(const QtNodes::NodeId &nodeId, FdfBlockModel *block);

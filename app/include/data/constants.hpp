@@ -2,6 +2,7 @@
 
 #include <QColor>
 
+#include <QtNodes/NodeData>
 #include <QtUtility/data/constexpr_qstring.hpp>
 
 using ConstLatin1String = QtUtility::data::ConstLatin1String;
@@ -89,6 +90,18 @@ constexpr uint MINUTE_MSECS = 60000;
 
 constexpr ConstLatin1String DATA_PORT_ID = "DataNode";
 constexpr ConstLatin1String FUNCTION_PORT_ID = "FunctionNode";
+
+inline bool isFunctionNode(QtNodes::NodeDataType node)
+{
+    return node.id == constants::FUNCTION_PORT_ID;
+}
+inline bool isDataNode(QtNodes::NodeDataType node)
+{
+    return node.id == constants::DATA_PORT_ID;
+}
+
+// Define a named constant for the red color used in function port styling
+constexpr QColor FUNCTION_PORT_COLOR = QColor(255, 0, 0); // RGB
 
 constexpr uint MAX_DATA_INPUT_PORTS = 20;
 constexpr uint MAX_DATA_OUTPUT_PORTS = 20;

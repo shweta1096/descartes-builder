@@ -9,6 +9,8 @@
 #include <QMessageBox>
 #include <QMetaObject>
 
+using QtNodes::NodeRole;
+using QtNodes::PortRole;
 namespace {
 
 template<typename MapType>
@@ -168,6 +170,7 @@ void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
     initBlockConnections(nodeId, block);
     makeCaptionUnique(nodeId, block);
     makeOutPortsUnique(nodeId, block);
+    stylePorts(nodeId, block);
 
     if (block->name() == io_names::DATA_SOURCE) {
         m_dataSourceNodes.insert(nodeId);
@@ -177,6 +180,28 @@ void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
         });
     } else if (block->name() == io_names::FUNC_OUT)
         m_funcOutNodes.insert(nodeId);
+}
+
+void CustomGraph::stylePorts(const QtNodes::NodeId &nodeId, FdfBlockModel *block)
+{
+    if (!block)
+        return;
+
+    auto styleFunctionPorts = [&](PortType portType, NodeRole rolePortCount) {
+        unsigned int portCount = nodeData(nodeId, rolePortCount).toUInt();
+        for (PortIndex portIndex = 0; portIndex < portCount; ++portIndex) {
+            auto data = portData(nodeId, portType, portIndex, PortRole::DataType);
+            assert(data.isValid() && data.canConvert<NodeDataType>());
+            // Check if the port is associated with a FunctionNode
+            if (constants::isFunctionNode(data.value<NodeDataType>())) {
+                setPortData(nodeId, portType, portIndex,
+                    constants::FUNCTION_PORT_COLOR, PortRole::FontColor);
+            }
+        }
+    };
+
+    styleFunctionPorts(PortType::In, NodeRole::InPortCount);
+    styleFunctionPorts(PortType::Out, NodeRole::OutPortCount);
 }
 
 void CustomGraph::onNodeDeleted(const QtNodes::NodeId nodeId)
