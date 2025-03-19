@@ -60,6 +60,10 @@ std::vector<FuncOutModel *> CustomGraph::getFuncOutModels() const
 
 bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) const
 {
+    if (QApplication::mouseButtons() != Qt::NoButton) {
+        return true; // Ignore connection check if mouse is still pressed
+    }
+
     auto uidManager = TabManager::instance().getCurrentUIDManager();
     if (!uidManager) {
         qWarning() << "UIDManager is null!";
