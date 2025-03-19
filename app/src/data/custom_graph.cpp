@@ -5,6 +5,7 @@
 #include "ui/models/io_models.hpp"
 #include "ui/models/processor_models.hpp"
 #include <QAbstractButton>
+#include <QApplication>
 #include <QMessageBox>
 #include <QMetaObject>
 
@@ -117,6 +118,10 @@ void CustomGraph::warnInvalidConnection(QtNodes::ConnectionId const connectionId
 
 bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) const
 {
+    if (QApplication::mouseButtons() != Qt::NoButton) {
+        return true; // Ignore connection check if mouse is still pressed
+    }
+
     if (auto block = delegateModel<FdfBlockModel>(getNodeId(PortType::In, connectionId)))
         if (auto processorBlock = dynamic_cast<ExternalProcessorModel *>(block)) {
             FdfUID outTypeId;
