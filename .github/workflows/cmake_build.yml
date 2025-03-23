@@ -77,20 +77,6 @@ jobs:
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
 
-      # XXX tmate debug
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ failure() }}
-        with:
-          detached: true
-
       - name: Test
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
         run: ctest --build-config ${{ matrix.build_type }}
-
-      #- name: Upload binary artifact
-      #  if: github.ref == 'refs/heads/main'
-      #  uses: actions/upload-artifact@v4
-      #  with:
-      #    name: DescartesBuilder-${{ matrix.os }}
-      #    path: ${{ github.workspace }}/build/bin
