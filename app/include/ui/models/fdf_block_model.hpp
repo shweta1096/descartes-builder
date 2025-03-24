@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QObject>
-
 #include <QLabel>
+#include <QObject>
+#include <QPointer>
 #include <QtNodes/NodeDelegateModel>
 using QtNodes::ConnectionId;
 using QtNodes::NodeDelegateModel;
@@ -203,5 +203,5 @@ private:
     OutPortType m_outPorts;
     std::unordered_map<QString, QString> m_executedValues;
     QStringList m_executedGraphs;
-    std::unique_ptr<QLabel> m_label; // For block resize
+    QPointer<QLabel> m_label; // For block resize
 };
