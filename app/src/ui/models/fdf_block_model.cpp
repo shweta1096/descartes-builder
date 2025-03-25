@@ -72,11 +72,11 @@ QWidget *FdfBlockModel::embeddedWidget()
 {
     if (!m_label) {
         // Enables resizing of the block
-        m_label = std::make_unique<QLabel>();
+        m_label = new QLabel();
         m_label->setAlignment(Qt::AlignCenter);
         m_label->setStyleSheet("QLabel{ background: transparent; }");
     }
-    return m_label.get();
+    return m_label;
 }
 
 QString FdfBlockModel::portCaption(PortType portType, PortIndex portIndex) const
