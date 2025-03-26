@@ -53,7 +53,7 @@ private:
     void enableEditorWidgets(bool value);
     QWidget *generateParameterWidget(FdfBlockModel *block);
     QWidget *generatePortsWidget(FdfBlockModel *block, const PortType &portType);
-    void handleTrainerBlock(FdfBlockModel *block);
+    void handleInputRows(FdfBlockModel *block);
 
     std::shared_ptr<BlockManager> m_blockManager;
     std::shared_ptr<TabManager> m_tabManager;

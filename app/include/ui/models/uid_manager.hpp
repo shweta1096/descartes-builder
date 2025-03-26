@@ -79,9 +79,7 @@ public:
     FdfUID getUid(const QString &tag) const;
     QString getTag(const FdfUID &uid) const;
     void updateMap(FdfUID &uid, QString &tag);
-    FdfUID createOrFetchTransformUid(std::vector<FdfUID> inputTypeIds);
-    FdfUID createOrFetchReduceUid(std::vector<FdfUID> inputTypeIds);
-    void getConnectionInfo(QtNodes::ConnectionId const connectionId, ConnectionInfo &connInfo) const;
+    ConnectionInfo getConnectionInfo(QtNodes::ConnectionId const connectionId) const;
 
 private:
     CustomGraph *graph;
@@ -92,10 +90,8 @@ private:
     void overrideType(FdfUID removeType, FdfUID keepType);
     bool replaceTypesInUIDVector(std::vector<FdfUID> &vec, FdfUID keepType, FdfUID removeType);
     void displayMaps() const;
-    // The following maps and functions to handle coder models generated types:
-    std::map<std::vector<FdfUID>, FdfUID> transform_typeIdMap;
-    std::map<std::vector<FdfUID>, FdfUID> reduce_typeIdMap;
-    FdfUID createOrFetchCoderUid(std::vector<FdfUID> inputTypeIds,
-                                 std::map<std::vector<FdfUID>, FdfUID> &coderMap);
-    void replaceTypesInCoderMap(FdfUID keepType, FdfUID removeType);
+    // TODO Later : Add map to store coder models to check the following :-
+    // 1. iff all the Coder parameter are the same ^ all input types are same ->
+    // we could reuse an existing type (T2 == T3).
+    // 2. if a normalization is used ^ there is one input -> output type of Encode is T1.
 };

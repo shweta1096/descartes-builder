@@ -69,8 +69,7 @@ bool CustomGraph::connectionPossible(QtNodes::ConnectionId const connectionId) c
         qWarning() << "UIDManager is null!";
         return false;
     }
-    ConnectionInfo connInfo;
-    uidManager->getConnectionInfo(connectionId, connInfo);
+    ConnectionInfo connInfo = uidManager->getConnectionInfo(connectionId);
     if (auto block = delegateModel<FdfBlockModel>(connInfo.inNodeId)) {
         auto result = block->canConnect(connInfo);
         if (!result)

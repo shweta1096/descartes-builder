@@ -118,37 +118,6 @@ void UIDManager::overrideType(FdfUID removeType, FdfUID keepType)
         if (updated)
             block->propagateUpdate();
     }
-    // Step 2: Update types in the transform and reduce typemaps
-    replaceTypesInCoderMap(keepType, removeType);
-}
-
-void UIDManager::replaceTypesInCoderMap(FdfUID keepType, FdfUID removeType)
-{
-    // Update the reduce & xform maps to reflect any type overides
-    // A new map (updatedMap) is created, and the current map is overwritten at the end
-
-    std::map<std::vector<FdfUID>, FdfUID> *coderMaps[] = {&transform_typeIdMap, &reduce_typeIdMap};
-
-    for (auto *currentMap : coderMaps) {
-        std::map<std::vector<FdfUID>, FdfUID> updatedMap;
-
-        for (auto const &elem : *currentMap) {
-            std::vector<FdfUID> newInputTypeIds = elem.first;
-            FdfUID newOutputType = elem.second;
-
-            // If an transformed/reduced type was overridden
-            if (elem.second == removeType)
-                newOutputType = keepType;
-            // If any of the input types of reduce/transform were overridden
-            else if (std::find(elem.first.begin(), elem.first.end(), removeType)
-                     != elem.first.end()) {
-                replaceTypesInUIDVector(newInputTypeIds, keepType, removeType);
-            }
-            // Assign the new vector and id to the updatedMap
-            updatedMap[newInputTypeIds] = newOutputType;
-        }
-        *currentMap = updatedMap;
-    }
 }
 
 bool UIDManager::replaceTypesInUIDVector(std::vector<FdfUID> &vec,
@@ -164,34 +133,12 @@ bool UIDManager::replaceTypesInUIDVector(std::vector<FdfUID> &vec,
     return updated;
 }
 
-FdfUID UIDManager::createOrFetchTransformUid(std::vector<FdfUID> inputTypeIds)
+ConnectionInfo UIDManager::getConnectionInfo(QtNodes::ConnectionId const connectionId) const
 {
-    return createOrFetchCoderUid(inputTypeIds, transform_typeIdMap);
-}
-
-FdfUID UIDManager::createOrFetchReduceUid(std::vector<FdfUID> inputTypeIds)
-{
-    return createOrFetchCoderUid(inputTypeIds, reduce_typeIdMap);
-}
-
-FdfUID UIDManager::createOrFetchCoderUid(std::vector<FdfUID> inputTypeIds,
-                                         std::map<std::vector<FdfUID>, FdfUID> &coderMap)
-{
-    if (coderMap.count(inputTypeIds) > 0) {
-        return coderMap.at(inputTypeIds); // return the existing UID
-    } else {
-        FdfUID outputType = createUID();
-        coderMap[inputTypeIds] = outputType; // create a new UID
-        return outputType;
-    }
-}
-
-void UIDManager::getConnectionInfo(QtNodes::ConnectionId const connectionId,
-                                   ConnectionInfo &connInfo) const
-{
+    ConnectionInfo connInfo;
     if (!graph) {
         qWarning() << "UID Manager does not have an associated graph!";
-        return;
+        return connInfo;
     }
     connInfo.inNodeId = getNodeId(PortType::In, connectionId);
     connInfo.outNodeId = getNodeId(PortType::Out, connectionId);
@@ -215,4 +162,5 @@ void UIDManager::getConnectionInfo(QtNodes::ConnectionId const connectionId,
                 connInfo.receivedSignature = receivedSig;
             }
         }
+    return connInfo;
 }

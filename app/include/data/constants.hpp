@@ -148,4 +148,7 @@ const QString TYPE_MISMATCH = "Failed to connect '%1'. The expected input is of 
 const QString SINGULAR_SIGNATURE
     = "The expected function signature is singular. Please check the connection.";
 
+const QString WARN_MANUAL_OVERRIDE = "The tag you entered already "
+                                     "exists. Do you want to "
+                                     "override the existing tag?";
 } // namespace constants

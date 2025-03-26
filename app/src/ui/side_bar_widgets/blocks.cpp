@@ -80,7 +80,7 @@ void Blocks::updateFields()
     blockEditorSignals(true);
     auto block = m_blockManager->getBlock(m_nodeId);
     enableEditorWidgets(block);
-    handleTrainerBlock(block);
+    handleInputRows(block);
     if (auto widget = m_parametersWidget->currentWidget()) {
         m_parametersWidget->removeWidget(widget);
         widget->deleteLater();
@@ -387,9 +387,7 @@ QWidget *Blocks::generatePortsWidget(FdfBlockModel *block, const PortType &portT
                                         // If the user confirms the change, update the map
                                         if (QMessageBox::question(nullptr,
                                                                   "Type Tag Conflict",
-                                                                  "The tag you entered already "
-                                                                  "exists. Do you want to "
-                                                                  "override the existing tag?",
+                                                                  constants::WARN_MANUAL_OVERRIDE,
                                                                   QMessageBox::Yes | QMessageBox::No)
                                             == QMessageBox::Yes) {
                                             uidManager->updateMap(currentID, newTag);
@@ -516,7 +514,7 @@ QWidget *Blocks::generateParameterWidget(FdfBlockModel *block)
     return widget;
 }
 
-void Blocks::handleTrainerBlock(FdfBlockModel *block)
+void Blocks::handleInputRows(FdfBlockModel *block)
 {
     if (!block)
         return;

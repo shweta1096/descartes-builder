@@ -373,11 +373,8 @@ bool FdfBlockModel::canConnect(ConnectionInfo &connInfo) const
 
 bool FdfBlockModel::warnInvalidConnection(ConnectionInfo connInfo, const QString &message) const
 {
-    return QMetaObject::invokeMethod(const_cast<FdfBlockModel *>(this),
-                                     "showWarning",
-                                     Qt::QueuedConnection,
-                                     Q_ARG(ConnectionInfo, connInfo),
-                                     Q_ARG(QString, message));
+    // since the calls are on the same thread, direct call works
+    return const_cast<FdfBlockModel *>(this)->showWarning(connInfo, message);
 }
 
 bool FdfBlockModel::showWarning(ConnectionInfo connInfo, const QString &message)
