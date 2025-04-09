@@ -5,9 +5,10 @@ ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
 # Install linux dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     g++ cmake make build-essential \
-    python3=3.10.* python3-dev=3.10.* python3-pip=22.0.* \
+    python3=3.10.* python3-dev=3.10.* python3-pip=22.0.* python-is-python3 \
     libgl1-mesa-dev libxkbcommon-x11-0 \
     libxcb1 libxcb-util1 libxcb-keysyms1 libxcb-image0 libxcb-render0 \
     libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 \
@@ -22,14 +23,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the project source and kedro umbrella into the container
-# Assuming correct versions of descartes-builder and kedro-umbrella are present in "~/descartes-builder/docker_deps"
+# Assuming correct versions of descartes-builder and kedro-umbrella are present
+# in "~/descartes-builder/docker_deps"
 RUN mkdir /app && mkdir /app/deps
 WORKDIR /app/
 COPY descartes-builder /app/deps/descartes-builder
 COPY kedro-umbrella /app/deps/kedro-umbrella
 
 # Install kedro-umbrella
-RUN cd /app/deps/kedro-umbrella && pip install -r requirements.txt && pip install -e .
+RUN pip install --upgrade pip setuptools wheel
+RUN --mount=type=cache,target=/root/.cache/pip cd /app/deps/kedro-umbrella && pip install -e .
 
 # Install Qt using aqt (unofficial helper library: https://github.com/miurahr/aqtinstall)
 RUN pip install aqtinstall

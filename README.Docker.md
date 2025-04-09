@@ -1,4 +1,3 @@
-
 # Steps to set Up and run DescartesBuilder within Docker
 
 1. Create a new folder
@@ -9,6 +8,6 @@
 	sudo apt-get install x11-apps
 	sudo apt update && sudo apt install -y xorg x11-xserver-utils
 6. Run
-	docker build -t db .
+	docker build -t descartes_builder:0.1 -t descartes_builder:latest .
 7. Run
-	  docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix db
+	docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix descartes_builder:0.1
