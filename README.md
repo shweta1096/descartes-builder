@@ -26,13 +26,14 @@ sudo apt update && sudo apt install -y x11-apps xorg x11-xserver-utils
 ```
 3. Run the container
 ```bash
-docker run -itd -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix descartes_builder:0.1
+docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix descartes_builder:0.1
 ```
+Note: You may need to use `xhost +local:docker` prior to `docker run` to authorize Docker to connect to your X server.
+
 Details: 
-- `-itd` makes the container reactive to your input and starts it on the background.
+- `-it` makes the container reactive to your input.
 - `-e` forwards $DISPLAY to the container, enabling GUI applications to display on the host's screen.
 - `-v` mounts the X11 Unix socket from the host to the container.
-
 
 # Build instructions 
 A summary of buld instructions is given below. 

@@ -32,7 +32,7 @@ COPY kedro-umbrella /app/deps/kedro-umbrella
 
 # Install kedro-umbrella
 RUN pip install --upgrade pip setuptools wheel
-RUN --mount=type=cache,target=/root/.cache/pip cd /app/deps/kedro-umbrella && pip install -e .
+RUN --mount=type=cache,target=/root/.cache/pip cd /app/deps/kedro-umbrella && pip install .
 
 # Install Qt using aqt (unofficial helper library: https://github.com/miurahr/aqtinstall)
 RUN pip install aqtinstall
