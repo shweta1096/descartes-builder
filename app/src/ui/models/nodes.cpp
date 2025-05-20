@@ -52,14 +52,14 @@ void DataNode::setTypeTagName(const QString &name)
 {
     // Here, the type tag for this port's type ID will be changed
     auto uidManager = TabManager::getUIDManager();
-    m_typeTagName = name;
+    m_typeTagName = constants::sanitizeCaption(name);
     uidManager->updateMap(m_typeId, m_typeTagName);
     updateDisplayName();
 }
 
 void DataNode::setAnnotation(const QString &annot)
 {
-    m_annotation = annot;
+    m_annotation = constants::sanitizeCaption(annot);
     updateDisplayName();
 }
 

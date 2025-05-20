@@ -59,6 +59,7 @@ private:
                         QTableWidgetItem *item,
                         UIDManager *uidManager);
     void handleInputRows(FdfBlockModel *block);
+    void setupCaptionValidation();
 
     std::shared_ptr<BlockManager> m_blockManager;
     std::shared_ptr<TabManager> m_tabManager;
@@ -70,6 +71,7 @@ private:
     QFormLayout *m_editorLayout;
     QLineEdit *m_idEdit;
     QLineEdit *m_captionEdit;
+    QLabel *m_invalidIcon;
     QLineEdit *m_functionNameEdit;
     QSpinBox *m_inputPortEdit;
     QStackedWidget *m_outputPorts;
