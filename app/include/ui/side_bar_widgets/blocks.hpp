@@ -57,7 +57,8 @@ private:
     void handlePortEdit(FdfBlockModel *block,
                         QTableWidget *tableWidget,
                         QTableWidgetItem *item,
-                        UIDManager *uidManager);
+                        UIDManager *uidManager,
+                        const QVector<int> &visibleCols);
     void handleInputRows(FdfBlockModel *block);
     void setupCaptionValidation();
 
