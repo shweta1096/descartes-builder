@@ -108,6 +108,16 @@ QString DataSourceModel::outPortCaption()
     return "";
 }
 
+bool DataSourceModel::checkBlockValidity() const
+{
+    // Check if the file is set and has a valid type
+    if (m_file.fileName().isEmpty()) {
+        qWarning() << "DataSourceModel: No file set.";
+        return false;
+    }
+    return true;
+}
+
 FuncOutModel::FuncOutModel()
     : FdfBlockModel(FdfType::Output, io_names::FUNC_OUT)
     , m_fileType(CatalogType::Pickle)

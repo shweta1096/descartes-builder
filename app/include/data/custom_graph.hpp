@@ -20,6 +20,7 @@ public:
     void makeOutPortsUnique(const QtNodes::NodeId &nodeId,
                             FdfBlockModel *block,
                             const QtNodes::PortIndex &index);
+    bool verifyBlocksValidity() const;
 
 signals:
     void dataSourceModelImportClicked(const QtNodes::NodeId nodeId);

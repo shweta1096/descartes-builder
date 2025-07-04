@@ -71,6 +71,7 @@ SplitDataModel::SplitDataModel()
     }
 
     setRandomState(0);
+    setTrainSize(0.7);
 }
 
 std::unordered_map<QString, QString> SplitDataModel::getParameters() const
