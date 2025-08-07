@@ -72,7 +72,8 @@ bool TabComponents::save()
 {
     if (m_localFile.filePath().isEmpty() || m_localFile.suffix().isEmpty())
         return saveAs();
-    if (!m_scene->save(m_dataDir.absoluteFilePath(m_localFile.baseName() + SCENE_EXTENSION)))
+    QString sceneFilename = "scene" + SCENE_EXTENSION; // maintain 1 dag file per dcb
+    if (!m_scene->save(m_dataDir.absoluteFilePath(sceneFilename)))
         return false;
     if (!JlCompress::compressDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath()))
         return false;
@@ -131,12 +132,12 @@ bool TabComponents::openExisting()
     }
 
     JlCompress::extractDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath());
-    if (!m_dataDir.exists(m_localFile.baseName() + SCENE_EXTENSION)) {
-        qWarning() << "Scene file does not exist: "
-                   << m_dataDir.absoluteFilePath(m_localFile.baseName() + SCENE_EXTENSION);
+    QString sceneFilename = "scene" + SCENE_EXTENSION;
+    if (!m_dataDir.exists(sceneFilename)) {
+        qWarning() << "Scene file does not exist:" << sceneFilename;
         return false;
     }
-    return m_scene->load(m_dataDir.absoluteFilePath(m_localFile.baseName() + SCENE_EXTENSION));
+    return m_scene->load(m_dataDir.absoluteFilePath(sceneFilename));
 }
 
 void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)

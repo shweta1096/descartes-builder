@@ -217,9 +217,21 @@ bool Kedro::validityCheck(std::shared_ptr<TabComponents> tab)
 QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
 {
     auto name = tab->getFileInfo().baseName();
+    auto kedroFormattedName = [](QString name) { // format the name to be valid for kedro
+        name = name.trimmed().toLower();
+        name.replace(" ", "-");
+        name.replace("_", "-");
+        name.replace(QRegularExpression("[^a-z0-9\\-]"), "");
+        if (name.length() < 2) {
+            qCritical() << "Kedro project name must be at least 2 characters long";
+            return QString();
+        }
+        return name;
+    };
+    auto validName = kedroFormattedName(name);
     // kedro dir inside of temp dir, to avoid cases where file name conflicts with existing folder
     QDir kedroDir = ensureDirExists(tab->getTempDir()->filePath("kedro"));
-    QDir workspaceDir = QDir(kedroDir.absolutePath() + QDir::separator() + name);
+    QDir workspaceDir = QDir(kedroDir.absolutePath() + QDir::separator() + validName);
     if (workspaceDir.exists()) {
         qInfo() << "Workspace already exists: " << workspaceDir.absolutePath();
         return workspaceDir;
@@ -239,10 +251,10 @@ QDir Kedro::initWorkspace(std::shared_ptr<TabComponents> tab)
         qCritical() << "Failed to start Kedro process.";
         return QDir();
     }
-    workspaceProcess.write(name.toUtf8() + '\n');
+    workspaceProcess.write(validName.toUtf8() + '\n');
     workspaceProcess.closeWriteChannel();
     if (!workspaceProcess.waitForFinished()) {
-        qCritical() << "Failed to create workspace " << name;
+        qCritical() << "Failed to create workspace " << validName;
         return QDir();
     }
     if (workspaceProcess.exitStatus() != QProcess::NormalExit || workspaceProcess.exitCode() != 0) {
