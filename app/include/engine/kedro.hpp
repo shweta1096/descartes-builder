@@ -32,6 +32,7 @@ private:
     void postExecutionProcess();
     void postScoreModel(CustomGraph *graph, const QtNodes::NodeId &id);
     void postSensitivityAnalysisModel(CustomGraph *graph, const QtNodes::NodeId &id);
+    void postFuncOutModel(CustomGraph *graph, const QtNodes::NodeId &id);
     void releaseExecution();
 
     const bool m_WINDOWS;

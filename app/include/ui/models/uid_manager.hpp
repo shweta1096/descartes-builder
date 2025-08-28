@@ -82,6 +82,7 @@ public:
     void updateMap(FdfUID &uid, QString &tag);
     ConnectionInfo getConnectionInfo(QtNodes::ConnectionId const connectionId) const;
     QString getUniqueTag(QString tag);
+    FdfUID getOrCreateUIDOnFuncLoad(const QString &fileHash, int originalId);
 
 private:
     CustomGraph *graph = nullptr;
@@ -93,6 +94,13 @@ private:
     bool replaceTypesInUIDVector(std::vector<FdfUID> &vec, FdfUID keepType, FdfUID removeType);
     void displayMaps() const;
     void refreshDisplayNames();
+    // Cache of UID used to load/save functions
+    // It allows to remap stored UIDs to runtime UIDs and ensure 
+    // that UIDs from the same file are mapped to same runtime UID.
+    // Thus, we would avoid redundant overrides. 
+    // file hash -*> <UID json, UID runtime>
+    std::unordered_map<QString, std::unordered_map<FdfUID, FdfUID>> fileUidCache; 
+    
     // TODO Later : Add map to store coder models to check the following :-
     // 1. iff all the Coder parameter are the same ^ all input types are same ->
     // we could reuse an existing type (T2 == T3).

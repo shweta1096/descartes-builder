@@ -86,7 +86,6 @@ void UIDManager::updateMap(FdfUID &uid, QString &tag)
         }
         refreshDisplayNames(); // calls updateDisplayName on all DataNodes on a type override
     }
-    // displayMaps();
 }
 
 void UIDManager::displayMaps() const
@@ -213,4 +212,20 @@ ConnectionInfo UIDManager::getConnectionInfo(QtNodes::ConnectionId const connect
             }
         }
     return connInfo;
+}
+
+FdfUID UIDManager::getOrCreateUIDOnFuncLoad(const QString &fileHash, int originalId)
+{
+    if (fileHash.isEmpty())
+        return NONE_ID;
+
+    auto &mapForFile = fileUidCache[fileHash];
+    auto it = mapForFile.find(originalId);
+    if (it != mapForFile.end()) {
+        return it->second;
+    }
+
+    FdfUID newId = createUID();
+    mapForFile[originalId] = newId;
+    return newId;
 }

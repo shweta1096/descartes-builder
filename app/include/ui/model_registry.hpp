@@ -13,6 +13,7 @@ static std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registerDataModels()
     // All models to be used must be registered here
     auto ret = std::make_shared<QtNodes::NodeDelegateModelRegistry>();
     ret->registerModel<DataSourceModel>("IO");
+    ret->registerModel<FuncSourceModel>("IO");
     ret->registerModel<FuncOutModel>("IO");
     ret->registerModel<DataOutModel>("IO");
     ret->registerModel<GraphModel>("IO");

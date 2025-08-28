@@ -6,6 +6,7 @@
 class FdfBlockModel;
 class DataSourceModel;
 class FuncOutModel;
+class FuncSourceModel;
 
 class CustomGraph : public QtNodes::DirectedAcyclicGraphModel
 {
@@ -13,6 +14,7 @@ class CustomGraph : public QtNodes::DirectedAcyclicGraphModel
 public:
     CustomGraph(std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registry);
     std::vector<DataSourceModel *> getDataSourceModels() const;
+    std::vector<FuncSourceModel *> getFuncSourceModels() const;
     std::vector<FuncOutModel *> getFuncOutModels() const;
     FdfBlockModel *getBlockByCaption(const QString &caption) const;
     bool connectionPossible(QtNodes::ConnectionId const connectionId) const override;
@@ -24,6 +26,7 @@ public:
 
 signals:
     void dataSourceModelImportClicked(const QtNodes::NodeId nodeId);
+    void funcSourceModelImportClicked(const QtNodes::NodeId nodeId);
 
 private:
     void initBlockConnections(const QtNodes::NodeId nodeId, FdfBlockModel *block);
@@ -47,5 +50,6 @@ private:
     // tracks out port names for uniqueness, index is necessary for uniqueness amongst the node itself
     std::unordered_map<QString, std::pair<QtNodes::NodeId, QtNodes::PortIndex>> m_usedOutPortCaptions;
     std::unordered_set<QtNodes::NodeId> m_dataSourceNodes;
+    std::unordered_set<QtNodes::NodeId> m_funcSourceNodes;
     std::unordered_set<QtNodes::NodeId> m_funcOutNodes;
 };
