@@ -56,6 +56,10 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
             &CustomGraph::dataSourceModelImportClicked,
             this,
             &TabComponents::onDataSourceImportClicked);
+    connect(m_graph,
+            &CustomGraph::funcSourceModelImportClicked,
+            this,
+            &TabComponents::onFuncSourceImportClicked);
     if (fileInfo) {
         m_localFile = fileInfo.value();
     }
@@ -170,6 +174,35 @@ void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)
     if (oldFile.exists())
         QFile::remove(oldFile.absoluteFilePath());
     dataSource->setFile(newFile);
+}
+
+void TabComponents::onFuncSourceImportClicked(const QtNodes::NodeId nodeId)
+{
+    auto funcSource = m_graph->delegateModel<FuncSourceModel>(nodeId);
+    if (!funcSource->functionName().isEmpty()
+        && funcSource->functionName() != io_names::FUNC_SOURCE) {
+        QMessageBox::information(
+            nullptr,
+            tr("Import Not Allowed"),
+            QString("Cannot re-import function into an already-initialized function source. \n"
+                    "Function: %1")
+                .arg(funcSource->functionName()));
+        return;
+    }
+    QFileInfo originalFile(QFileDialog::getOpenFileName(nullptr,
+                                                        tr("Import Function Source"),
+                                                        QStandardPaths::writableLocation(
+                                                            QStandardPaths::DocumentsLocation),
+                                                        tr("Function Source (*.zip)")));
+    if (originalFile.filePath().isEmpty() || originalFile.suffix().isEmpty())
+        return;
+    qDebug() << "copy to: " << m_dataDir.absoluteFilePath(originalFile.fileName());
+    QFileInfo newFile(m_dataDir.absoluteFilePath(originalFile.fileName()));
+    QFile::copy(originalFile.absoluteFilePath(), newFile.absoluteFilePath());
+    QFileInfo oldFile(m_dataDir.absoluteFilePath(funcSource->functionName()));
+    if (oldFile.exists())
+        QFile::remove(oldFile.absoluteFilePath());
+    funcSource->setFile(newFile);
 }
 
 void TabComponents::postLoadProcess(const QJsonArray &nodesJsonArray)

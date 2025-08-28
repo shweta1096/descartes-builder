@@ -1,6 +1,8 @@
 #include "engine/kedro.hpp"
 
 #include <QApplication>
+#include <QCryptographicHash>
+#include <QJsonArray>
 #include <QProcess>
 #include <QStandardPaths>
 
@@ -354,6 +356,24 @@ bool Kedro::generateCatalogYml(const QDir &kedroProject, std::shared_ptr<TabComp
                                                                   constants::kedro::RAW_DATA_PATH
                                                                       + fileName);
     }
+    // add function sources to catalog.yml
+    auto funcSources = tab->getGraph()->getFuncSourceModels();
+    QDir modelsDir = ensureDirExists(kedroProject.absoluteFilePath(constants::kedro::MODELS_PATH));
+    for (auto funcSource : funcSources) {
+        if (funcSource->dillPath().isEmpty() || funcSource->file().fileName().isEmpty()) {
+            qWarning() << "FuncSourceModel: .dill or .json missing in archive. Skipping.";
+            continue;
+        }
+        auto funcCatalogEntryTag = funcSource->getFileName();
+        QString fileName = funcCatalogEntryTag + ".pkl";
+        QString destinationPath = modelsDir.absoluteFilePath(fileName);
+        QFile::copy(funcSource->dillPath(), destinationPath);
+        catalogEntries << constants::kedro::CATALOG_YML_ENTRY.arg(funcCatalogEntryTag,
+                                                                  funcSource->fileTypeString(),
+                                                                  constants::kedro::MODELS_PATH
+                                                                      + fileName);
+    }
+
     // add outputs to catalog.yml
     auto funcOuts = tab->getGraph()->getFuncOutModels();
     for (auto funcOut : funcOuts) {
@@ -415,6 +435,7 @@ void Kedro::postExecutionProcess()
     for (auto &id : graph->allNodeIds()) {
         postScoreModel(graph, id);
         postSensitivityAnalysisModel(graph, id);
+        postFuncOutModel(graph, id);
     }
 }
 
@@ -464,6 +485,68 @@ void Kedro::postSensitivityAnalysisModel(CustomGraph *graph, const QtNodes::Node
     for (auto &graph : graphs)
         graph = reportDir.absoluteFilePath(graph);
     block->setExecutedGraphs(graphs);
+}
+
+void Kedro::postFuncOutModel(CustomGraph *graph, const QtNodes::NodeId &id)
+{
+    auto funcOut = graph->delegateModel<FuncOutModel>(id);
+    if (!funcOut)
+        return;
+    // save the functions to default folder + dcbname path
+    QDir saveDir = ensureDirExists(funcOut->getSaveDir() + QDir::separator()
+                                   + TabManager::instance().getCurrentTab()->getBasename());
+    QString fileName = funcOut->getFileName();
+    if (fileName.isEmpty()) {
+        qWarning() << "FuncOutModel: File name is empty, cannot save the model.";
+        return;
+    }
+    QDir projectDir = m_execution->project;
+    QString dillFilePath = projectDir.absoluteFilePath(constants::kedro::MODELS_PATH + fileName
+                                                       + '.' + funcOut->getFileExtenstion());
+    if (!QFile::exists(dillFilePath)) {
+        qWarning() << "FuncOutModel: Dill file does not exist:" << dillFilePath;
+        return;
+    }
+    // create a metadata json file
+    auto signatureToJson = [](const Signature &sig) {
+        QJsonArray inputs, outputs;
+        for (int id : sig.inputs)
+            inputs.append(id);
+        for (int id : sig.outputs)
+            outputs.append(id);
+        return QJsonObject{{"input", inputs}, {"output", outputs}};
+    };
+    QString dcbFilePath = m_execution->tab->getFileInfo().absoluteFilePath();
+    QString normalizedPath = QDir::cleanPath(dcbFilePath).toLower();
+
+    QString fileHash
+        = QString(
+              QCryptographicHash::hash(normalizedPath.toUtf8(), QCryptographicHash::Sha256).toHex())
+              .left(10)
+              .toUpper();
+    QString metadataPath = saveDir.filePath(fileName + "_metadata.json");
+    QJsonObject metadata{{"function_name", funcOut->functionName()},
+                         {"function_signature", signatureToJson(funcOut->getFuncSignature())},
+                         {"file_hash", fileHash}};
+
+    QFile metadataFile(metadataPath);
+    if (!metadataFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "FuncOutModel: Cannot open metadata file for writing:" << metadataPath;
+        return;
+    }
+    QTextStream out(&metadataFile);
+    out << QJsonDocument(metadata).toJson(QJsonDocument::Indented);
+    metadataFile.close();
+
+    // zip the dill file and json file
+    QString zipFilePath = saveDir.absoluteFilePath(fileName + ".zip");
+    if (!JlCompress::compressFiles(zipFilePath, {dillFilePath, metadataPath})) {
+        qWarning() << "FuncOutModel: Failed to compress files into zip:" << zipFilePath;
+        return;
+    }
+    QFile::remove(dillFilePath);
+    QFile::remove(metadataPath);
+    qInfo() << "FuncOutModel: Successfully saved function output model to:" << zipFilePath;
 }
 
 void Kedro::releaseExecution()

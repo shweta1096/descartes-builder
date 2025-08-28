@@ -51,11 +51,20 @@ std::vector<DataSourceModel *> CustomGraph::getDataSourceModels() const
     return result;
 }
 
+std::vector<FuncSourceModel *> CustomGraph::getFuncSourceModels() const
+{
+    std::vector<FuncSourceModel *> result;
+    for (auto &id : m_funcSourceNodes)
+        if (auto model = delegateModel<FuncSourceModel>(id))
+            result.push_back(model);
+    return result;
+}
 std::vector<FuncOutModel *> CustomGraph::getFuncOutModels() const
 {
     std::vector<FuncOutModel *> result;
     for (auto &id : m_funcOutNodes)
-        result.push_back(delegateModel<FuncOutModel>(id));
+        if (auto model = delegateModel<FuncOutModel>(id))
+            result.push_back(model);
     return result;
 }
 
@@ -113,6 +122,13 @@ void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
         });
     } else if (block->name() == io_names::FUNC_OUT)
         m_funcOutNodes.insert(nodeId);
+    else if (block->name() == io_names::FUNC_SOURCE) {
+        m_funcSourceNodes.insert(nodeId);
+        auto funcSourceModel = dynamic_cast<FuncSourceModel *>(block);
+        connect(funcSourceModel, &FuncSourceModel::importClicked, this, [nodeId, this]() {
+            emit funcSourceModelImportClicked(nodeId);
+        });
+    }
 }
 
 void CustomGraph::stylePorts(const QtNodes::NodeId &nodeId, FdfBlockModel *block)
@@ -148,6 +164,8 @@ void CustomGraph::onNodeDeleted(const QtNodes::NodeId nodeId)
         m_dataSourceNodes.erase(nodeId);
     if (m_funcOutNodes.find(nodeId) != m_funcOutNodes.end())
         m_funcOutNodes.erase(nodeId);
+    if (m_funcSourceNodes.find(nodeId) != m_funcSourceNodes.end())
+        m_funcSourceNodes.erase(nodeId);
     m_trackedNodes.erase(nodeId);
 }
 

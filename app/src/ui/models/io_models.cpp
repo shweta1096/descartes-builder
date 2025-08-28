@@ -1,8 +1,11 @@
 #include "ui/models/io_models.hpp"
 #include "data/tab_manager.hpp"
+#include <quazip/JlCompress.h>
 
+#include <QJsonArray>
 #include <QLabel>
 #include <QPushButton>
+#include <QStandardPaths>
 #include <QVBoxLayout>
 
 namespace {
@@ -120,10 +123,166 @@ bool DataSourceModel::checkBlockValidity() const
     return true;
 }
 
+FuncSourceModel::FuncSourceModel()
+    : FdfBlockModel(FdfType::Output, io_names::FUNC_SOURCE, io_names::FUNC_SOURCE)
+    , m_fileType(CatalogType::Pickle)
+    , m_widget(nullptr)
+    , m_label(nullptr)
+{}
+
+QWidget *FuncSourceModel::embeddedWidget()
+{
+    if (!m_widget) {
+        m_widget = new QWidget();
+        m_widget->setProperty("bg", "transparent");
+        m_widget->setStyleSheet("*[bg='transparent']{ background: transparent; }");
+
+        auto layout = new QVBoxLayout(m_widget);
+        layout->setSpacing(0);
+        layout->setContentsMargins(0, 0, 0, 0);
+
+        m_label = new QLabel(portCaption(PortType::Out, 0));
+        layout->addWidget(m_label);
+
+        auto button = new QPushButton("Import");
+        layout->addWidget(button);
+
+        connect(button, &QPushButton::clicked, this, &FuncSourceModel::importClicked);
+    }
+
+    return m_widget;
+}
+
+QJsonObject FuncSourceModel::save() const
+{
+    QJsonObject modelJson = FdfBlockModel::save();
+    modelJson["saved_function"] = m_file.fileName();
+    return modelJson;
+}
+
+void FuncSourceModel::load(QJsonObject const &p)
+{
+    FdfBlockModel::load(p);
+    QJsonValue value = p["saved_function"];
+    QString filePath = value.toString();
+    if (value.isUndefined() || filePath.trimmed().isEmpty())
+        return;
+
+    setFile(QFileInfo(value.toString()));
+}
+
+void FuncSourceModel::setFile(const QFileInfo &file)
+{
+    if (file.fileName().trimmed().isEmpty())
+        return;
+    if (file == m_file)
+        return;
+    m_file = file;
+
+    auto dataDir = TabManager::instance().getCurrentTab()->getDataDir();
+    QDir tempDir(dataDir.filePath(QString("func_unzip")));
+    if (!tempDir.exists())
+        tempDir.mkpath(".");
+    QString zipPath = dataDir.filePath(m_file.fileName());
+    if (!QFile::exists(zipPath)) {
+        return;
+    }
+    QStringList unzippedFiles = JlCompress::extractDir(zipPath, tempDir.absolutePath());
+    if (unzippedFiles.isEmpty()) {
+        return;
+    }
+    QString dillPath, jsonPath;
+    for (const QString &path : unzippedFiles) {
+        if (path.endsWith(".pkl"))
+            dillPath = path;
+        else if (path.endsWith(".json"))
+            jsonPath = path;
+    }
+
+    if (dillPath.isEmpty() || jsonPath.isEmpty()) {
+        qWarning() << "FuncSourceModel: .dill or .json missing in archive.";
+        return;
+    }
+    m_dillPath = dillPath;
+
+    // Step 1: Load JSON metadata
+    QFile jsonFile(jsonPath);
+    if (!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning() << "FuncSourceModel: Failed to read metadata json.";
+        return;
+    }
+    QJsonDocument doc = QJsonDocument::fromJson(jsonFile.readAll());
+    if (!doc.isObject()) {
+        qWarning() << "FuncSourceModel: Invalid JSON format.";
+        return;
+    }
+    QJsonObject meta = doc.object();
+    QJsonObject sig = meta["function_signature"].toObject();
+
+    // Fetch the file hash from metadata
+    QString fileHash = meta["file_hash"].toString().trimmed();
+    if (fileHash.isEmpty()) {
+        qWarning() << "FuncSourceModel: file_hash missing in metadata.";
+        return;
+    }
+
+    // Remap UIDs based on mapping per file hash
+    auto uidManager = TabManager::getUIDManager();
+    auto remapUID = [&](int original) -> FdfUID {
+        return uidManager->getOrCreateUIDOnFuncLoad(fileHash, original);
+    };
+    std::vector<FdfUID> newInputs, newOutputs;
+    for (const QJsonValue &val : sig["input"].toArray())
+        newInputs.push_back(remapUID(val.toInt()));
+    for (const QJsonValue &val : sig["output"].toArray())
+        newOutputs.push_back(remapUID(val.toInt()));
+    Signature signature{newInputs, newOutputs};
+
+    addPort<FunctionNode>(PortType::Out);
+    auto port = castedPort<FunctionNode>(PortType::Out, 0);
+    if (!port) {
+        qWarning() << "FuncSourceModel: Failed to create function port.";
+        return;
+    }
+
+    port->setSignature(signature);
+    port->setName(m_file.baseName());
+    emit contentUpdated();
+}
+
+QString FuncSourceModel::fileTypeString() const
+{
+    if (CATALOG_STRING.count(m_fileType) > 0)
+        return CATALOG_STRING.at(m_fileType);
+    return "NONE";
+}
+
+QString FuncSourceModel::getFileName() const
+{
+    // the port caption is used as the file name
+    return portCaption(PortType::Out, 0);
+}
+
+bool FuncSourceModel::checkBlockValidity() const
+{
+    // Check if the file is set and has a valid type
+    if (m_file.fileName().isEmpty()) {
+        qWarning() << "FunctionSourceModel: No file set.";
+        return false;
+    }
+    return true;
+}
+
 FuncOutModel::FuncOutModel()
-    : FdfBlockModel(FdfType::Output, io_names::FUNC_OUT)
+    : FdfBlockModel(FdfType::Output, io_names::FUNC_OUT, io_names::FUNC_OUT)
     , m_fileType(CatalogType::Pickle)
 {
+    QDir default_saveDir = QDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation))
+                               .filePath(QString("DescartesBuilder") + QDir::separator()
+                                         + QString("SavedFunctions"));
+    if (!default_saveDir.exists())
+        default_saveDir.mkpath(".");
+    m_saveDir = default_saveDir;
     addPort<FunctionNode>(PortType::In);
 }
 
@@ -147,8 +306,41 @@ QString FuncOutModel::getFileExtenstion() const
     return QString();
 }
 
+std::unordered_map<QString, QString> FuncOutModel::getParameters() const
+{
+    std::unordered_map<QString, QString> result;
+    if (m_saveDir.exists())
+        result["save_dir"] = m_saveDir.absolutePath();
+    result["save_filename"] = caption();
+    return result;
+}
+
+std::unordered_map<QString, QMetaType::Type> FuncOutModel::getParameterSchema() const
+{
+    std::unordered_map<QString, QMetaType::Type> schema;
+    schema["save_dir"] = QMetaType::QString;
+    return schema;
+}
+
+void FuncOutModel::setParameter(const QString &key, const QString &value)
+{
+    if (key == "save_dir") {
+        QDir dir(value);
+        if (dir.exists()) {
+            m_saveDir = dir;
+        }
+    }
+}
+
+Signature FuncOutModel::getFuncSignature()
+{
+    if (auto function = castedPort<FunctionNode>(PortType::In, 0))
+        return function->signature();
+    return Signature();
+}
+
 DataOutModel::DataOutModel()
-    : FdfBlockModel(FdfType::Output, io_names::DATA_OUT)
+    : FdfBlockModel(FdfType::Output, io_names::DATA_OUT, io_names::DATA_OUT)
     , m_fileType(CatalogType::Pickle)
 {
     addPort<DataNode>(PortType::In);
@@ -175,7 +367,7 @@ QString DataOutModel::getFileExtenstion() const
 }
 
 GraphModel::GraphModel()
-    : FdfBlockModel(FdfType::Output, io_names::GRAPH_FUNCTION)
+    : FdfBlockModel(FdfType::Output, io_names::GRAPH_FUNCTION, io_names::GRAPH_FUNCTION)
     , m_graph(nullptr)
 {
     addPort<FunctionNode>(PortType::In, "f");
