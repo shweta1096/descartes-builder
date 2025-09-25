@@ -161,17 +161,30 @@ QJsonObject FdfBlockModel::save() const
         QJsonObject portJson;
         portJson["index"] = static_cast<int>(i);
 
-        if (auto dataPort = const_cast<FdfBlockModel *>(this)->castedPort<DataNode>(PortType::Out,
-                                                                                    i)) {
+        if (auto dataPort = castedPort<DataNode>(PortType::Out, i)) {
             portJson["type_tag"] = dataPort->typeTagName();
             portJson["annotation"] = dataPort->annotation();
-        } else if (auto funcPort = const_cast<FdfBlockModel *>(this)
-                                       ->castedPort<FunctionNode>(PortType::Out, i)) {
+        } else if (auto funcPort = castedPort<FunctionNode>(PortType::Out, i)) {
             portJson["caption"] = funcPort->name();
         }
         outputPortsJson.append(portJson);
     }
     modelJson["output_ports"] = outputPortsJson;
+
+    // Save input ports
+    QJsonArray inputPortsJson;
+    for (size_t i = 0; i < m_inPorts.size(); ++i) {
+        QJsonObject portJson;
+        portJson["index"] = static_cast<int>(i);
+        if (auto casted = getInputPortAt<DataNode>(i))
+            portJson["type_id"] = constants::DATA_PORT_ID;
+        else if (auto casted = getInputPortAt<FunctionNode>(i))
+            portJson["type_id"] = constants::FUNCTION_PORT_ID;
+        else
+            qWarning() << "Unknown input port type at index" << i;
+        inputPortsJson.append(portJson);
+    }
+    modelJson["input_ports"] = inputPortsJson;
     return modelJson;
 }
 
@@ -192,6 +205,26 @@ void FdfBlockModel::load(QJsonObject const &p)
         QJsonObject parameters = value.toObject();
         for (auto key : parameters.keys())
             setParameter(key, parameters.value(key).toString());
+
+        // load input ports
+        QJsonArray inputPortsJson = p["input_ports"].toArray();
+        if (!inputPortsJson.isEmpty()) {
+            // First, clear current ports (or sync to expected count)
+            setPortNumber<DataNode>(PortType::In, 0);
+            setPortNumber<FunctionNode>(PortType::In, 0);
+
+            for (const auto &inputPort : inputPortsJson) {
+                QJsonObject portJson = inputPort.toObject();
+                QString typeId = portJson["type_id"].toString(); // data or function
+                if (typeId == constants::DATA_PORT_ID) {
+                    addPort<DataNode>(PortType::In);
+                } else if (typeId == constants::FUNCTION_PORT_ID) {
+                    addPort<FunctionNode>(PortType::In);
+                } else {
+                    qWarning() << "Unknown input port typeId:" << typeId;
+                }
+            }
+        }
     }
 }
 
@@ -426,8 +459,16 @@ bool FdfBlockModel::canConnect(ConnectionInfo &connInfo) const
 
 bool FdfBlockModel::warnInvalidConnection(ConnectionInfo connInfo, const QString &message) const
 {
-    // since the calls are on the same thread, direct call works
-    return const_cast<FdfBlockModel *>(this)->showWarning(connInfo, message);
+    // if already showing a warning, don’t show another
+    static bool warningActive = false;
+    if (warningActive)
+        return false;
+
+    warningActive = true;
+    bool ret = const_cast<FdfBlockModel *>(this)->showWarning(connInfo, message);
+    warningActive = false;
+
+    return ret;
 }
 
 bool FdfBlockModel::showWarning(ConnectionInfo connInfo, const QString &message)
@@ -461,10 +502,60 @@ bool FdfBlockModel::showWarning(ConnectionInfo connInfo, const QString &message)
         msgBox.setInformativeText(message);
         msgBox.exec();
 
+    } else if (message == constants::SIGNATURE_MISMATCH_PREVFUNC) {
+        auto receivedTypes = connInfo.receivedSignature->inputs;
+        auto expectedTypes = connInfo.expectedSignature->outputs;
+        return handleSignatureMismatch(expectedTypes, receivedTypes, message);
+    } else if (message == constants::SIGNATURE_MISMATCH_NEXTFUNC) {
+        auto receivedTypes = connInfo.receivedSignature->outputs;
+        auto expectedTypes = connInfo.expectedSignature->inputs;
+        return handleSignatureMismatch(expectedTypes, receivedTypes, message);
     } else {
         qWarning() << "Unknown connection warning message: " << message;
     }
     return false;
+}
+
+bool FdfBlockModel::handleSignatureMismatch(std::vector<FdfUID> expectedTypes,
+                                            std::vector<FdfUID> receivedTypes,
+                                            const QString &message)
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setText("<b><span style='color:red;'>Invalid Connection</span></b>");
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+
+    auto uidManager = TabManager::getUIDManager();
+    if (receivedTypes.size() != expectedTypes.size()) {
+        msgBox.setInformativeText(QString(message)
+                                      .arg(uidManager->toString(receivedTypes))
+                                      .arg(uidManager->toString(expectedTypes)));
+        msgBox.exec();
+        return false;
+    }
+
+    for (int i = 0; i < receivedTypes.size(); ++i) {
+        if (receivedTypes[i] != expectedTypes[i]) {
+            QString expectedTag = uidManager->getTag(expectedTypes[i]);
+            QString gotTag = uidManager->getTag(receivedTypes[i]);
+
+            if (expectedTag != UIDManager::NONE_TAG && gotTag != UIDManager::NONE_TAG) {
+                msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Ignore);
+                msgBox.button(QMessageBox::Ignore)->setText("Override");
+            } else {
+                msgBox.setStandardButtons(QMessageBox::Ok);
+            }
+            msgBox.setInformativeText(QString(message).arg(gotTag).arg(expectedTag));
+
+            if (msgBox.exec() == QMessageBox::Ignore) {
+                uidManager->updateMap(receivedTypes[i], expectedTag);
+            } else {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 void FdfBlockModel::updateStyle()
@@ -479,6 +570,9 @@ void FdfBlockModel::updateStyle()
         break;
     case FdfType::Trainer:
         style.GradientColor1 = constants::COLOR_TRAINER;
+        break;
+    case FdfType::Composer:
+        style.GradientColor1 = constants::COLOR_COMPOSER;
         break;
     case FdfType::Data:
     case FdfType::Output:
@@ -502,6 +596,9 @@ void FdfBlockModel::updateShape()
         break;
     case FdfType::Trainer:
         m_shape = NodeShape::Pentagon;
+        break;
+    case FdfType::Composer:
+        m_shape = NodeShape::Circle;
         break;
     case FdfType::Data:
     case FdfType::Output:

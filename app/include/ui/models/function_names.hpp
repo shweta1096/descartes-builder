@@ -30,3 +30,15 @@ constexpr ConstLatin1String BASIC_TRAINER = "basic_trainer";
 constexpr ConstLatin1String PYTORCH_TRAINER = "pytorch_trainer";
 
 } // namespace trainer_function
+
+namespace composer_names {
+constexpr ConstLatin1String FUNCTION_COMPOSER = "composer";
+} // namespace composer_names
+
+namespace io_names {
+constexpr ConstLatin1String DATA_SOURCE = "data_source";
+constexpr ConstLatin1String FUNC_SOURCE = "func_source";
+constexpr ConstLatin1String FUNC_OUT = "func_out";
+constexpr ConstLatin1String DATA_OUT = "data_out";
+constexpr ConstLatin1String GRAPH_FUNCTION = "graph_function";
+} // namespace io_names

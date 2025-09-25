@@ -134,7 +134,7 @@ void UIDManager::overrideType(FdfUID removeType, FdfUID keepType)
         qWarning() << "UID Manager does not have an associated graph!";
         return;
     }
-    // Step 1: Update types in the graph
+    // Update types in the graph
     for (const auto &id : graph->allNodeIds()) {
         auto block = graph->delegateModel<FdfBlockModel>(id);
         if (!block)
@@ -157,8 +157,8 @@ void UIDManager::overrideType(FdfUID removeType, FdfUID keepType)
             Signature signature = functionPort->signature();
 
             // Replace type in input and output signatures
-            updated = replaceTypesInUIDVector(signature.inputs, keepType, removeType);
-            updated = replaceTypesInUIDVector(signature.outputs, keepType, removeType);
+            updated |= replaceTypesInUIDVector(signature.inputs, keepType, removeType);
+            updated |= replaceTypesInUIDVector(signature.outputs, keepType, removeType);
 
             if (updated)
                 functionPort->setSignature(signature);
@@ -228,4 +228,13 @@ FdfUID UIDManager::getOrCreateUIDOnFuncLoad(const QString &fileHash, int origina
     FdfUID newId = createUID();
     mapForFile[originalId] = newId;
     return newId;
+}
+
+QString UIDManager::toString(const std::vector<FdfUID> &ids) const
+{
+    QStringList list;
+    for (auto &i : ids) {
+        list << getTag(i);
+    }
+    return list.join(", ");
 }

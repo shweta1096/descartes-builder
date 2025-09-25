@@ -1,5 +1,6 @@
 #include "ui/models/io_models.hpp"
 #include "data/tab_manager.hpp"
+#include "ui/models/function_names.hpp"
 #include <quazip/JlCompress.h>
 
 #include <QJsonArray>
@@ -180,33 +181,44 @@ void FuncSourceModel::setFile(const QFileInfo &file)
     m_file = file;
 
     auto dataDir = TabManager::instance().getCurrentTab()->getDataDir();
-    QDir tempDir(dataDir.filePath(QString("func_unzip")));
-    if (!tempDir.exists())
-        tempDir.mkpath(".");
+    auto tmpDir = TabManager::instance().getCurrentTab()->getTempDir();
     QString zipPath = dataDir.filePath(m_file.fileName());
     if (!QFile::exists(zipPath)) {
         return;
     }
-    QStringList unzippedFiles = JlCompress::extractDir(zipPath, tempDir.absolutePath());
-    if (unzippedFiles.isEmpty()) {
+
+    // keep the dataDir clean, as it finally is compressed into the dcb file
+    // so, unzip into the tmpDir
+    // extract only the light-weight json from the zip into tempUnzipDir
+    // to create unique "func_unzip_filehash" folder. Here is
+    // where the full zip is extracted. The tempUnzipDir is deleted
+    // after full extraction to keep the tmpDir clean
+    QStringList filesInZip = JlCompress::getFileList(zipPath);
+    QString jsonFileName;
+    for (const QString &f : filesInZip) {
+        if (f.endsWith(".json")) {
+            jsonFileName = f;
+            break;
+        }
+    }
+    if (jsonFileName.isEmpty()) {
+        qWarning() << "FuncSourceModel: No JSON metadata found in archive.";
         return;
     }
-    QString dillPath, jsonPath;
-    for (const QString &path : unzippedFiles) {
-        if (path.endsWith(".pkl"))
-            dillPath = path;
-        else if (path.endsWith(".json"))
-            jsonPath = path;
-    }
-
-    if (dillPath.isEmpty() || jsonPath.isEmpty()) {
-        qWarning() << "FuncSourceModel: .dill or .json missing in archive.";
+    QString tempFolder = tmpDir->filePath(QString("func_unzip_tmp"));
+    QDir tempUnzipDir(tempFolder);
+    if (tempUnzipDir.exists())
+        tempUnzipDir.removeRecursively();
+    tempUnzipDir.mkpath(".");
+    QStringList extractedJson = JlCompress::extractFiles(zipPath,
+                                                         {jsonFileName},
+                                                         tempUnzipDir.absolutePath());
+    if (extractedJson.isEmpty()) {
+        qWarning() << "FuncSourceModel: Failed to extract JSON metadata.";
         return;
     }
-    m_dillPath = dillPath;
 
-    // Step 1: Load JSON metadata
-    QFile jsonFile(jsonPath);
+    QFile jsonFile(extractedJson.first());
     if (!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qWarning() << "FuncSourceModel: Failed to read metadata json.";
         return;
@@ -217,16 +229,41 @@ void FuncSourceModel::setFile(const QFileInfo &file)
         return;
     }
     QJsonObject meta = doc.object();
-    QJsonObject sig = meta["function_signature"].toObject();
-
-    // Fetch the file hash from metadata
     QString fileHash = meta["file_hash"].toString().trimmed();
     if (fileHash.isEmpty()) {
         qWarning() << "FuncSourceModel: file_hash missing in metadata.";
         return;
     }
 
-    // Remap UIDs based on mapping per file hash
+    QString hashFolderPath = tmpDir->filePath(QString("func_unzip_%1").arg(fileHash));
+    QDir hashDir(hashFolderPath);
+    if (!hashDir.exists())
+        hashDir.mkpath(".");
+
+    QStringList unzippedFiles = JlCompress::extractDir(zipPath, hashDir.absolutePath());
+    if (unzippedFiles.isEmpty()) {
+        qWarning() << "FuncSourceModel: Archive extraction failed.";
+        return;
+    }
+    QString dillPath;
+    for (const QString &path : unzippedFiles) {
+        if (path.endsWith(".pkl")) {
+            dillPath = path;
+            break;
+        }
+    }
+    if (dillPath.isEmpty()) {
+        qWarning() << "FuncSourceModel: .pkl missing in archive.";
+        return;
+    }
+    m_dillPath = dillPath;
+
+    QJsonObject sig = meta["function_signature"].toObject();
+    if (sig.isEmpty() || sig["input"].toArray().isEmpty() || sig["output"].toArray().isEmpty()) {
+        qWarning() << "FuncSourceModel: Invalid or missing function signature in metadata.";
+        return;
+    }
+
     auto uidManager = TabManager::getUIDManager();
     auto remapUID = [&](int original) -> FdfUID {
         return uidManager->getOrCreateUIDOnFuncLoad(fileHash, original);
@@ -245,6 +282,9 @@ void FuncSourceModel::setFile(const QFileInfo &file)
         return;
     }
 
+    // clean up temp dir
+    if (tempUnzipDir.exists())
+        tempUnzipDir.removeRecursively();
     port->setSignature(signature);
     port->setName(m_file.baseName());
     emit contentUpdated();

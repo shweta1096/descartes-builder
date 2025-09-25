@@ -35,6 +35,7 @@ private:
     void onNodeDeleted(const QtNodes::NodeId nodeId);
 
     void onOutPortInserted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex index);
+    void onInPortInserted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex index);
     void onOutPortDeleted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex index);
 
     // rename captions that are duplicates

@@ -20,7 +20,7 @@ echo ========================================
 if exist "%INSTALL_DIR%" (
     echo.
     echo The directory already exists: %INSTALL_DIR%
-    set /p USER_CHOICE=Do you want to delete this directory and continue? (Y/N): 
+    set /p USER_CHOICE=Do you want to delete this directory and continue? (Y/N^): 
     if /I "%USER_CHOICE%"=="Y" (
         echo Deleting directory...
         rmdir /S /Q "%INSTALL_DIR%"

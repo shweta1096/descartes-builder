@@ -63,6 +63,7 @@ public:
 
     Signature signature() const;
     void setSignature(const Signature &signature);
+    bool hasValidSignature() const;
 
 private:
     Signature m_signature;

@@ -22,6 +22,7 @@ public:
         Trainer,
         Data,
         Output,
+        Composer,
     };
 
     FdfBlockModel(FdfType type, const QString &name, const QString &functionName = QString());
@@ -88,6 +89,7 @@ signals:
     void outPortCaptionUpdated(const PortIndex &index, const QString &caption);
     void outPortInserted(const PortIndex &index);
     void outPortDeleted(const PortIndex &index);
+    void inPortInserted(const PortIndex &index);
 
 public slots:
     virtual void outputConnectionCreated(ConnectionId const &conn) override;
@@ -120,6 +122,8 @@ protected:
         emit portsInserted();
         if (type == PortType::Out)
             emit outPortInserted(index);
+        else if (type == PortType::In)
+            emit inPortInserted(index);
         emit contentUpdated();
     }
     template<typename T>
@@ -155,7 +159,10 @@ protected:
     void setPortNumber(PortType type, uint num)
     {
         static_assert(std::is_base_of<NodeData, T>::value, "T must derive from NodeData");
-        uint current = nPorts(type, constants::DATA_PORT_ID);
+        bool isFunctionNode = std::is_same<T, FunctionNode>::value;
+        uint current = nPorts(type,
+                              isFunctionNode ? constants::FUNCTION_PORT_ID
+                                             : constants::DATA_PORT_ID);
         if (current > num)
             for (int i = 0; i < current - num; ++i)
                 removePort<T>(type);
@@ -164,7 +171,7 @@ protected:
                 addPort<T>(type);
     }
     template<typename T>
-    std::shared_ptr<T> castedPort(PortType type, PortIndex index)
+    std::shared_ptr<T> castedPort(PortType type, PortIndex index) const
     {
         static_assert(std::is_base_of<NodeData, T>::value, "T must derive from NodeData");
         if (type == PortType::In) {
@@ -198,11 +205,15 @@ private:
 
     void updateStyle();
     void updateShape();
+    bool handleSignatureMismatch(std::vector<FdfUID> expectedTypes,
+                                 std::vector<FdfUID> receivedTypes,
+                                 const QString &message);
 
     const std::unordered_map<FdfType, QString> TYPE_STRING = {
         {FdfType::Coder, "coder"},
         {FdfType::Processor, "processor"},
         {FdfType::Trainer, "trainer"},
+        {FdfType::Composer, "composer"},
         {FdfType::Data, "data"},
         {FdfType::Output, "output"},
     };

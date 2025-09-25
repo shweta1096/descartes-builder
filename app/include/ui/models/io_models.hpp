@@ -9,14 +9,7 @@
 class QWidget;
 class QLabel;
 
-namespace io_names {
-using ConstLatin1String = QtUtility::data::ConstLatin1String;
-constexpr ConstLatin1String DATA_SOURCE = "data_source";
-constexpr ConstLatin1String FUNC_SOURCE = "func_source";
-constexpr ConstLatin1String FUNC_OUT = "func_out";
-constexpr ConstLatin1String DATA_OUT = "data_out";
-constexpr ConstLatin1String GRAPH_FUNCTION = "graph_function";
-} // namespace io_names
+
 
 enum CatalogType { Pickle, Csv, H5 };
 

@@ -173,9 +173,16 @@ void MainWindow::initScene()
             &AbstractEngine::finished,
             m_graphicsSceneTabWidget,
             &GraphicsSceneTabWidget::runFinished);
+    connect(m_engine.get(), &AbstractEngine::finished, this, &MainWindow::executionFinished);
     connect(m_engine.get(), &AbstractEngine::scoreYmlCreated, this, &MainWindow::scoreParameters);
 
     layout->addWidget(m_graphicsSceneTabWidget);
+}
+
+void MainWindow::executionFinished(bool success)
+{
+    // used for testing
+    emit runFinished(success);
 }
 
 void MainWindow::scoreParameters(const QString &scoreParameters)
