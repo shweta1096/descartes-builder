@@ -1,4 +1,5 @@
 #include "ui/models/nodes.hpp"
+#include <algorithm>
 
 DataNode::DataNode()
     : NamedNode("data")
@@ -112,4 +113,20 @@ Signature FunctionNode::signature() const
 void FunctionNode::setSignature(const Signature &signature)
 {
     m_signature = signature;
+}
+
+bool FunctionNode::hasValidSignature() const
+{
+    if (m_signature.isEmpty())
+        return false;
+
+    auto isNone = [](const auto &id) { return id == UIDManager::NONE_ID; };
+
+    if (std::any_of(m_signature.inputs.begin(), m_signature.inputs.end(), isNone))
+        return false;
+
+    if (std::any_of(m_signature.outputs.begin(), m_signature.outputs.end(), isNone))
+        return false;
+
+    return true;
 }

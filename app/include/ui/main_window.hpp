@@ -31,6 +31,7 @@ private slots:
     void onBlockUpdated(const uint &id);
 
 signals:
+    void runFinished(bool success);
     void scoreParams(const QString &scoreParams);
 
 private:
@@ -42,6 +43,7 @@ private:
     void initLogPanel();
     bool validateTab(std::shared_ptr<TabComponents> &tab);
     void scoreParameters(const QString &scorePath);
+    void executionFinished(bool success);
 
     void enableChartAction(bool state);
 

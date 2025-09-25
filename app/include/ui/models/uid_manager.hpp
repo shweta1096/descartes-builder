@@ -25,7 +25,7 @@ struct Signature
             outputs.at(port - inputs.size()) = typeId;
     }
     void inverse() { std::swap(inputs, outputs); }
-    bool isEmpty() const { return inputs.empty() && outputs.empty(); }
+    bool isEmpty() const { return inputs.empty() || outputs.empty(); }
     void print() const { qDebug() << inputs << " => " << outputs; }
 };
 
@@ -34,6 +34,7 @@ struct ConnectionInfo
 {
     FdfUID expectedInType;
     FdfUID receivedOutType;
+    std::shared_ptr<Signature> expectedSignature;
     std::shared_ptr<Signature> receivedSignature;
     PortIndex inIndex;
     PortIndex outIndex;
@@ -44,7 +45,8 @@ struct ConnectionInfo
 
     ConnectionInfo(FdfUID expectedIn = -1,
                    FdfUID receivedOut = -1,
-                   std::shared_ptr<Signature> signature = nullptr,
+                   std::shared_ptr<Signature> expSignature = nullptr,
+                   std::shared_ptr<Signature> recSignature = nullptr,
                    PortIndex inIdx = -1,
                    PortIndex outIdx = -1,
                    NodeId inNode = -1,
@@ -53,7 +55,8 @@ struct ConnectionInfo
                    QString outCaption = QString())
         : expectedInType(expectedIn)
         , receivedOutType(receivedOut)
-        , receivedSignature(signature)
+        , expectedSignature(expSignature)
+        , receivedSignature(recSignature)
         , inIndex(inIdx)
         , outIndex(outIdx)
         , inNodeId(inNode)
@@ -82,6 +85,7 @@ public:
     void updateMap(FdfUID &uid, QString &tag);
     ConnectionInfo getConnectionInfo(QtNodes::ConnectionId const connectionId) const;
     QString getUniqueTag(QString tag);
+    QString toString(const std::vector<FdfUID> &ids) const;
     FdfUID getOrCreateUIDOnFuncLoad(const QString &fileHash, int originalId);
 
 private:
@@ -95,12 +99,12 @@ private:
     void displayMaps() const;
     void refreshDisplayNames();
     // Cache of UID used to load/save functions
-    // It allows to remap stored UIDs to runtime UIDs and ensure 
+    // It allows to remap stored UIDs to runtime UIDs and ensure
     // that UIDs from the same file are mapped to same runtime UID.
-    // Thus, we would avoid redundant overrides. 
+    // Thus, we would avoid redundant overrides.
     // file hash -*> <UID json, UID runtime>
-    std::unordered_map<QString, std::unordered_map<FdfUID, FdfUID>> fileUidCache; 
-    
+    std::unordered_map<QString, std::unordered_map<FdfUID, FdfUID>> fileUidCache;
+
     // TODO Later : Add map to store coder models to check the following :-
     // 1. iff all the Coder parameter are the same ^ all input types are same ->
     // we could reuse an existing type (T2 == T3).

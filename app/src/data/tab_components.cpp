@@ -1,5 +1,6 @@
 #include "data/tab_components.hpp"
 #include "data/tab_manager.hpp"
+#include "ui/models/function_names.hpp"
 #include <QDebug>
 #include <QFileDialog>
 #include <QJsonArray>
@@ -179,14 +180,13 @@ void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)
 void TabComponents::onFuncSourceImportClicked(const QtNodes::NodeId nodeId)
 {
     auto funcSource = m_graph->delegateModel<FuncSourceModel>(nodeId);
-    if (!funcSource->functionName().isEmpty()
-        && funcSource->functionName() != io_names::FUNC_SOURCE) {
+    if (!funcSource->file().fileName().isEmpty()) {
         QMessageBox::information(
             nullptr,
             tr("Import Not Allowed"),
             QString("Cannot re-import function into an already-initialized function source. \n"
                     "Function: %1")
-                .arg(funcSource->functionName()));
+                .arg(funcSource->file().fileName()));
         return;
     }
     QFileInfo originalFile(QFileDialog::getOpenFileName(nullptr,
@@ -196,12 +196,27 @@ void TabComponents::onFuncSourceImportClicked(const QtNodes::NodeId nodeId)
                                                         tr("Function Source (*.zip)")));
     if (originalFile.filePath().isEmpty() || originalFile.suffix().isEmpty())
         return;
-    qDebug() << "copy to: " << m_dataDir.absoluteFilePath(originalFile.fileName());
-    QFileInfo newFile(m_dataDir.absoluteFilePath(originalFile.fileName()));
+    QString destFilePath = m_dataDir.absoluteFilePath(originalFile.fileName());
+
+    // if a function with same name gets imported in the graph,
+    // to correctly point in the catalog, adjust the file name
+    if (QFile::exists(destFilePath)) {
+        // inform the user that a file with the same name exists, so, renaming
+        int counter = 1;
+        while (QFile::exists(destFilePath)) {
+            destFilePath = m_dataDir.absoluteFilePath(originalFile.baseName() + "_"
+                                                      + QString::number(counter) + ".zip");
+            counter++;
+        }
+        QMessageBox::information(nullptr,
+                                 tr("Function already exists, Renaming"),
+                                 tr("%1 already exists. Renaming the new function to %2")
+                                     .arg(originalFile.fileName(),
+                                          QFileInfo(destFilePath).fileName()));
+    }
+    qDebug() << "copy to:" << destFilePath;
+    QFileInfo newFile(destFilePath);
     QFile::copy(originalFile.absoluteFilePath(), newFile.absoluteFilePath());
-    QFileInfo oldFile(m_dataDir.absoluteFilePath(funcSource->functionName()));
-    if (oldFile.exists())
-        QFile::remove(oldFile.absoluteFilePath());
     funcSource->setFile(newFile);
 }
 

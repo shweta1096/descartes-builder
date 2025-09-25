@@ -2,6 +2,7 @@
 
 #include "data/tab_manager.hpp"
 #include "ui/models/fdf_block_model.hpp"
+#include "ui/models/function_names.hpp"
 #include "ui/models/io_models.hpp"
 #include "ui/models/processor_models.hpp"
 #include <QAbstractButton>
@@ -98,6 +99,9 @@ void CustomGraph::initBlockConnections(const QtNodes::NodeId nodeId, FdfBlockMod
     connect(block, &FdfBlockModel::outPortInserted, this, [nodeId, this](const PortIndex index) {
         onOutPortInserted(nodeId, index);
     });
+    connect(block, &FdfBlockModel::inPortInserted, this, [nodeId, this](const PortIndex index) {
+        onInPortInserted(nodeId, index);
+    });
     connect(block, &FdfBlockModel::outPortDeleted, this, [nodeId, this](const PortIndex index) {
         onOutPortDeleted(nodeId, index);
     });
@@ -158,6 +162,8 @@ void CustomGraph::stylePorts(const QtNodes::NodeId &nodeId, FdfBlockModel *block
 
 void CustomGraph::onNodeDeleted(const QtNodes::NodeId nodeId)
 {
+    // Todo : when datasrc/funcsrc deleted, remove the associated files from m_dataDor
+    // so that the dcb created from it is clean
     removeByValue(m_usedNodeCaptions, nodeId);
     removeByPairFirst(m_usedOutPortCaptions, nodeId);
     if (m_dataSourceNodes.find(nodeId) != m_dataSourceNodes.end())
@@ -175,6 +181,15 @@ void CustomGraph::onOutPortInserted(const QtNodes::NodeId nodeId, const QtNodes:
     if (!block)
         return;
     makeOutPortsUnique(nodeId, block, oldIndex);
+    stylePorts(nodeId, block);
+}
+
+void CustomGraph::onInPortInserted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex oldIndex)
+{
+    auto block = delegateModel<FdfBlockModel>(nodeId);
+    if (!block)
+        return;
+    stylePorts(nodeId, block);
 }
 
 void CustomGraph::onOutPortDeleted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex oldIndex)

@@ -261,8 +261,7 @@ bool ScoreModel::canConnect(ConnectionInfo &connInfo) const
 {
     auto otherIndex = (connInfo.inIndex == 0) ? 1 : 0;
     // check if the other input is already set, if so, get its type
-    if (auto otherInput = const_cast<ScoreModel *>(this)->castedPort<DataNode>(PortType::In,
-                                                                               otherIndex)) {
+    if (auto otherInput = castedPort<DataNode>(PortType::In, otherIndex)) {
         connInfo.expectedInType = otherInput->typeId();
         if (connInfo.expectedInType != connInfo.receivedOutType)
             return warnInvalidConnection(connInfo, constants::TYPE_MISMATCH);
@@ -331,8 +330,7 @@ bool DifferenceModel::canConnect(ConnectionInfo &connInfo) const
 {
     auto otherIndex = (connInfo.inIndex == 0) ? 1 : 0;
     // check if the other input is already set, if so, get its type
-    if (auto otherInput = const_cast<DifferenceModel *>(this)->castedPort<DataNode>(PortType::In,
-                                                                                    otherIndex)) {
+    if (auto otherInput = castedPort<DataNode>(PortType::In, otherIndex)) {
         connInfo.expectedInType = otherInput->typeId();
         if (connInfo.expectedInType != connInfo.receivedOutType)
             return warnInvalidConnection(connInfo, constants::TYPE_MISMATCH);

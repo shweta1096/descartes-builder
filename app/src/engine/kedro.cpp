@@ -276,6 +276,8 @@ void Kedro::onExecutionFinished(int exitCode, QProcess::ExitStatus exitStatus)
         return;
     }
     m_execution->timer.stop();
+
+    bool runStatus = (exitStatus == QProcess::NormalExit && exitCode == 0);
     if (exitStatus == QProcess::ExitStatus::CrashExit) {
         qCritical() << "Failed to run kedro";
     } else if (exitCode != 0) {
@@ -287,11 +289,13 @@ void Kedro::onExecutionFinished(int exitCode, QProcess::ExitStatus exitStatus)
     if (!errorOutput.isEmpty())
         output += "\nERROR LOG:\n" + QString::fromUtf8(errorOutput);
 
-    postExecutionProcess();
+    if (runStatus) {
+        postExecutionProcess();
+    }
     qDebug() << "Kedro executed, result is stored in: " << m_execution->project.absolutePath();
     emit executed(output);
     releaseExecution();
-    emit finished(true);
+    emit finished(runStatus);
 }
 
 void Kedro::onTimeOut()
@@ -457,7 +461,6 @@ void Kedro::postScoreModel(CustomGraph *graph, const QtNodes::NodeId &id)
     // save the score
     if (reportDir.exists("score.yml")) {
         // parse score.yml
-        // XXX HACKY PARSER
         QFile yml(reportDir.absoluteFilePath("score.yml"));
         if (!yml.open(QIODevice::ReadOnly | QIODevice::Text)) {
             qWarning() << "Cannot open score.yml";

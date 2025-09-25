@@ -3,6 +3,7 @@
 #include <QtNodes/NodeDelegateModelRegistry>
 
 #include "ui/models/coder_models.hpp"
+#include "ui/models/composer_models.hpp"
 #include "ui/models/io_models.hpp"
 #include "ui/models/processor_models.hpp"
 #include "ui/models/trainer_models.hpp"
@@ -26,6 +27,7 @@ static std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registerDataModels()
     ret->registerModel<ReduceDataModel>("Coder");
     ret->registerModel<BasicTrainerModel>("Trainer");
     ret->registerModel<TorchTrainerModel>("Trainer");
+    ret->registerModel<ComposerModel>("Composer");
 
     return ret;
 }
