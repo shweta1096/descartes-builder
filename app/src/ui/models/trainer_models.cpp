@@ -1,4 +1,5 @@
 #include "ui/models/trainer_models.hpp"
+#include "data/parameter_utils.hpp"
 #include "ui/models/function_names.hpp"
 namespace {
 using Model = BasicTrainerModel::Model;
@@ -113,13 +114,7 @@ std::unordered_map<QString, QString> BasicTrainerModel::getParameters() const
     if (m_randomState)
         result[RANDOM_STATE] = QString::number(m_randomState.value());
     if (m_model == Model::Mlp2 && m_hiddenLayerSizes) {
-        QStringList sizes;
-        for (auto &size : m_hiddenLayerSizes.value()) {
-            sizes << QString::number(size);
-        }
-        QString input_string = sizes.join(", ");
-        QString formatted_string = "[" + input_string + "]"; // Kedro expects [size1, size2, ...]
-        result[HIDDEN_LAYER_SIZES] = formatted_string;
+        result[HIDDEN_LAYER_SIZES] = vectorToString(*m_hiddenLayerSizes);
     }
     return result;
 }
@@ -129,7 +124,7 @@ std::unordered_map<QString, QMetaType::Type> BasicTrainerModel::getParameterSche
     std::unordered_map<QString, QMetaType::Type> schema;
     schema[RANDOM_STATE] = QMetaType::Int;
     schema[MODEL] = QMetaType::QString;
-    schema[HIDDEN_LAYER_SIZES] = QMetaType::QVector2D;
+    schema[HIDDEN_LAYER_SIZES] = QMetaType::QVariantList;
     return schema;
 }
 
@@ -154,13 +149,7 @@ void BasicTrainerModel::setParameter(const QString &key, const QString &value)
                 break;
             }
     } else if (key == HIDDEN_LAYER_SIZES) {
-        std::vector<int> result;
-        // For compatibility with kedro expected format
-        auto formattedValue = value;
-        auto sizes = formattedValue.replace("[", "").replace("]", "").replace(" ", "").split(",");
-        for (auto size : sizes)
-            result.push_back(size.toInt());
-        setHiddenLayerSizes(result);
+        setHiddenLayerSizes(stringToVector(value));
     }
 }
 

@@ -618,7 +618,7 @@ QWidget *Blocks::generateParameterWidget(FdfBlockModel *block)
                 });
             }
             layout->addRow(new QLabel(key), pointLayout);
-        } else if (pair.second == QMetaType::QVector2D) {
+        } else if (pair.second == QMetaType::QVector2D || pair.second == QMetaType::QVariantList) {
             // UI for this can be improved
             auto edit = new QLineEdit(value);
             layout->addRow(new QLabel(key), edit);
