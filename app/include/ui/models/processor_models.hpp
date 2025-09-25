@@ -145,11 +145,17 @@ private:
     inline static const QString TARGET = "target";
     inline static const QString DIFF_STEP = "diff_step";
     inline static const QString GRID_SIZE = "grid_size";
+    inline static const QString NUM_FEATURES = "NUM_FEATURES";
+    inline static const QString LOW = "LOW";
+    inline static const QString HIGH = "HIGH";
 
     int m_numSample = 1;
     int m_target = 0;
     int m_diffStep = 10;
     int m_gridSize = 1000;
+    int m_numFeatures = 10;
+    std::vector<int> m_low = std::vector<int>(10, 0);
+    std::vector<int> m_high = std::vector<int>(10, 16);
     Signature m_signature;
 };
 
