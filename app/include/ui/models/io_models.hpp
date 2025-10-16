@@ -9,13 +9,7 @@
 class QWidget;
 class QLabel;
 
-namespace io_names {
-using ConstLatin1String = QtUtility::data::ConstLatin1String;
-constexpr ConstLatin1String DATA_SOURCE = "data_source";
-constexpr ConstLatin1String FUNC_OUT = "func_out";
-constexpr ConstLatin1String DATA_OUT = "data_out";
-constexpr ConstLatin1String GRAPH_FUNCTION = "graph_function";
-} // namespace io_names
+
 
 enum CatalogType { Pickle, Csv, H5 };
 
@@ -47,6 +41,32 @@ private:
     std::optional<CatalogType> m_fileType;
 };
 
+class FuncSourceModel : public FdfBlockModel
+{
+    Q_OBJECT
+public:
+    FuncSourceModel();
+    QWidget *embeddedWidget() override;
+    QJsonObject save() const override;
+    void load(QJsonObject const &p) override;
+    void setFile(const QFileInfo &file);
+    QString dillPath() const { return m_dillPath; }
+    QFileInfo file() const { return m_file; }
+    QString fileTypeString() const;
+    QString getFileName() const;
+    bool checkBlockValidity() const override;
+
+signals:
+    void importClicked();
+
+private:
+    QWidget *m_widget;
+    QLabel *m_label;
+    CatalogType m_fileType;
+    QFileInfo m_file;
+    QString m_dillPath;
+};
+
 class FuncOutModel : public FdfBlockModel
 {
     Q_OBJECT
@@ -57,9 +77,15 @@ public:
     void setFileType(const CatalogType &fileType) { m_fileType = fileType; }
     QString getFileName() const;
     QString getFileExtenstion() const;
+    virtual std::unordered_map<QString, QString> getParameters() const override;
+    virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
+    virtual void setParameter(const QString &key, const QString &value) override;
+    QString getSaveDir() const { return m_saveDir.absolutePath(); }
+    Signature getFuncSignature();
 
 private:
     CatalogType m_fileType;
+    QDir m_saveDir; // Directory where the zip file will be saved
 };
 
 class DataOutModel : public FdfBlockModel

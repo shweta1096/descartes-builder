@@ -18,6 +18,7 @@ constexpr QColor COLOR_ACCENT(51, 153, 255);
 constexpr QColor COLOR_CODER(185, 224, 165);
 constexpr QColor COLOR_PROCESSOR(169, 196, 236);
 constexpr QColor COLOR_TRAINER(205, 162, 190);
+constexpr QColor COLOR_COMPOSER(255, 204, 153);
 
 constexpr uint SIDE_BAR_MINIMUM_WIDTH = 250;
 constexpr uint INT_LINE_EDIT_MAXIMUM_WIDTH = 150;
@@ -144,7 +145,7 @@ constexpr ConstLatin1String CATALOG_YML_ENTRY =
 constexpr ConstLatin1String PIPELINE_PY =
     R"(
 from kedro.pipeline import Pipeline, node, pipeline
-from kedro_umbrella import coder, processor, trainer
+from kedro_umbrella import coder, processor, trainer, composer
 from kedro_umbrella.library import *
 from .nodes import *
 
@@ -168,4 +169,14 @@ const QString SINGULAR_SIGNATURE
 const QString WARN_MANUAL_OVERRIDE = "The tag you entered already "
                                      "exists. Do you want to "
                                      "override the existing tag?";
+
+const QString SIGNATURE_MISMATCH_PREVFUNC = "Failed to connect '%1'. The expected input is of "
+                                            "signature '%2'.\nPlease verify your "
+                                            "connections or use 'Override' to indicate that "
+                                            "these two signatures are the same.";
+
+const QString SIGNATURE_MISMATCH_NEXTFUNC = "Failed to connect '%1'. The expected output is of "
+                                            "signature '%2'.\nPlease verify your "
+                                            "connections or use 'Override' to indicate that "
+                                            "these two signatures are the same.";
 } // namespace constants

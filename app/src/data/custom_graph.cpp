@@ -2,6 +2,7 @@
 
 #include "data/tab_manager.hpp"
 #include "ui/models/fdf_block_model.hpp"
+#include "ui/models/function_names.hpp"
 #include "ui/models/io_models.hpp"
 #include "ui/models/processor_models.hpp"
 #include <QAbstractButton>
@@ -51,11 +52,20 @@ std::vector<DataSourceModel *> CustomGraph::getDataSourceModels() const
     return result;
 }
 
+std::vector<FuncSourceModel *> CustomGraph::getFuncSourceModels() const
+{
+    std::vector<FuncSourceModel *> result;
+    for (auto &id : m_funcSourceNodes)
+        if (auto model = delegateModel<FuncSourceModel>(id))
+            result.push_back(model);
+    return result;
+}
 std::vector<FuncOutModel *> CustomGraph::getFuncOutModels() const
 {
     std::vector<FuncOutModel *> result;
     for (auto &id : m_funcOutNodes)
-        result.push_back(delegateModel<FuncOutModel>(id));
+        if (auto model = delegateModel<FuncOutModel>(id))
+            result.push_back(model);
     return result;
 }
 
@@ -89,6 +99,9 @@ void CustomGraph::initBlockConnections(const QtNodes::NodeId nodeId, FdfBlockMod
     connect(block, &FdfBlockModel::outPortInserted, this, [nodeId, this](const PortIndex index) {
         onOutPortInserted(nodeId, index);
     });
+    connect(block, &FdfBlockModel::inPortInserted, this, [nodeId, this](const PortIndex index) {
+        onInPortInserted(nodeId, index);
+    });
     connect(block, &FdfBlockModel::outPortDeleted, this, [nodeId, this](const PortIndex index) {
         onOutPortDeleted(nodeId, index);
     });
@@ -113,6 +126,13 @@ void CustomGraph::onNodeCreated(const QtNodes::NodeId nodeId)
         });
     } else if (block->name() == io_names::FUNC_OUT)
         m_funcOutNodes.insert(nodeId);
+    else if (block->name() == io_names::FUNC_SOURCE) {
+        m_funcSourceNodes.insert(nodeId);
+        auto funcSourceModel = dynamic_cast<FuncSourceModel *>(block);
+        connect(funcSourceModel, &FuncSourceModel::importClicked, this, [nodeId, this]() {
+            emit funcSourceModelImportClicked(nodeId);
+        });
+    }
 }
 
 void CustomGraph::stylePorts(const QtNodes::NodeId &nodeId, FdfBlockModel *block)
@@ -142,12 +162,16 @@ void CustomGraph::stylePorts(const QtNodes::NodeId &nodeId, FdfBlockModel *block
 
 void CustomGraph::onNodeDeleted(const QtNodes::NodeId nodeId)
 {
+    // Todo : when datasrc/funcsrc deleted, remove the associated files from m_dataDor
+    // so that the dcb created from it is clean
     removeByValue(m_usedNodeCaptions, nodeId);
     removeByPairFirst(m_usedOutPortCaptions, nodeId);
     if (m_dataSourceNodes.find(nodeId) != m_dataSourceNodes.end())
         m_dataSourceNodes.erase(nodeId);
     if (m_funcOutNodes.find(nodeId) != m_funcOutNodes.end())
         m_funcOutNodes.erase(nodeId);
+    if (m_funcSourceNodes.find(nodeId) != m_funcSourceNodes.end())
+        m_funcSourceNodes.erase(nodeId);
     m_trackedNodes.erase(nodeId);
 }
 
@@ -157,6 +181,15 @@ void CustomGraph::onOutPortInserted(const QtNodes::NodeId nodeId, const QtNodes:
     if (!block)
         return;
     makeOutPortsUnique(nodeId, block, oldIndex);
+    stylePorts(nodeId, block);
+}
+
+void CustomGraph::onInPortInserted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex oldIndex)
+{
+    auto block = delegateModel<FdfBlockModel>(nodeId);
+    if (!block)
+        return;
+    stylePorts(nodeId, block);
 }
 
 void CustomGraph::onOutPortDeleted(const QtNodes::NodeId nodeId, const QtNodes::PortIndex oldIndex)

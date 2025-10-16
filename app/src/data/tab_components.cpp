@@ -1,5 +1,6 @@
 #include "data/tab_components.hpp"
 #include "data/tab_manager.hpp"
+#include "ui/models/function_names.hpp"
 #include <QDebug>
 #include <QFileDialog>
 #include <QJsonArray>
@@ -56,6 +57,10 @@ TabComponents::TabComponents(QWidget *parent, std::optional<QFileInfo> fileInfo)
             &CustomGraph::dataSourceModelImportClicked,
             this,
             &TabComponents::onDataSourceImportClicked);
+    connect(m_graph,
+            &CustomGraph::funcSourceModelImportClicked,
+            this,
+            &TabComponents::onFuncSourceImportClicked);
     if (fileInfo) {
         m_localFile = fileInfo.value();
     }
@@ -72,7 +77,8 @@ bool TabComponents::save()
 {
     if (m_localFile.filePath().isEmpty() || m_localFile.suffix().isEmpty())
         return saveAs();
-    if (!m_scene->save(m_dataDir.absoluteFilePath(m_localFile.baseName() + SCENE_EXTENSION)))
+    QString sceneFilename = "scene" + SCENE_EXTENSION; // maintain 1 dag file per dcb
+    if (!m_scene->save(m_dataDir.absoluteFilePath(sceneFilename)))
         return false;
     if (!JlCompress::compressDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath()))
         return false;
@@ -131,12 +137,12 @@ bool TabComponents::openExisting()
     }
 
     JlCompress::extractDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath());
-    if (!m_dataDir.exists(m_localFile.baseName() + SCENE_EXTENSION)) {
-        qWarning() << "Scene file does not exist: "
-                   << m_dataDir.absoluteFilePath(m_localFile.baseName() + SCENE_EXTENSION);
+    QString sceneFilename = "scene" + SCENE_EXTENSION;
+    if (!m_dataDir.exists(sceneFilename)) {
+        qWarning() << "Scene file does not exist:" << sceneFilename;
         return false;
     }
-    return m_scene->load(m_dataDir.absoluteFilePath(m_localFile.baseName() + SCENE_EXTENSION));
+    return m_scene->load(m_dataDir.absoluteFilePath(sceneFilename));
 }
 
 void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)
@@ -169,6 +175,49 @@ void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)
     if (oldFile.exists())
         QFile::remove(oldFile.absoluteFilePath());
     dataSource->setFile(newFile);
+}
+
+void TabComponents::onFuncSourceImportClicked(const QtNodes::NodeId nodeId)
+{
+    auto funcSource = m_graph->delegateModel<FuncSourceModel>(nodeId);
+    if (!funcSource->file().fileName().isEmpty()) {
+        QMessageBox::information(
+            nullptr,
+            tr("Import Not Allowed"),
+            QString("Cannot re-import function into an already-initialized function source. \n"
+                    "Function: %1")
+                .arg(funcSource->file().fileName()));
+        return;
+    }
+    QFileInfo originalFile(QFileDialog::getOpenFileName(nullptr,
+                                                        tr("Import Function Source"),
+                                                        QStandardPaths::writableLocation(
+                                                            QStandardPaths::DocumentsLocation),
+                                                        tr("Function Source (*.zip)")));
+    if (originalFile.filePath().isEmpty() || originalFile.suffix().isEmpty())
+        return;
+    QString destFilePath = m_dataDir.absoluteFilePath(originalFile.fileName());
+
+    // if a function with same name gets imported in the graph,
+    // to correctly point in the catalog, adjust the file name
+    if (QFile::exists(destFilePath)) {
+        // inform the user that a file with the same name exists, so, renaming
+        int counter = 1;
+        while (QFile::exists(destFilePath)) {
+            destFilePath = m_dataDir.absoluteFilePath(originalFile.baseName() + "_"
+                                                      + QString::number(counter) + ".zip");
+            counter++;
+        }
+        QMessageBox::information(nullptr,
+                                 tr("Function already exists, Renaming"),
+                                 tr("%1 already exists. Renaming the new function to %2")
+                                     .arg(originalFile.fileName(),
+                                          QFileInfo(destFilePath).fileName()));
+    }
+    qDebug() << "copy to:" << destFilePath;
+    QFileInfo newFile(destFilePath);
+    QFile::copy(originalFile.absoluteFilePath(), newFile.absoluteFilePath());
+    funcSource->setFile(newFile);
 }
 
 void TabComponents::postLoadProcess(const QJsonArray &nodesJsonArray)

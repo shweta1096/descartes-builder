@@ -3,6 +3,7 @@
 #include <QtNodes/NodeDelegateModelRegistry>
 
 #include "ui/models/coder_models.hpp"
+#include "ui/models/composer_models.hpp"
 #include "ui/models/io_models.hpp"
 #include "ui/models/processor_models.hpp"
 #include "ui/models/trainer_models.hpp"
@@ -13,6 +14,7 @@ static std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registerDataModels()
     // All models to be used must be registered here
     auto ret = std::make_shared<QtNodes::NodeDelegateModelRegistry>();
     ret->registerModel<DataSourceModel>("IO");
+    ret->registerModel<FuncSourceModel>("IO");
     ret->registerModel<FuncOutModel>("IO");
     ret->registerModel<DataOutModel>("IO");
     ret->registerModel<GraphModel>("IO");
@@ -25,6 +27,7 @@ static std::shared_ptr<QtNodes::NodeDelegateModelRegistry> registerDataModels()
     ret->registerModel<ReduceDataModel>("Coder");
     ret->registerModel<BasicTrainerModel>("Trainer");
     ret->registerModel<TorchTrainerModel>("Trainer");
+    ret->registerModel<ComposerModel>("Composer");
 
     return ret;
 }

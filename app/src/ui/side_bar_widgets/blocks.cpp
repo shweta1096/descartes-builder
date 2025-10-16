@@ -28,6 +28,7 @@
 #include "data/block_manager.hpp"
 #include "data/constants.hpp"
 #include "data/tab_manager.hpp"
+#include "ui/models/composer_models.hpp"
 #include "ui/models/fdf_block_model.hpp"
 #include "ui/models/function_names.hpp"
 #include "ui/models/trainer_models.hpp"
@@ -105,11 +106,17 @@ void Blocks::updateFields()
         m_captionEdit->setText(sanitizedCaption);
         m_inputPortEdit->setMinimum(
             block->minModifiablePorts(PortType::In, constants::DATA_PORT_ID));
-        m_inputPortEdit->setValue(block->nPorts(PortType::In, constants::DATA_PORT_ID));
+        if (auto composer = dynamic_cast<ComposerModel *>(block))
+            m_inputPortEdit->setValue(composer->nPorts(PortType::In, constants::FUNCTION_PORT_ID));
+        else
+            m_inputPortEdit->setValue(block->nPorts(PortType::In, constants::DATA_PORT_ID));
         m_inputPortEdit->setEnabled(block->portNumberModifiable(PortType::In));
         m_outputPortEdit->setMinimum(
             block->minModifiablePorts(PortType::Out, constants::DATA_PORT_ID));
-        m_outputPortEdit->setValue(block->nPorts(PortType::Out, constants::DATA_PORT_ID));
+        if (auto composer = dynamic_cast<ComposerModel *>(block))
+            m_outputPortEdit->setValue(composer->nPorts(PortType::Out, constants::FUNCTION_PORT_ID));
+        else
+            m_outputPortEdit->setValue(block->nPorts(PortType::Out, constants::DATA_PORT_ID));
         m_outputPortEdit->setEnabled(block->portNumberModifiable(PortType::Out));
 
         if (auto parameterWidget = generateParameterWidget(block))
@@ -618,7 +625,7 @@ QWidget *Blocks::generateParameterWidget(FdfBlockModel *block)
                 });
             }
             layout->addRow(new QLabel(key), pointLayout);
-        } else if (pair.second == QMetaType::QVector2D) {
+        } else if (pair.second == QMetaType::QVector2D || pair.second == QMetaType::QVariantList) {
             // UI for this can be improved
             auto edit = new QLineEdit(value);
             layout->addRow(new QLabel(key), edit);

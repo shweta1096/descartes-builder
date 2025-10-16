@@ -1,4 +1,5 @@
 #include "ui/models/processor_models.hpp"
+#include "data/parameter_utils.hpp"
 #include "data/tab_manager.hpp"
 #include "ui/models/function_names.hpp"
 
@@ -260,8 +261,7 @@ bool ScoreModel::canConnect(ConnectionInfo &connInfo) const
 {
     auto otherIndex = (connInfo.inIndex == 0) ? 1 : 0;
     // check if the other input is already set, if so, get its type
-    if (auto otherInput = const_cast<ScoreModel *>(this)->castedPort<DataNode>(PortType::In,
-                                                                               otherIndex)) {
+    if (auto otherInput = castedPort<DataNode>(PortType::In, otherIndex)) {
         connInfo.expectedInType = otherInput->typeId();
         if (connInfo.expectedInType != connInfo.receivedOutType)
             return warnInvalidConnection(connInfo, constants::TYPE_MISMATCH);
@@ -330,8 +330,7 @@ bool DifferenceModel::canConnect(ConnectionInfo &connInfo) const
 {
     auto otherIndex = (connInfo.inIndex == 0) ? 1 : 0;
     // check if the other input is already set, if so, get its type
-    if (auto otherInput = const_cast<DifferenceModel *>(this)->castedPort<DataNode>(PortType::In,
-                                                                                    otherIndex)) {
+    if (auto otherInput = castedPort<DataNode>(PortType::In, otherIndex)) {
         connInfo.expectedInType = otherInput->typeId();
         if (connInfo.expectedInType != connInfo.receivedOutType)
             return warnInvalidConnection(connInfo, constants::TYPE_MISMATCH);
@@ -352,6 +351,9 @@ std::unordered_map<QString, QString> SensitivityAnalysisModel::getParameters() c
     result[TARGET] = QString::number(m_target);
     result[DIFF_STEP] = QString::number(m_diffStep);
     result[GRID_SIZE] = QString::number(m_gridSize);
+    result[NUM_FEATURES] = QString::number(m_numFeatures);
+    result[LOW] = vectorToString(m_low);
+    result[HIGH] = vectorToString(m_high);
     return result;
 }
 
@@ -362,6 +364,9 @@ std::unordered_map<QString, QMetaType::Type> SensitivityAnalysisModel::getParame
     schema[TARGET] = QMetaType::Int;
     schema[DIFF_STEP] = QMetaType::Int;
     schema[GRID_SIZE] = QMetaType::Int;
+    schema[NUM_FEATURES] = QMetaType::Int;
+    schema[LOW] = QMetaType::QVariantList;
+    schema[HIGH] = QMetaType::QVariantList;
     return schema;
 }
 
@@ -375,6 +380,12 @@ void SensitivityAnalysisModel::setParameter(const QString &key, const QString &v
         m_diffStep = value.toInt();
     } else if (key == GRID_SIZE) {
         m_gridSize = value.toInt();
+    } else if (key == NUM_FEATURES) {
+        m_numFeatures = value.toInt();
+    } else if (key == LOW) {
+        m_low = stringToVector(value);
+    } else if (key == HIGH) {
+        m_high = stringToVector(value);
     }
 }
 
