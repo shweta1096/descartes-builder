@@ -64,7 +64,11 @@ void logHandler(QtMsgType type, const QMessageLogContext &context, const QString
     out << message << "\n";
     std::cerr << message.toStdString() << std::endl;
 
-    emit LogManager::instance().callAppendMessage(message, type);
+    QMetaObject::invokeMethod(&LogManager::instance(),
+                              "appendMessage",
+                              Qt::AutoConnection,
+                              Q_ARG(QString, message),
+                              Q_ARG(QtMsgType, type));
 
     out.flush();
 
@@ -81,12 +85,6 @@ LogManager::~LogManager()
 
 void LogManager::init()
 {
-    // this must be queued connection to trigger appendMessage on a GUI thread
-    connect(this,
-            &LogManager::callAppendMessage,
-            this,
-            &LogManager::appendMessage,
-            Qt::QueuedConnection);
 #ifdef QT_DEBUG
     qSetMessagePattern(
         "[%{time yyyy-MM-dd HH:mm:ss.zzz}] "
