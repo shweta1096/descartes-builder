@@ -94,8 +94,9 @@ if not exist "%REPO_DIR%" (
 
 echo.
 echo Installing kedro_umbrella into embedded Python...
+:: Use CPU-only PyTorch
 cd /d %REPO_DIR%
-"%INSTALL_DIR%\python.exe" -m pip install .
+"%INSTALL_DIR%\python.exe" -m pip install --extra-index-url https://download.pytorch.org/whl/cpu .
 
 echo.
 echo ========================================
