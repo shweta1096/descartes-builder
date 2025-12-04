@@ -77,6 +77,33 @@ bool TabComponents::save()
 {
     if (m_localFile.filePath().isEmpty() || m_localFile.suffix().isEmpty())
         return saveAs();
+
+    // Check if the m_localFile directory is writable
+    // qt's isWritable() does not work on Windows
+    auto isQDirWritable = [this](QDir dir) -> bool {
+        QFile testFile(dir.absoluteFilePath(".write_test"));
+        if (testFile.open(QIODevice::WriteOnly)) {
+            testFile.close();
+            testFile.remove();
+            return true;
+        }
+        return false;
+    };
+    if (!isQDirWritable(m_localFile.dir())) {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            nullptr,
+            "Save Error",
+            "The file location is not writable. Do you want to save it to a different location?",
+            QMessageBox::Yes | QMessageBox::Cancel);
+
+        if (reply == QMessageBox::Yes) {
+            if (!saveAs()) {
+                return false;
+            }
+        } else
+            return false;
+    }
+
     QString sceneFilename = "scene" + SCENE_EXTENSION; // maintain 1 dag file per dcb
     if (!m_scene->save(m_dataDir.absoluteFilePath(sceneFilename)))
         return false;
