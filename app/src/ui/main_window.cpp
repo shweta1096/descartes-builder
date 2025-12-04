@@ -109,13 +109,8 @@ bool MainWindow::validateTab(std::shared_ptr<TabComponents> &tab)
         qWarning() << "No tab to verify";
         return false;
     }
-    // Save silently if tab has a file associated with already
-    if (!tab->isNewFile()) {
-        if (!m_tabManager->save()) {
-            qWarning() << "Save failed";
-            return false;
-        }
-    } else {
+    // prompt the user to save the file before running if it is new
+    if (tab->isNewFile()) {
         QMessageBox::StandardButton reply
             = QMessageBox::question(this,
                                     "Save Before Run",
