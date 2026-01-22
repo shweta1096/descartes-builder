@@ -1,0 +1,87 @@
+name: Build macOS Installer
+
+on:  
+  workflow_dispatch:
+
+jobs:  
+  build-macos: 
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10.8'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        git clone https://github.com/CPS-research-group/kedro-umbrella.git
+        cd kedro-umbrella
+        pip install -e . 
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with: 
+        version: '6.7.3'
+        host: 'mac'
+        target: 'desktop'
+        arch: 'clang_64'
+        modules: 'qt5compat'
+
+    - name: Install system dependencies
+      run:  |
+        brew install cmake zlib bzip2
+
+    - name:  Configure CMake
+      working-directory: ./app
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..  \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="${Qt6_DIR}" \
+          -DBUILD_TESTS=OFF
+
+    - name: Build application
+      working-directory: ./app/build
+      run: cmake --build .  --config Release
+
+    - name:  Deploy Qt dependencies
+      working-directory: ./app/build
+      run: |
+        macdeployqt bin/DescartesBuilder.app -dmg
+
+    - name: Create installer package
+      working-directory: ./app/build
+      run: |
+        # Create a temporary directory for packaging
+        mkdir -p package/Applications
+        cp -R bin/DescartesBuilder.app package/Applications/
+        
+        # Copy examples if they exist
+        if [ -d "../../examples" ]; then
+          mkdir -p package/Applications/DescartesBuilder.app/Contents/Resources/examples
+          cp -R ../../examples/* package/Applications/DescartesBuilder.app/Contents/Resources/examples/
+        fi
+        
+        # Create a DMG installer
+        hdiutil create -volname "DescartesBuilder" \
+          -srcfolder package \
+          -ov \
+          -format UDZO \
+          DescartesBuilder-macOS-installer.dmg
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name:  DescartesBuilder-macOS
+        path: |
+          app/build/DescartesBuilder-macOS-installer.dmg
+          app/build/bin/DescartesBuilder.dmg
+        retention-days: 30
