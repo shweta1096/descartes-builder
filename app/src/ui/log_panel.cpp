@@ -1,8 +1,8 @@
 #include "ui/log_panel.hpp"
 
-#include <QApplication>
-
 #include "log_manager.hpp"
+#include <QApplication>
+#include <QFontDatabase>
 
 LogPanel::LogPanel(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -14,6 +14,10 @@ LogPanel::LogPanel(QWidget *parent)
 
 void LogPanel::appendMessage(const QString &text, const QColor &color)
 {
+    auto f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    f.setPointSize(12);
+    setFont(f);
+    setLineWrapMode(QPlainTextEdit::NoWrap);
     QTextCharFormat format = currentCharFormat();
     format.setForeground(QBrush(color.isValid() ? color : m_DEFAULT_TEXT_COLOR));
     auto cursor = textCursor();
@@ -21,6 +25,4 @@ void LogPanel::appendMessage(const QString &text, const QColor &color)
     setTextCursor(cursor);
     setCurrentCharFormat(format);
     appendPlainText(text);
-    setFont(QFont("Courier", 12));
-    setLineWrapMode(QPlainTextEdit::NoWrap);
 }
