@@ -67,11 +67,20 @@ QString getPythonExecutable()
     * Else use the system python.
     */
     QDir baseDir = QDir(QApplication::applicationDirPath());
-    baseDir.cdUp(); // Go to the parent directory of the application dir
-    QString pythonExec = baseDir.filePath("python_win\\python.exe");
+    QString pythonExec;
 
+#ifdef Q_OS_WIN
+    baseDir.cdUp(); // Go to the parent directory of the application dir
+    pythonExec = baseDir.filePath("python_win\\python.exe");
+#elif defined(Q_OS_MAC)
+    baseDir.cdUp();
+    baseDir.cd("Resources");
+    pythonExec = baseDir.filePath("python/bin/python3");
+#elif defined(Q_OS_LINUX)
+    pythonExec = baseDir.filePath("../python/bin/python");
+#endif
     qDebug() << "Checking for Python executable at:" << pythonExec;
-    if (QFile::exists(pythonExec)) {
+    if (QFile::exists(pythonExec) && QFileInfo(pythonExec).isExecutable()) {
         qInfo() << "Using Python executable from python:" << pythonExec;
         return pythonExec;
     }
