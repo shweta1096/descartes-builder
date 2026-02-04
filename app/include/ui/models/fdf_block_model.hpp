@@ -192,6 +192,16 @@ protected:
         }
         return dynamic_cast<T *>(m_inPorts[index].first.get());
     }
+    std::optional<int> getRandomState() const
+    {
+        auto currentTab = TabManager::instance().getCurrentTab();
+        if (!currentTab) {
+            // Control should not reach here since there should always be a currentTab
+            qWarning() << "No current tab found when getting random state.";
+            return std::nullopt;
+        }
+        return currentTab->getRandomState();
+    }
     // show warning for invalid port connection (implicit typing failure)
     bool warnInvalidConnection(ConnectionInfo connInfo, const QString &message) const;
     Q_INVOKABLE bool showWarning(ConnectionInfo connInfo, const QString &message);
