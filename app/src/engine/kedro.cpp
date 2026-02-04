@@ -63,7 +63,7 @@ QString getPythonExecutable()
     /*
     * Check if the application has been installed 
     * through installer. If so use the python executable 
-    * from python_win directory.
+    * from corresponding directory for the respective OSes.
     * Else use the system python.
     */
     QDir baseDir = QDir(QApplication::applicationDirPath());
@@ -71,7 +71,7 @@ QString getPythonExecutable()
 
 #ifdef Q_OS_WIN
     baseDir.cdUp(); // Go to the parent directory of the application dir
-    pythonExec = baseDir.filePath("python_win\\python.exe");
+    pythonExec = baseDir.filePath("python\\python.exe");
 #elif defined(Q_OS_MAC)
     baseDir.cdUp();
     baseDir.cd("Resources");

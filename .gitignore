@@ -2,5 +2,5 @@
 build*
 .vscode
 *.bk
-install/python_win
+install/windows/python_win
 install/Output
