@@ -77,7 +77,7 @@ QString getPythonExecutable()
     baseDir.cd("Resources");
     pythonExec = baseDir.filePath("python/bin/python3");
 #elif defined(Q_OS_LINUX)
-    pythonExec = baseDir.filePath("../python/bin/python");
+    pythonExec = baseDir.filePath("../python/bin/python3");
 #endif
     qDebug() << "Checking for Python executable at:" << pythonExec;
     if (QFile::exists(pythonExec) && QFileInfo(pythonExec).isExecutable()) {
