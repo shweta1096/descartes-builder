@@ -90,14 +90,21 @@ if(QT_VERSION_MAJOR EQUAL 6)
 endif()
 
 function(deploy_qt_target target)
-  if(WIN32 AND WIN_DEPLOY)
+  if (WIN32 AND WIN_DEPLOY)
+    get_target_property(_qt_qmake Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_dir "${_qt_qmake}" DIRECTORY)
     add_custom_command(TARGET ${target} POST_BUILD
-      COMMAND "${CMAKE_PREFIX_PATH}/bin/windeployqt.exe"
-      "$<TARGET_FILE:${target}>")
+      COMMAND "${_qt_bin_dir}/windeployqt.exe"
+              --force
+              "$<TARGET_FILE:${target}>"
+      COMMENT "Running windeployqt for ${target}"
+    )
     add_custom_command(TARGET ${target} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${CMAKE_PREFIX_PATH}/bin/Qt6Core5Compat.dll" 
-    "$<TARGET_FILE_DIR:${target}>")
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:Qt6::Core5Compat>"
+        "$<TARGET_FILE_DIR:${target}>"
+      COMMENT "Copying Qt6Core5Compat.dll"
+    )
   endif()
 endfunction()
 

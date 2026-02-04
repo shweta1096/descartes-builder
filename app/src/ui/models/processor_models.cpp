@@ -71,15 +71,14 @@ SplitDataModel::SplitDataModel()
         }
     }
 
-    setRandomState(0);
     setTrainSize(0.7);
 }
 
 std::unordered_map<QString, QString> SplitDataModel::getParameters() const
 {
     std::unordered_map<QString, QString> result;
-    if (m_randomState)
-        result[RANDOM_STATE] = QString::number(m_randomState.value());
+    auto rs = getRandomState();
+    result[RANDOM_STATE] = rs ? QString::number(*rs) : QString::number(0);
     if (m_splitTime)
         result[SPLIT_TIME] = QString::number(m_splitTime.value());
     if (m_trainSize)
@@ -90,7 +89,6 @@ std::unordered_map<QString, QString> SplitDataModel::getParameters() const
 std::unordered_map<QString, QMetaType::Type> SplitDataModel::getParameterSchema() const
 {
     std::unordered_map<QString, QMetaType::Type> schema;
-    schema[RANDOM_STATE] = QMetaType::Int;
     schema[SPLIT_TIME] = QMetaType::Int;
     schema[TRAIN_SIZE] = QMetaType::Double;
     return schema;
@@ -98,9 +96,7 @@ std::unordered_map<QString, QMetaType::Type> SplitDataModel::getParameterSchema(
 
 void SplitDataModel::setParameter(const QString &key, const QString &value)
 {
-    if (key == RANDOM_STATE) {
-        setRandomState(value.toInt());
-    } else if (key == SPLIT_TIME) {
+    if (key == SPLIT_TIME) {
         setSplitTime(value.toInt());
     } else if (key == TRAIN_SIZE) {
         setTrainSize(value.toDouble());

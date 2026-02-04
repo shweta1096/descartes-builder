@@ -1,0 +1,125 @@
+name: Build macOS Installer
+
+on:  
+  workflow_dispatch:
+
+jobs:  
+  build-macos: 
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    # -------------------------------
+    # Step 1: Set up Python 3.10 
+    # -------------------------------
+    - name: Set up embedded Python
+      working-directory: ./app
+      run: |
+        chmod +x ../install/mac/setup_python.sh
+        ../install/mac/setup_python.sh
+
+    # -------------------------------
+    # Step 2: Install Qt
+    # -------------------------------
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with: 
+        version: '6.7.3'
+        host: 'mac'
+        target: 'desktop'
+        arch: 'clang_64'
+        modules: 'qt5compat'
+
+    # -------------------------------
+    # Step 3: Install system dependencies
+    # -------------------------------
+    - name: Install system dependencies
+      run: |
+        brew install cmake zlib bzip2
+
+    # -------------------------------
+    # Step 4: Configure and build Qt application
+    # -------------------------------
+    - name: Configure and build Qt application
+      working-directory: ./app
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="${Qt6_DIR}" \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
+          -DBUILD_TESTS=OFF
+        cmake --build . --config Release
+
+    # -------------------------------
+    # Step 5: Deploy Qt dependencies
+    # -------------------------------
+    - name: Deploy Qt dependencies
+      working-directory: ./app/build
+      run: |
+        macdeployqt bin/DescartesBuilder.app
+  
+    # -------------------------------
+    # Step 6: Copy embedded Python environment
+    # -------------------------------
+    - name: Copy embedded Python
+      working-directory: ./app
+      run: |
+        chmod +x ../install/mac/embed_python.sh
+        ../install/mac/embed_python.sh
+
+    # -------------------------------
+    # Step 7: Code sign the .app bundle
+    # -------------------------------
+    - name: Code sign the .app bundle
+      working-directory: ./app/build
+      run: |
+        codesign --force --deep --sign - bin/DescartesBuilder.app
+
+    # -------------------------------
+    # Step 8: Copy the examples and README directory
+    # -------------------------------
+    - name: Copy examples directory
+      working-directory: ./app/build
+      run: |
+        # Uncomment the below lines to include examples within dmg.
+        # mkdir -p bin/examples
+        # cp -R ../../examples/pipe* bin/examples/
+        cp ../../install/mac/README.md bin/README.md
+
+    # -------------------------------
+    # Step 9: Create DMG installer
+    # -------------------------------
+    - name: Create DMG installer
+      working-directory: ./app/build
+      run: |
+        DMG_NAME="DescartesBuilder-macOS.dmg"
+        TMP_DIR="dmg_temp"
+
+        # Clean up
+        rm -rf "$DMG_NAME" "$TMP_DIR"
+        mkdir "$TMP_DIR"
+
+        # Copy app, README and examples into temp folder
+        cp -R bin/* "$TMP_DIR/"
+
+        # Create DMG
+        hdiutil create "$DMG_NAME" -srcfolder "$TMP_DIR" -volname "DescartesBuilder" -format UDZO
+
+        # Clean temp folder
+        rm -rf "$TMP_DIR"
+
+    # -------------------------------
+    # Step 10: Upload DMG artifact for testing
+    # -------------------------------
+    - name: Upload DMG artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DescartesBuilder-macOS
+        path: app/build/DescartesBuilder-macOS.dmg
+        retention-days: 30

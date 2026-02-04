@@ -12,6 +12,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QSpinBox>
+#include <QSplitter>
 #include <QStackedWidget>
 #include <QTableWidget>
 #include <QTableWidgetItem>
@@ -64,6 +65,8 @@ Blocks::Blocks(std::shared_ptr<BlockManager> blockManager,
     , m_trainerOutputEdit(new QSpinBox)
     , m_parametersWidget(new QStackedWidget)
     , m_library(new QCollapsibleWidget("Library"))
+    , m_globals(new QCollapsibleWidget("Globals"))
+    , m_randomStateSpinBox(new QSpinBox)
 {
     initUi();
 
@@ -157,14 +160,65 @@ void Blocks::onNodeUpdated(QtNodes::NodeId id)
 
 void Blocks::initUi()
 {
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setAlignment(Qt::AlignTop);
-    layout->setContentsMargins(0, 0, 0, 0);
-
     initEditor();
+    initGlobals();
     initLibrary();
-    layout->addWidget(m_blockEditor);
-    layout->addWidget(m_library);
+
+    QSplitter *splitter = new QSplitter(Qt::Vertical, this);
+    splitter->addWidget(m_blockEditor);
+    splitter->addWidget(m_globals);
+    splitter->addWidget(m_library);
+    splitter->setChildrenCollapsible(false);
+    splitter->setHandleWidth(3);
+    splitter->setSizes({300, 150, 300});
+    splitter->setStyleSheet(R"(
+    QSplitter::handle:vertical {
+        background-color: palette(mid);
+    }
+    QSplitter::handle:vertical:hover {
+        background-color: palette(midlight);
+    }
+    )");
+
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(splitter);
+}
+
+void Blocks::initGlobals()
+{
+    auto widget = new QWidget;
+    auto layout = new QFormLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    m_randomStateSpinBox->setRange(0, std::numeric_limits<int>::max());
+    m_randomStateSpinBox->setMaximumWidth(constants::INT_SPIN_BOX_MAX_WIDTH);
+    layout->addRow(new QLabel("Random State:"), m_randomStateSpinBox);
+    m_globals->setWidget(widget);
+
+    connect(m_tabManager.get(), &TabManager::currentChanged, this, [this](QWidget *) {
+        auto tab = m_tabManager->getCurrentTab();
+        if (!tab) {
+            m_randomStateSpinBox->setEnabled(false);
+            return;
+        }
+        m_randomStateSpinBox->setEnabled(true);
+        QSignalBlocker blocker(m_randomStateSpinBox);
+        if (auto rs = tab->getRandomState())
+            m_randomStateSpinBox->setValue(*rs);
+        else {
+            // Control comes here for new tabs
+            tab->setRandomState(0);
+            m_randomStateSpinBox->setValue(0);
+        }
+    });
+
+    connect(m_randomStateSpinBox,
+            QOverload<int>::of(&QSpinBox::valueChanged),
+            this,
+            [this](int value) {
+                if (auto tab = m_tabManager->getCurrentTab())
+                    tab->setRandomState(value);
+            });
 }
 
 void Blocks::initEditor()

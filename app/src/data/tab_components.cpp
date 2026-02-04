@@ -77,8 +77,39 @@ bool TabComponents::save()
 {
     if (m_localFile.filePath().isEmpty() || m_localFile.suffix().isEmpty())
         return saveAs();
+
+    // Check if the m_localFile directory is writable
+    // qt's isWritable() does not work on Windows
+    auto isQDirWritable = [this](QDir dir) -> bool {
+        QFile testFile(dir.absoluteFilePath(".write_test"));
+        if (testFile.open(QIODevice::WriteOnly)) {
+            testFile.close();
+            testFile.remove();
+            return true;
+        }
+        return false;
+    };
+    if (!isQDirWritable(m_localFile.dir())) {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            nullptr,
+            "Save Error",
+            "The file location is not writable. Do you want to save it to a different location?",
+            QMessageBox::Yes | QMessageBox::Cancel);
+
+        if (reply == QMessageBox::Yes) {
+            if (!saveAs()) {
+                return false;
+            }
+        } else
+            return false;
+    }
+
     QString sceneFilename = "scene" + SCENE_EXTENSION; // maintain 1 dag file per dcb
-    if (!m_scene->save(m_dataDir.absoluteFilePath(sceneFilename)))
+    QJsonObject metadata;                              // save metadata
+    if (m_globals.m_randomState.has_value()) {
+        metadata["random_state"] = *m_globals.m_randomState;
+    }
+    if (!m_scene->save(m_dataDir.absoluteFilePath(sceneFilename), metadata))
         return false;
     if (!JlCompress::compressDir(m_localFile.absoluteFilePath(), m_dataDir.absolutePath()))
         return false;
@@ -142,7 +173,36 @@ bool TabComponents::openExisting()
         qWarning() << "Scene file does not exist:" << sceneFilename;
         return false;
     }
-    return m_scene->load(m_dataDir.absoluteFilePath(sceneFilename));
+    if (!m_scene->load(m_dataDir.absoluteFilePath(sceneFilename)))
+        return false;
+    loadMetadataFromExisting(sceneFilename); // Load additional metadata such as global variables
+    return true;
+}
+
+void TabComponents::loadMetadataFromExisting(const QString &sceneFilename)
+{
+    // Load metadata
+    QFile file(m_dataDir.absoluteFilePath(sceneFilename));
+    if (file.open(QIODevice::ReadOnly)) {
+        QByteArray jsonData = file.readAll();
+        file.close();
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+        QJsonObject root = doc.object();
+        if (root.contains("globals") && root["globals"].isObject()) {
+            QJsonObject globals = root["globals"].toObject();
+            if (globals.contains("random_state"))
+                m_globals.m_randomState = globals["random_state"].toInt();
+            else {
+                // Ideally this case should not happen as random_state is always saved
+                qWarning() << "random_state not found in globals, setting to 0";
+                m_globals.m_randomState = 0;
+            }
+        } else {
+            // For backward compatibility, set random state to 0 for older dcb without globals
+            qInfo() << "Setting global random_state to 0";
+            m_globals.m_randomState = 0;
+        }
+    }
 }
 
 void TabComponents::onDataSourceImportClicked(const QtNodes::NodeId nodeId)

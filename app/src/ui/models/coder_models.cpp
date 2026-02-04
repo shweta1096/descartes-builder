@@ -24,7 +24,6 @@ std::unordered_map<QString, QMetaType::Type> CoderModel::getParameterSchema() co
 {
     std::unordered_map<QString, QMetaType::Type> schema;
     schema[PROCESS] = QMetaType::QString;
-    schema[RANDOM_STATE] = QMetaType::Int;
     return schema;
 }
 
@@ -56,15 +55,14 @@ TransformDataModel::TransformDataModel()
     addPort<FunctionNode>(PortType::Out, "encode");
     addPort<FunctionNode>(PortType::Out, "decode");
     setProcess(Process::Std);
-    setRandomState(0);
 }
 
 std::unordered_map<QString, QString> TransformDataModel::getParameters() const
 {
     std::unordered_map<QString, QString> result;
     result[PROCESS] = TRANSFORM_STRING.at(m_process);
-    if (m_randomState)
-        result[RANDOM_STATE] = QString::number(m_randomState.value());
+    auto rs = getRandomState();
+    result[RANDOM_STATE] = rs ? QString::number(*rs) : QString::number(0);
     return result;
 }
 
@@ -84,8 +82,6 @@ void TransformDataModel::setParameter(const QString &key, const QString &value)
         for (auto pair : TRANSFORM_STRING)
             if (pair.second == value)
                 setProcess(pair.first);
-    } else if (key == RANDOM_STATE) {
-        setRandomState(value.toInt());
     }
 }
 
@@ -145,15 +141,14 @@ ReduceDataModel::ReduceDataModel()
     addPort<FunctionNode>(PortType::Out, "reduce");
     addPort<FunctionNode>(PortType::Out, "inv_reduce");
     setProcess(Process::StdPca);
-    setRandomState(0);
 }
 
 std::unordered_map<QString, QString> ReduceDataModel::getParameters() const
 {
     std::unordered_map<QString, QString> result;
     result[PROCESS] = REDUCE_STRING.at(m_process);
-    if (m_randomState)
-        result[RANDOM_STATE] = QString::number(m_randomState.value());
+    auto rs = getRandomState();
+    result[RANDOM_STATE] = rs ? QString::number(*rs) : QString::number(0);
     return result;
 }
 
@@ -173,8 +168,6 @@ void ReduceDataModel::setParameter(const QString &key, const QString &value)
         for (auto pair : REDUCE_STRING)
             if (pair.second == value)
                 setProcess(pair.first);
-    } else if (key == RANDOM_STATE) {
-        setRandomState(value.toInt());
     }
 }
 
