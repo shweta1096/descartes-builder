@@ -48,7 +48,7 @@ Settings::Settings(MainWindow *mw, QWidget *parent)
         m_engineBox->addItems({"kedro"});
         layout->addWidget(m_engineBox);
 
-        layout->addWidget(new QLabel("engine timeout (minutes): "));
+        layout->addWidget(new QLabel("Engine timeout (minutes): "));
         m_engineTimeoutBox->setRange(1, 20);
         layout->addWidget(m_engineTimeoutBox);
 

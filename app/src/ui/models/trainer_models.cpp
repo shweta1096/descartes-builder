@@ -104,15 +104,14 @@ BasicTrainerModel::BasicTrainerModel()
     }
 
     setModel(Model::Mlp);
-    setRandomState(0);
 }
 
 std::unordered_map<QString, QString> BasicTrainerModel::getParameters() const
 {
     std::unordered_map<QString, QString> result;
     result[MODEL] = MODEL_STRING.at(m_model);
-    if (m_randomState)
-        result[RANDOM_STATE] = QString::number(m_randomState.value());
+    auto rs = getRandomState();
+    result[RANDOM_STATE] = rs ? QString::number(*rs) : QString::number(0);
     if (m_model == Model::Mlp2 && m_hiddenLayerSizes) {
         result[HIDDEN_LAYER_SIZES] = vectorToString(*m_hiddenLayerSizes);
     }
@@ -122,7 +121,6 @@ std::unordered_map<QString, QString> BasicTrainerModel::getParameters() const
 std::unordered_map<QString, QMetaType::Type> BasicTrainerModel::getParameterSchema() const
 {
     std::unordered_map<QString, QMetaType::Type> schema;
-    schema[RANDOM_STATE] = QMetaType::Int;
     schema[MODEL] = QMetaType::QString;
     schema[HIDDEN_LAYER_SIZES] = QMetaType::QVariantList;
     return schema;
@@ -140,9 +138,7 @@ QStringList BasicTrainerModel::getParameterOptions(const QString &key) const
 
 void BasicTrainerModel::setParameter(const QString &key, const QString &value)
 {
-    if (key == RANDOM_STATE)
-        setRandomState(value.toInt());
-    else if (key == MODEL) {
+    if (key == MODEL) {
         for (auto pair : MODEL_STRING)
             if (pair.second == value) {
                 setModel(pair.first);
@@ -185,7 +181,8 @@ TorchTrainerModel::TorchTrainerModel()
 std::unordered_map<QString, QString> TorchTrainerModel::getParameters() const
 {
     std::unordered_map<QString, QString> result;
-    result[RANDOM_STATE] = QString::number(m_randomState);
+    auto rs = getRandomState();
+    result[RANDOM_STATE] = rs ? QString::number(*rs) : QString::number(0);
     result[MAX_ITER] = QString::number(m_maxIter);
     result[LEARNING_RATE] = QString::number(m_learningRate);
     return result;
@@ -194,7 +191,6 @@ std::unordered_map<QString, QString> TorchTrainerModel::getParameters() const
 std::unordered_map<QString, QMetaType::Type> TorchTrainerModel::getParameterSchema() const
 {
     std::unordered_map<QString, QMetaType::Type> schema;
-    schema[RANDOM_STATE] = QMetaType::Int;
     schema[MAX_ITER] = QMetaType::Int;
     schema[LEARNING_RATE] = QMetaType::Double;
     return schema;
@@ -202,9 +198,7 @@ std::unordered_map<QString, QMetaType::Type> TorchTrainerModel::getParameterSche
 
 void TorchTrainerModel::setParameter(const QString &key, const QString &value)
 {
-    if (key == RANDOM_STATE) {
-        m_randomState = value.toInt();
-    } else if (key == MAX_ITER) {
+    if (key == MAX_ITER) {
         m_maxIter = value.toInt();
     } else if (key == LEARNING_RATE) {
         m_learningRate = value.toDouble();

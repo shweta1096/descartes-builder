@@ -36,10 +36,8 @@ public:
     virtual std::unordered_map<QString, QString> getParameters() const override;
     virtual std::unordered_map<QString, QMetaType::Type> getParameterSchema() const override;
     virtual void setParameter(const QString &key, const QString &value) override;
-    std::optional<int> getRandomState() const { return m_randomState; }
     std::optional<int> getSplitTime() const { return m_splitTime; }
     std::optional<int> getTrainSize() const { return m_trainSize; }
-    void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
     void setSplitTime(const std::optional<int> &splitTime) { m_splitTime = splitTime; }
     void setTrainSize(const std::optional<double> &trainSize) { m_trainSize = trainSize; }
 
@@ -54,7 +52,6 @@ private:
     inline static const QString SPLIT_TIME = "split_time";
     inline static const QString TRAIN_SIZE = "train_size";
 
-    std::optional<int> m_randomState;
     std::optional<int> m_splitTime = 0;
     std::optional<double> m_trainSize = 0.0;
 };
