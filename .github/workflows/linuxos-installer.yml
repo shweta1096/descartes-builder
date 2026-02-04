@@ -53,9 +53,10 @@ jobs:
 
     - name : Zip app and examples
       run : |
-        mkdir -p release/examples
+        mkdir -p release
         mv DescartesBuilder.AppImage release/
-        cp examples/pipe* release/examples/
+        # mkdir -p release/examples
+        # cp examples/pipe* release/examples/
 
     - name: Upload AppImage
       uses: actions/upload-artifact@v4
