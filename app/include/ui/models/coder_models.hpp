@@ -45,10 +45,7 @@ public:
 
 private:
     Process m_process;
-    std::optional<int> m_randomState;
     Process getProcess() const { return m_process; }
-    std::optional<int> getRandomState() const { return m_randomState; }
-    void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
     void setProcess(const Process &dataXform) { m_process = dataXform; }
 };
 
@@ -66,9 +63,6 @@ public:
 
 private:
     Process m_process;
-    std::optional<int> m_randomState;
     Process getProcess() const { return m_process; }
-    std::optional<int> getRandomState() const { return m_randomState; }
-    void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
     void setProcess(const Process &dataXform) { m_process = dataXform; }
 };

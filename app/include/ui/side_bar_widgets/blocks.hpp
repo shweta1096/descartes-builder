@@ -48,6 +48,7 @@ private slots:
 
 private:
     void initUi();
+    void initGlobals();
     void initEditor();
     void initLibrary();
     void blockEditorSignals(bool value);
@@ -81,4 +82,6 @@ private:
     QSpinBox *m_trainerOutputEdit;
     QStackedWidget *m_parametersWidget;
     QtUtility::widgets::QCollapsibleWidget *m_library;
+    QtUtility::widgets::QCollapsibleWidget *m_globals;
+    QSpinBox *m_randomStateSpinBox;
 };

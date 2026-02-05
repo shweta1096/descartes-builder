@@ -1,5 +1,6 @@
 #include "ui/bottom_panel.hpp"
 
+#include <QFontDatabase>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QStackedWidget>
@@ -36,7 +37,9 @@ BottomPanel::BottomPanel()
 
 void BottomPanel::appendOutputPanel(const QString &text)
 {
+    auto f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    f.setPointSize(12);
+    m_outputPanel->setFont(f);
     m_outputPanel->appendPlainText(text);
-    m_outputPanel->setFont(QFont("Courier", 12));
     m_outputPanel->setLineWrapMode(QPlainTextEdit::NoWrap);
 }

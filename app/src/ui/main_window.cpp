@@ -40,7 +40,14 @@ using QtNodes::NodeStyle;
 
 namespace {
 QtNodes::NodeId selectedId = QtNodes::InvalidNodeId;
+
+constexpr int DARK_MODE_THRESHOLD = 128;
+static bool isDarkMode()
+{
+    QColor window = QApplication::palette().color(QPalette::Window);
+    return window.lightness() < DARK_MODE_THRESHOLD;
 }
+} // namespace
 
 MainWindow::MainWindow()
     : m_engine(EngineStarter::init())
@@ -102,13 +109,8 @@ bool MainWindow::validateTab(std::shared_ptr<TabComponents> &tab)
         qWarning() << "No tab to verify";
         return false;
     }
-    // Save silently if tab has a file associated with already
-    if (!tab->isNewFile()) {
-        if (!m_tabManager->save()) {
-            qWarning() << "Save failed";
-            return false;
-        }
-    } else {
+    // prompt the user to save the file before running if it is new
+    if (tab->isNewFile()) {
         QMessageBox::StandardButton reply
             = QMessageBox::question(this,
                                     "Save Before Run",
@@ -292,21 +294,22 @@ void MainWindow::initPrimarySideBar()
         QString title;
         QWidget *widget;
     };
+    QColor iconColor = isDarkMode() ? Qt::white : Qt::black;
     std::vector<SideBarWidgetData> widgets = {
         {SideBarAction::Blocks,
-         QtUtility::media::recolor(QIcon(":/blocks.png"), constants::COLOR_SECONDARY),
+         QtUtility::media::recolor(QIcon(":/blocks.png"), iconColor),
          "Box",
          new Blocks(m_blockManager, m_tabManager)},
         {SideBarAction::Charts,
-         QtUtility::media::recolor(QIcon(":/charts.png"), constants::COLOR_SECONDARY),
+         QtUtility::media::recolor(QIcon(":/charts.png"), iconColor),
          "Charts",
          new Charts(m_blockManager)},
         {SideBarAction::Settings,
-         QtUtility::media::recolor(QIcon(":/settings.png"), constants::COLOR_SECONDARY),
+         QtUtility::media::recolor(QIcon(":/settings.png"), iconColor),
          "Settings",
          new Settings(this)},
         {SideBarAction::Information,
-         QtUtility::media::recolor(QIcon(":/information.png"), constants::COLOR_SECONDARY),
+         QtUtility::media::recolor(QIcon(":/information.png"), iconColor),
          "Information",
          new Information},
     };

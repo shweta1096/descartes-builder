@@ -1,0 +1,85 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    # ----------------------------------------
+    # Qt
+    # ----------------------------------------
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: "6.4.0"
+        modules: qt5compat
+        setup-python: false
+        cache: true
+
+    # ----------------------------------------
+    # Setup dependencies
+    # ----------------------------------------
+    - name: Setup VS tools
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+
+    - name: Install vcpkg deps
+      shell: powershell
+      run: |
+        & $env:VCPKG_INSTALLATION_ROOT\vcpkg install zlib bzip2
+
+    # ----------------------------------------
+    # Build application
+    # ----------------------------------------
+    - name: Configure CMake (Windows)
+      shell: powershell
+      run: |
+        cd app
+        cmake -B build_win `
+          -D CMAKE_BUILD_TYPE=Release `
+          -D WIN_DEPLOY=ON `
+          -D CMAKE_PREFIX_PATH="${Qt6_DIR}" `
+          -D CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake `
+          -S .
+
+    - name: Build application
+      shell: powershell
+      run: |
+        cd app
+        cmake --build build_win --config Release
+
+    # ----------------------------------------
+    # Embedded Python
+    # ----------------------------------------
+    - name: Setup embedded Python
+      shell: cmd
+      run: |
+        set CI=true
+        call install\windows\setup_python_win.bat
+    
+    # ----------------------------------------
+    # Create the installer
+    # ----------------------------------------
+    - name: Compile .ISS to .EXE Installer
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+      with:
+        path: install/windows/win_installer.iss
+        options: /O"app/build_win/bin/" /F"DescartesBuilder_WinInstaller"
+        install_latest: "true"
+
+    # ----------------------------------------
+    # Publish artifact
+    # ----------------------------------------
+    - name: Upload Windows Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: DescartesBuilder-Windows-Installer
+        path: app/build_win/bin/DescartesBuilder_WinInstaller.exe

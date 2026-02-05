@@ -46,10 +46,8 @@ public:
     virtual QStringList getParameterOptions(const QString &key) const override;
     virtual void setParameter(const QString &key, const QString &value) override;
     Model getModel() const { return m_model; }
-    std::optional<int> getRandomState() const { return m_randomState; }
     std::optional<std::vector<int>> getHiddenLayerSizes() const { return m_hiddenLayerSizes; }
     void setModel(const Model &model);
-    void setRandomState(const std::optional<int> &randomState) { m_randomState = randomState; }
     void setHiddenLayerSizes(const std::optional<std::vector<int>> &hiddenLayerSizes)
     {
         m_hiddenLayerSizes = hiddenLayerSizes;
@@ -61,7 +59,6 @@ private:
     inline static const QString HIDDEN_LAYER_SIZES = "hidden_layer_sizes";
 
     Model m_model;
-    std::optional<int> m_randomState;
     // only for mlp2
     std::optional<std::vector<int>> m_hiddenLayerSizes;
 };
@@ -81,7 +78,6 @@ private:
     inline static const QString MAX_ITER = "max_iter";
     inline static const QString LEARNING_RATE = "learning_rate";
 
-    int m_randomState = 0;
     int m_maxIter = 1000;
     double m_learningRate = 0.001;
 };

@@ -17,9 +17,6 @@ public:
     void init();
     void registerLogPanel(LogPanel *panel);
 
-signals:
-    void callAppendMessage(const QString &message, const QtMsgType &type);
-
 public slots:
     void appendMessage(const QString &message, const QtMsgType &type = QtInfoMsg);
 

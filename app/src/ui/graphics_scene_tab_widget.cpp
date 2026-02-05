@@ -41,8 +41,11 @@ GraphicsSceneTabWidget::GraphicsSceneTabWidget(std::shared_ptr<TabManager> tabMa
             this,
             &GraphicsSceneTabWidget::onTabFileNameChanged);
 
-    // init with 1 blank tab
+    // init with 1 blank tab and set its random state to 0
     m_tabManager->newTab();
+    if (auto tab = m_tabManager->getCurrentTab()) {
+        tab->setRandomState(0);
+    }
 }
 
 void GraphicsSceneTabWidget::closeCurrentTab()

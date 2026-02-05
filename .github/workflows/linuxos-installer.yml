@@ -1,0 +1,65 @@
+name: Build Linux AppImage
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install system deps
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential cmake curl fuse libgl1 \
+          libxcb-xinerama0 libxkbcommon-x11-0
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.4.0'
+        host: linux
+        target: desktop
+        arch: gcc_64
+        modules: qt5compat
+
+    - name: Build application
+      run: |
+        cd app
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${Qt6_DIR}"
+        cmake --build . -j$(nproc)
+
+    - name: Setup embedded Python
+      run: |
+        chmod +x install/linux/setup_python.sh
+        install/linux/setup_python.sh DescartesBuilder.AppDir
+
+    - name: Build AppDir
+      run: |
+        chmod +x install/linux/setup_appdir.sh
+        install/linux/setup_appdir.sh
+
+    - name: Build AppImage
+      run: |
+        chmod +x install/linux/setup_appimage.sh
+        install/linux/setup_appimage.sh
+
+    - name : Zip app and examples
+      run : |
+        mkdir -p release
+        mv DescartesBuilder.AppImage release/
+        # mkdir -p release/examples
+        # cp examples/pipe* release/examples/
+
+    - name: Upload AppImage
+      uses: actions/upload-artifact@v4
+      with:
+        name: DescartesBuilder-Linux-AppImage
+        path: release/*

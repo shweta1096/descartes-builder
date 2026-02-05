@@ -25,6 +25,19 @@ std::unordered_map<QString, CatalogType> CATALOG_EXTENSIONS = {
     {"jld2", CatalogType::H5},
 };
 
+// Apply node style font color QtNodes::NodeStyle nodeStyle(constants::NODE_STYLE);
+inline void applyNodeFontColor(QWidget *widget)
+{
+    QtNodes::NodeStyle nodeStyle(constants::NODE_STYLE);
+    QColor fontColor = nodeStyle.FontColor;
+
+    QPalette pal = widget->palette();
+    pal.setColor(QPalette::WindowText, fontColor);
+    pal.setColor(QPalette::Text, fontColor);
+    widget->setPalette(pal);
+    widget->setAutoFillBackground(false);
+}
+
 } // namespace
 
 DataSourceModel::DataSourceModel()
@@ -45,6 +58,7 @@ QWidget *DataSourceModel::embeddedWidget()
         layout->setContentsMargins(0, 0, 0, 0);
 
         m_label = new QLabel(portCaption(PortType::Out, 0));
+        applyNodeFontColor(m_label);
         layout->addWidget(m_label);
 
         auto button = new QPushButton("Import");
@@ -143,6 +157,7 @@ QWidget *FuncSourceModel::embeddedWidget()
         layout->setContentsMargins(0, 0, 0, 0);
 
         m_label = new QLabel(portCaption(PortType::Out, 0));
+        applyNodeFontColor(m_label);
         layout->addWidget(m_label);
 
         auto button = new QPushButton("Import");

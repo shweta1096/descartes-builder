@@ -28,6 +28,11 @@ public:
     QDir getDataDir() { return m_dataDir; }
     QFileInfo getFileInfo() { return m_localFile; }
     void setFileInfo(const QFileInfo &fileInfo) { m_localFile = fileInfo; }
+    void setRandomState(const std::optional<int> &randomState)
+    {
+        m_globals.m_randomState = randomState;
+    }
+    std::optional<int> getRandomState() const { return m_globals.m_randomState; }
     bool save();
     bool saveAs();
     bool open();
@@ -52,4 +57,11 @@ private:
     QFileInfo m_localFile;
     // UID Manager for this tab
     std::unique_ptr<UIDManager> m_uidManager;
+    // add randomstate and other metadata in a struct called globals
+    struct Globals
+    {
+        std::optional<int> m_randomState;
+    };
+    Globals m_globals;
+    void loadMetadataFromExisting(const QString &sceneFilename);
 };
