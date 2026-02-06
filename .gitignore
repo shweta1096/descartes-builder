@@ -1,5 +1,5 @@
 .DS_Store
-build*
+build*/
 .vscode
 *.bk
 install/windows/python_win

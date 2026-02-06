@@ -45,8 +45,6 @@ Details:
 - `-e` forwards $DISPLAY to the container, enabling GUI applications to display on the host's screen.
 - `-v` mounts the X11 Unix socket from the host to the container.
 
-# Build instructions 
-A summary of build instructions is given below. 
 # Build instructions
 
 A summary of build instructions is given below.
@@ -67,9 +65,6 @@ git clone git@github.com:eduardoconto/kedro-umbrella.git
 docker build -t descartes_builder:0.1 -t descartes_builder:latest . -f descartes-builder/Dockerfile
 ```
 
-## Building outside Docker 
-
-### Linux Environment
 ## Building outside Docker
 
 ### Linux Environment
@@ -89,7 +84,6 @@ conda create -n builder python=3.10.8 && conda activate builder
 # Install library
 make install
 ```
-3. Ensure dependencies are installed in your system:
 
 3. Ensure dependencies are installed in your system:
    - Qt 6.4.0 and above: include Qt5compat module if not included by default
